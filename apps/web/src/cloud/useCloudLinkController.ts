@@ -5,6 +5,7 @@ import {
   settlePromise,
   squashAtomCommandFailure,
 } from "@t3tools/client-runtime/state/runtime";
+import { t } from "@t3tools/shared/i18n";
 import { useState } from "react";
 
 import { toastManager } from "../components/ui/toast";
@@ -51,18 +52,19 @@ export function useCloudLinkController() {
   const [operationError, setOperationError] = useState<string | null>(null);
 
   const reportUpdateFailure = (cause: unknown) => {
-    const message = cause instanceof Error ? cause.message : "Could not update T3 Connect access.";
+    const message =
+      cause instanceof Error ? cause.message : t("cloud.useCloudLinkController.updateAccessFailed");
     const traceId = findErrorTraceId(cause);
     console.error("[t3-connect] Could not update T3 Connect", { message, traceId, cause });
     setOperationError(traceId ? `${message} Trace ID: ${traceId}` : message);
     toastManager.add({
       type: "error",
-      title: "Could not update T3 Connect",
+      title: t("cloud.useCloudLinkController.updateFailedTitle"),
       description: message,
       data: traceId
         ? {
             secondaryActionProps: {
-              children: "Copy trace ID",
+              children: t("cloud.useCloudLinkController.copyTraceId"),
               onClick: () => void navigator.clipboard?.writeText(traceId),
             },
           }
@@ -81,7 +83,7 @@ export function useCloudLinkController() {
     setOperationError(null);
     const target = primaryCloudLinkState.target;
     if (!target) {
-      reportUpdateFailure(new Error("Local environment is not ready yet."));
+      reportUpdateFailure(new Error(t("cloud.useCloudLinkController.localEnvironmentNotReady")));
       return false;
     }
     const tokenResult = await settlePromise(() => getToken(resolveRelayClerkTokenOptions()));
@@ -112,7 +114,7 @@ export function useCloudLinkController() {
       }
       const clerkToken = tokenResult.value;
       if (!clerkToken) {
-        reportUpdateFailure(new Error("Sign in to T3 Connect before enabling this."));
+        reportUpdateFailure(new Error(t("cloud.useCloudLinkController.signInBeforeEnabling")));
         return false;
       }
       if (!linked || managedTunnelActive !== desired.managedTunnel) {

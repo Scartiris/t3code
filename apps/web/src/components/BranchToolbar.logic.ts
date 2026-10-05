@@ -7,6 +7,7 @@ import type {
 } from "@t3tools/contracts";
 import * as Schema from "effect/Schema";
 import { sanitizeNewRefName } from "@t3tools/shared/git";
+import { t } from "@t3tools/shared/i18n";
 import { toSortableTimestamp } from "../lib/threadSort";
 export {
   dedupeRemoteBranchesWithLocalMatches,
@@ -47,7 +48,7 @@ export function resolveEnvironmentOptionLabel(input: {
       if (!label) return false;
       return !GENERIC_LOCAL_ENVIRONMENT_LABELS.has(label.toLowerCase());
     });
-    return preferredLocalLabel ?? "This device";
+    return preferredLocalLabel ?? t("environment.thisDevice");
   }
 
   return runtimeLabel ?? savedLabel ?? input.environmentId;
@@ -95,17 +96,17 @@ export function resolveContextStripLabelsCompact(input: {
 }
 
 export function resolveEnvModeLabel(mode: EnvMode): string {
-  return mode === "worktree" ? "New worktree" : "Current checkout";
+  return mode === "worktree" ? t("workspace.newWorktree") : t("workspace.currentCheckout");
 }
 
 export const WORKTREE_SUBMODULES_LABELS: Record<WorktreeSubmodules, string> = {
-  recursive: "Recursive",
-  "top-level": "Top level only",
-  none: "Skip",
+  recursive: t("settings.settingsServerControlsRouteScreen.recursive"),
+  "top-level": t("settings.settingsServerControlsRouteScreen.topLevelOnly"),
+  none: t("settings.settingsServerControlsRouteScreen.skip"),
 };
 
 export function resolveCurrentWorkspaceLabel(activeWorktreePath: string | null): string {
-  return activeWorktreePath ? "Current worktree" : resolveEnvModeLabel("local");
+  return activeWorktreePath ? t("workspace.currentWorktree") : resolveEnvModeLabel("local");
 }
 
 // A locked thread in worktree mode with no path is still creating its
@@ -114,8 +115,10 @@ export function resolveLockedWorkspaceLabel(
   activeWorktreePath: string | null,
   effectiveEnvMode: EnvMode,
 ): string {
-  if (activeWorktreePath) return "Worktree";
-  return effectiveEnvMode === "worktree" ? resolveEnvModeLabel("worktree") : "Local checkout";
+  if (activeWorktreePath) return t("workspace.worktree");
+  return effectiveEnvMode === "worktree"
+    ? resolveEnvModeLabel("worktree")
+    : t("workspace.localCheckout");
 }
 
 export function resolveWorkspaceDisplayName(path: string | null): string | null {
@@ -169,7 +172,9 @@ export function resolvePreviousWorktreeSeed(input: {
 }
 
 export function resolvePreviousWorktreeLabel(seed: PreviousWorktreeSeed): string {
-  return seed.branch ? `Previous worktree (${seed.branch})` : "Previous worktree";
+  return seed.branch
+    ? t("workspace.previousWorktreeBranch", { branch: seed.branch })
+    : t("workspace.previousWorktree");
 }
 
 export function resolveEffectiveEnvMode(input: {
@@ -235,14 +240,14 @@ export function resolveBranchTriggerLabel(input: {
     startFromOrigin,
   } = input;
   if (!resolvedActiveBranch) {
-    return "Select ref";
+    return t("git.selectRef");
   }
   if (effectiveEnvMode === "worktree" && !activeWorktreePath) {
     const baseRef =
       startFromOrigin && resolvedActiveBranchIsRemote === false
         ? `origin/${resolvedActiveBranch}`
         : resolvedActiveBranch;
-    return `From ${baseRef}`;
+    return t("git.fromRef", { ref: baseRef });
   }
   return resolvedActiveBranch;
 }

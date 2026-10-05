@@ -1,5 +1,6 @@
 import type { DesktopBridge } from "@t3tools/contracts";
 import { safeErrorLogAttributes } from "@t3tools/client-runtime/errors";
+import { t } from "@t3tools/shared/i18n";
 import * as Schema from "effect/Schema";
 import { useCallback, useEffect, useSyncExternalStore } from "react";
 import {
@@ -112,7 +113,9 @@ export class ThemeStorageError extends Schema.TaggedError<ThemeStorageError>()(
   },
 ) {
   override get message(): string {
-    return `Failed to ${this.operation} theme preference for ${this.storageKey}.`;
+    return this.operation === "read"
+      ? t("hooks.useTheme.readThemePreferenceFailed", { storageKey: this.storageKey })
+      : t("hooks.useTheme.writeThemePreferenceFailed", { storageKey: this.storageKey });
   }
 }
 
@@ -126,7 +129,7 @@ export class DesktopThemeSyncError extends Schema.TaggedError<DesktopThemeSyncEr
   },
 ) {
   override get message(): string {
-    return `Failed to sync the ${this.theme} theme to the desktop shell.`;
+    return t("hooks.useTheme.syncDesktopThemeFailed", { theme: this.theme });
   }
 }
 

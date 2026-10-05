@@ -31,6 +31,7 @@ import {
   splitSharedServerPatch,
   supportsSharedSettingsSync,
 } from "@t3tools/client-runtime/state/shared-settings";
+import { t } from "@t3tools/shared/i18n";
 import { ensureLocalApi } from "~/localApi";
 import {
   getThemeDefinition,
@@ -411,8 +412,9 @@ export function usePrimarySettings<T = UnifiedSettings>(
   return useMergedSettings(useAtomValue(primaryServerSettingsAtom), selector);
 }
 
-export const PRIMARY_SETTINGS_UNAVAILABLE_MESSAGE =
-  "This setting is saved on a server, and the hosted app is not anchored to one. Change it from the desktop app or from the server's own address.";
+export const PRIMARY_SETTINGS_UNAVAILABLE_MESSAGE = t(
+  "hooks.useSettings.primarySettingsUnavailable",
+);
 
 /**
  * Whether primary-scoped server settings have a server to live on. The
@@ -450,7 +452,7 @@ function useUpdateSettingsTarget(environmentId: EnvironmentId | null) {
         const warnUnsaved = (description = PRIMARY_SETTINGS_UNAVAILABLE_MESSAGE) =>
           toastManager.add({
             type: "warning",
-            title: "Setting not saved",
+            title: t("hooks.useSettings.settingNotSaved"),
             description,
           });
         if (Object.keys(localPatch).length > 0) {
@@ -492,7 +494,7 @@ function useUpdateSettingsTarget(environmentId: EnvironmentId | null) {
           }
           if (!wroteToTarget) {
             warnUnsaved(
-              targets.size > 0 ? "Update older servers to save this setting." : undefined,
+              targets.size > 0 ? t("hooks.useSettings.updateOlderServersToSave") : undefined,
             );
           }
         }

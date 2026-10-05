@@ -1,4 +1,5 @@
 import { EnvironmentId } from "@t3tools/contracts";
+import { t } from "@t3tools/shared/i18n";
 import { describe, expect, it } from "vite-plus/test";
 
 import { loadPreferenceForWeight, summarizeLoadPreferences } from "./LoadBalancingSettings";
@@ -26,7 +27,9 @@ describe("summarizeLoadPreferences", () => {
 
   it("lists only the machines that differ from Normal, in list order", () => {
     expect(summarizeLoadPreferences(machines, { b: 100, c: 0 })).toBe(
-      "bb-1 prefer · ProMini manual only",
+      `bb-1 ${t("settings.loadBalancingSettings.prefer").toLowerCase()} · ProMini ${t(
+        "settings.loadBalancingSettings.manualOnly",
+      ).toLowerCase()}`,
     );
   });
 });

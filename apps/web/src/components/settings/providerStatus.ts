@@ -3,6 +3,7 @@ import type {
   ServerProviderVersionAdvisory,
   ServerProviderCompatibilityAdvisory,
 } from "@t3tools/contracts";
+import { t } from "@t3tools/shared/i18n";
 
 /**
  * Visual treatment for each server-reported provider status. Centralized so
@@ -36,52 +37,54 @@ export type ProviderStatusKey = keyof typeof PROVIDER_STATUS_STYLES;
 export function getProviderSummary(provider: ServerProvider | undefined) {
   if (!provider) {
     return {
-      headline: "Checking provider status",
-      detail: "Waiting for the server to report installation and authentication details.",
+      headline: t("settings.providerStatus.checking"),
+      detail: t("settings.providerStatus.checkingDetail"),
     };
   }
   if (!provider.enabled || provider.status === "disabled") {
     return {
-      headline: "Disabled",
-      detail:
-        provider.message ?? "This provider is installed but disabled for new sessions in T3 Code.",
+      headline: t("settings.providerStatus.disabled"),
+      detail: provider.message ?? t("settings.providerStatus.disabledDetail"),
     };
   }
   if (!provider.installed) {
     return {
-      headline: "Not found",
-      detail: provider.message ?? "CLI not detected on PATH.",
+      headline: t("settings.providerStatus.notFound"),
+      detail: provider.message ?? t("settings.providerStatus.notFoundDetail"),
     };
   }
   if (provider.auth.status === "unauthenticated") {
     const authLabel = provider.auth.label ?? provider.auth.type;
     return {
-      headline: authLabel ? `Not authenticated · ${authLabel}` : "Not authenticated",
+      headline: authLabel
+        ? t("settings.providerStatus.notAuthenticatedWithLabel", { authLabel })
+        : t("settings.providerStatus.notAuthenticated"),
       detail: provider.message ?? null,
     };
   }
   if (provider.status === "warning") {
     return {
-      headline: "Needs attention",
-      detail:
-        provider.message ?? "The provider is installed, but the server could not fully verify it.",
+      headline: t("settings.providerStatus.needsAttention"),
+      detail: provider.message ?? t("settings.providerStatus.needsAttentionDetail"),
     };
   }
   if (provider.status === "error") {
     return {
-      headline: "Unavailable",
-      detail: provider.message ?? "The provider failed its startup checks.",
+      headline: t("settings.providerStatus.unavailable"),
+      detail: provider.message ?? t("settings.providerStatus.unavailableDetail"),
     };
   }
   if (provider.auth.status === "authenticated") {
     const authLabel = provider.auth.label ?? provider.auth.type;
     return {
-      headline: authLabel ? `Authenticated · ${authLabel}` : "Authenticated",
+      headline: authLabel
+        ? t("settings.providerStatus.authenticatedWithLabel", { authLabel })
+        : t("settings.providerStatus.authenticated"),
       detail: provider.message ?? null,
     };
   }
   return {
-    headline: "Available",
+    headline: t("settings.providerStatus.available"),
     detail: provider.message ?? null,
   };
 }
@@ -104,11 +107,16 @@ export function getProviderVersionLabel(version: string | null | undefined) {
   return /^\d/.test(version) ? `v${version}` : version;
 }
 
-const COMPATIBILITY_TITLES = {
-  graceful: "Limited support",
-  unsupported: "Unsupported version",
-  broken: "Known broken version",
-} as const;
+function compatibilityTitle(status: "graceful" | "unsupported" | "broken") {
+  switch (status) {
+    case "graceful":
+      return t("settings.providerStatus.limitedSupport");
+    case "unsupported":
+      return t("settings.providerStatus.unsupportedVersion");
+    case "broken":
+      return t("settings.providerStatus.knownBrokenVersion");
+  }
+}
 
 /** Compatibility guidance shares the version popover, with safe install actions. */
 export function getProviderVersionAdvisoryPresentation(
@@ -135,10 +143,12 @@ export function getProviderVersionAdvisoryPresentation(
     const targetVersion = compatibility.recommendedVersion;
     const recommendation = getProviderVersionLabel(targetVersion) ?? compatibility.recommendedRange;
     return {
-      title: COMPATIBILITY_TITLES[compatibility.status],
+      title: compatibilityTitle(compatibility.status),
       detail:
         compatibility.message ??
-        (recommendation ? `Use ${recommendation} for full support.` : "Update for full support."),
+        (recommendation
+          ? t("settings.providerStatus.useForFullSupport", { recommendation })
+          : t("settings.providerStatus.updateForFullSupport")),
       updateCommand:
         targetVersion || latestIsIncompatible ? null : (advisory?.updateCommand ?? null),
       emphasis: compatibility.status === "graceful" ? "normal" : "strong",
@@ -154,7 +164,7 @@ export function getProviderVersionAdvisoryPresentation(
     return null;
   }
 
-  const label = "Update available";
+  const label = t("settings.providerStatus.updateAvailable");
   const version = advisory.latestVersion;
   const versionLabel = getProviderVersionLabel(version);
 
@@ -163,8 +173,8 @@ export function getProviderVersionAdvisoryPresentation(
     detail:
       advisory.message ??
       (versionLabel
-        ? `${label}: install ${versionLabel}.`
-        : `${label}: install the latest provider version.`),
+        ? t("settings.providerStatus.updateInstallVersion", { label, versionLabel })
+        : t("settings.providerStatus.updateInstallLatest", { label })),
     updateCommand: advisory.updateCommand,
     emphasis: "normal" as const,
     targetVersion: null,

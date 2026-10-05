@@ -1,6 +1,7 @@
 import { CheckIcon, CircleDotIcon, CircleIcon, ListTodoIcon } from "lucide-react";
 import { memo, type ComponentProps } from "react";
 
+import { t } from "@t3tools/shared/i18n";
 import { formatDuration } from "../../session-logic";
 import { cn } from "~/lib/utils";
 import { ComposerBanner } from "./ComposerBanner";
@@ -20,9 +21,9 @@ export interface ComposerTaskStep {
 const MAX_TASK_SEGMENTS = 10;
 
 const taskStatusLabels = {
-  pending: "Pending",
-  inProgress: "Running",
-  completed: "Completed",
+  pending: t("chat.composerTasksBadge.pending"),
+  inProgress: t("chat.composerTasksBadge.inProgress"),
+  completed: t("chat.composerTasksBadge.completed"),
 } satisfies Record<ComposerTaskStep["status"], string>;
 
 function keyedTaskSteps(steps: readonly ComposerTaskStep[]) {
@@ -77,7 +78,7 @@ function TaskSummary({
         <ListTodoIcon />
       </ComposerBanner.Icon>
       <ComposerBanner.Content>
-        <span className="shrink-0 text-muted-foreground">Tasks</span>
+        <span className="shrink-0 text-muted-foreground">{t("chat.composerTasksBadge.tasks")}</span>
         <span
           className="min-w-0 flex-1 truncate text-left font-medium text-foreground/80"
           data-composer-task-current="true"
@@ -118,7 +119,14 @@ export const ComposerTasksBadge = memo(function ComposerTasksBadge({
     <ComposerBanner.Row
       render={<button type="button" />}
       aria-expanded={expanded}
-      aria-label={`${expanded ? "Collapse tasks" : "Tasks"}: ${progress.completedSteps} of ${progress.totalSteps} complete. Current task: ${progress.step}`}
+      aria-label={t("chat.composerTasksBadge.badgeAria", {
+        label: expanded
+          ? t("chat.composerTasksBadge.collapseTasks")
+          : t("chat.composerTasksBadge.tasks"),
+        completedSteps: progress.completedSteps,
+        totalSteps: progress.totalSteps,
+        step: progress.step,
+      })}
       data-composer-tasks-badge="true"
       onClick={onToggle}
       onPointerDown={(event) => event.preventDefault()}
@@ -162,7 +170,10 @@ export const ComposerTasksContent = memo(function ComposerTasksContent({
         <ComposerBanner.Scroll data-composer-tasks-scroll="true">
           <ComposerBanner.Children
             render={<ul role="list" />}
-            aria-label={`Task list. ${progress.completedSteps} of ${progress.totalSteps} complete.`}
+            aria-label={t("chat.composerTasksBadge.taskListAria", {
+              completedSteps: progress.completedSteps,
+              totalSteps: progress.totalSteps,
+            })}
             data-composer-tasks-list="true"
           >
             {keyedTaskSteps(steps).map(({ key, step }) => (
@@ -206,7 +217,7 @@ export const ComposerTasksContent = memo(function ComposerTasksContent({
                     {step.durationMs !== undefined
                       ? formatDuration(step.durationMs)
                       : step.status === "inProgress"
-                        ? "now"
+                        ? t("chat.composerTasksBadge.now")
                         : null}
                   </span>
                 </ComposerBanner.Actions>

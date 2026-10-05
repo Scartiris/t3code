@@ -3,6 +3,7 @@
  * the one that closes or reopens it. The popover around it belongs to PullRequestComposer.
  */
 import type { EnvironmentId, PullRequestDetailView, PullRequestRef } from "@t3tools/contracts";
+import { t } from "@t3tools/shared/i18n";
 import { SendIcon } from "lucide-react";
 import { useState, type RefObject } from "react";
 
@@ -72,7 +73,10 @@ export function PullRequestCommentForm({
     });
     if (result._tag === "Failure") {
       setSubmitting(null);
-      toastManager.add({ type: "error", title: "Could not post the comment" });
+      toastManager.add({
+        type: "error",
+        title: t("pullRequest.pullRequestCommentForm.postFailed"),
+      });
       return;
     }
     setBody("");
@@ -90,8 +94,8 @@ export function PullRequestCommentForm({
         disabled={submitting !== null || actionPending}
         value={body}
         rows={3}
-        placeholder="Leave a comment"
-        aria-label="Comment on this pull request"
+        placeholder={t("pullRequest.pullRequestCommentForm.placeholder")}
+        aria-label={t("pullRequest.pullRequestCommentForm.ariaLabel")}
         onChange={(event) => setBody(event.target.value)}
         onKeyDown={(event) => {
           if (event.nativeEvent.isComposing || event.keyCode === 229) return;
@@ -122,11 +126,11 @@ export function PullRequestCommentForm({
             )}
             {submitting === followUpAction
               ? followUpAction === "close"
-                ? "Closing..."
-                : "Reopening..."
+                ? t("pullRequest.pullRequestCommentForm.closing")
+                : t("pullRequest.pullRequestCommentForm.reopening")
               : followUpAction === "close"
-                ? "Close with comment"
-                : "Reopen with comment"}
+                ? t("pullRequest.pullRequestCommentForm.closeWithComment")
+                : t("pullRequest.pullRequestCommentForm.reopenWithComment")}
           </Button>
         )}
         <Button
@@ -136,7 +140,9 @@ export function PullRequestCommentForm({
           onClick={() => void submit("comment")}
         >
           <SendIcon className="size-3.5" />
-          {submitting === "comment" ? "Posting..." : "Comment"}
+          {submitting === "comment"
+            ? t("pullRequest.pullRequestCommentForm.posting")
+            : t("pullRequest.pullRequestCommentForm.comment")}
         </Button>
       </div>
     </div>

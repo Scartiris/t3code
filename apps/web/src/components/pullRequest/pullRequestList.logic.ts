@@ -19,6 +19,7 @@ import type {
   PullRequestListState,
   PullRequestState,
 } from "@t3tools/contracts";
+import { t } from "@t3tools/shared/i18n";
 
 import { toSortableTimestamp } from "../../lib/threadSort";
 import type { PullRequestListSort } from "./pullRequestListPreferences";
@@ -73,9 +74,9 @@ const pullRequestViewerKey = (entry: ScopedEntry): string =>
   `${entry.environmentId ?? ""} ${entry.host}`;
 
 const GROUP_LABELS: Record<PullRequestGroupKey, string> = {
-  reviewRequested: "Review requested",
-  authored: "Authored",
-  others: "Others",
+  reviewRequested: t("routes.chatPullRequests.reviewing"),
+  authored: t("routes.chatPullRequests.authored"),
+  others: t("pullRequest.pullRequestList.others"),
 };
 
 function normalize(value: string | null | undefined): string | null {

@@ -1,4 +1,5 @@
 import { EnvironmentId, ProviderDriverKind, type AcpRegistrySearchAgent } from "@t3tools/contracts";
+import { t } from "@t3tools/shared/i18n";
 import { beforeEach, describe, expect, it, vi } from "vite-plus/test";
 
 import { visitElements } from "../../test/reactElementTree";
@@ -97,11 +98,18 @@ describe("AddProviderInstanceDialog environment routing", () => {
     );
     (group!.props.onValueChange as (value: string) => void)("grok");
     tree = render();
-    (findByChildren(tree, "Next").props.onClick as () => void)();
+    (
+      findByChildren(tree, t("settings.addProviderInstanceDialog.next")).props.onClick as () => void
+    )();
     tree = render();
-    (findByChildren(tree, "Next").props.onClick as () => void)();
+    (
+      findByChildren(tree, t("settings.addProviderInstanceDialog.next")).props.onClick as () => void
+    )();
     tree = render();
-    (findByChildren(tree, "Add instance").props.onClick as () => void)();
+    (
+      findByChildren(tree, t("settings.addProviderInstanceDialog.addInstance")).props
+        .onClick as () => void
+    )();
     await Promise.resolve();
     expect(settingsHooks.mutate).toHaveBeenCalledWith({
       operation: "create",
@@ -118,11 +126,19 @@ describe("AddProviderInstanceDialog environment routing", () => {
     });
     let tree = render();
     // Codex offers ChatGPT sign-in first; manual setup keeps the existing CLI flow.
-    (findByChildren(tree, "Configure manually").props.onClick as () => void)();
+    (
+      findByChildren(tree, t("settings.addProviderInstanceDialog.configureManually")).props
+        .onClick as () => void
+    )();
     tree = render();
-    (findByChildren(tree, "Next").props.onClick as () => void)();
+    (
+      findByChildren(tree, t("settings.addProviderInstanceDialog.next")).props.onClick as () => void
+    )();
     tree = render();
-    (findByChildren(tree, "Add instance").props.onClick as () => void)();
+    (
+      findByChildren(tree, t("settings.addProviderInstanceDialog.addInstance")).props
+        .onClick as () => void
+    )();
     await Promise.resolve();
     expect(settingsHooks.mutate).toHaveBeenCalledWith({
       operation: "create",
@@ -161,7 +177,8 @@ describe("AddProviderInstanceDialog environment routing", () => {
       }),
     ).not.toBeNull();
     (
-      findByChildren(identityStep, "Continue to sign-in").props.onClick as (() => void) | undefined
+      findByChildren(identityStep, t("settings.addProviderInstanceDialog.continueToSignIn")).props
+        .onClick as (() => void) | undefined
     )?.();
     expect(settingsHooks.mutate).toHaveBeenCalledWith({
       operation: "create",
@@ -214,9 +231,14 @@ describe("AddProviderInstanceDialog environment routing", () => {
       agentId: "devin",
     });
     tree = render();
-    (findByChildren(tree, "Next").props.onClick as () => void)();
+    (
+      findByChildren(tree, t("settings.addProviderInstanceDialog.next")).props.onClick as () => void
+    )();
     tree = render();
-    (findByChildren(tree, "Continue to sign-in").props.onClick as () => void)();
+    (
+      findByChildren(tree, t("settings.addProviderInstanceDialog.continueToSignIn")).props
+        .onClick as () => void
+    )();
     await Promise.resolve();
     await Promise.resolve();
     expect(settingsHooks.mutate).toHaveBeenCalledWith({
@@ -246,7 +268,8 @@ describe("AddProviderInstanceDialog environment routing", () => {
 
     const identityStep = render(onOpenChange);
     (
-      findByChildren(identityStep, "Continue to sign-in").props.onClick as (() => void) | undefined
+      findByChildren(identityStep, t("settings.addProviderInstanceDialog.continueToSignIn")).props
+        .onClick as (() => void) | undefined
     )?.();
     await Promise.resolve();
     await Promise.resolve();

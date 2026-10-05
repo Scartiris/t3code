@@ -6,6 +6,7 @@ import {
   type ResolvedKeybindingRule,
   type ResolvedKeybindingsConfig,
 } from "@t3tools/contracts";
+import { t } from "@t3tools/shared/i18n";
 import {
   DEFAULT_RESOLVED_KEYBINDINGS,
   parseKeybindingWhenExpression,
@@ -108,11 +109,11 @@ export function whenAstToExpression(node: KeybindingWhenNode | undefined): strin
 }
 
 export function whenNodeRemoveLabel(node: KeybindingWhenNode, depth: number): string {
-  if (depth === 0) return "Clear all conditions";
+  if (depth === 0) return t("settings.keybindingsSettingsLogic.clearAllConditions");
   if (node.type === "identifier" || (node.type === "not" && node.node.type === "identifier")) {
-    return "Remove condition";
+    return t("settings.keybindingsSettingsLogic.removeCondition");
   }
-  return "Remove group and its conditions";
+  return t("settings.keybindingsSettingsLogic.removeGroupAndConditions");
 }
 
 function wrapWhenExpression(node: KeybindingWhenNode): string {
@@ -130,7 +131,7 @@ export function parseWhenExpressionDraft(
   if (!ast) {
     return {
       ok: false,
-      message: "Use variables with !, &&, ||, and parentheses.",
+      message: t("settings.keybindingsSettingsLogic.invalidWhenExpression"),
     };
   }
 
@@ -312,19 +313,37 @@ export function buildKeybindingCommandOptions(
 }
 
 export function commandLabel(command: KeybindingCommand): string {
-  if (command === "composer.sendAlternate") return "Composer: Opposite Queue or Steer Action";
-  if (command === "composer.sendBackground") return "Composer: Start in Background";
-  if (command === "composer.sendAndNewThread") return "Composer: Send and Start New Thread";
-  if (command === "thread.steerQueuedMessage") return "Queue: Send First Queued Message as Steer";
-  if (command === "thread.editQueuedMessage") return "Queue: Edit Last Queued Message";
-  if (command === "thread.copyReference") return "Pull Request: Copy Link or Thread ID";
+  if (command === "composer.sendAlternate") {
+    return t("settings.keybindingsSettingsLogic.composerSendAlternate");
+  }
+  if (command === "composer.sendBackground") {
+    return t("settings.keybindingsSettingsLogic.composerSendBackground");
+  }
+  if (command === "composer.sendAndNewThread") {
+    return t("settings.keybindingsSettingsLogic.composerSendAndNewThread");
+  }
+  if (command === "thread.steerQueuedMessage") {
+    return t("settings.keybindingsSettingsLogic.queueSteerFirstMessage");
+  }
+  if (command === "thread.editQueuedMessage") {
+    return t("settings.keybindingsSettingsLogic.queueEditLastMessage");
+  }
+  if (command === "thread.copyReference") {
+    return t("settings.keybindingsSettingsLogic.pullRequestCopyLinkOrThreadId");
+  }
   const usageMetric = METRIC_OPTIONS.find((option) => option.command === command);
-  if (usageMetric) return `Usage: ${usageMetric.label}`;
+  if (usageMetric) {
+    return t("settings.keybindingsSettingsLogic.usageLabel", { label: usageMetric.label });
+  }
   const usagePeriod = WINDOW_OPTIONS.find((option) => option.command === command);
-  if (usagePeriod) return `Usage: Period: ${usagePeriod.label}`;
+  if (usagePeriod) {
+    return t("settings.keybindingsSettingsLogic.usagePeriodLabel", { label: usagePeriod.label });
+  }
   const raw = String(command);
   if (raw.startsWith("script.") && raw.endsWith(".run")) {
-    return `Run Script: ${titleCaseCommandSegment(raw.slice("script.".length, -".run".length))}`;
+    return t("settings.keybindingsSettingsLogic.runScript", {
+      name: titleCaseCommandSegment(raw.slice("script.".length, -".run".length)),
+    });
   }
   return raw.split(".").map(titleCaseCommandSegment).join(": ");
 }

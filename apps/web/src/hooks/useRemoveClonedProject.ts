@@ -1,6 +1,7 @@
 import { useRouter } from "@tanstack/react-router";
 import { squashAtomCommandFailure } from "@t3tools/client-runtime/state/runtime";
 import type { ScopedProjectRef } from "@t3tools/contracts";
+import { t } from "@t3tools/shared/i18n";
 import { useCallback } from "react";
 
 import { useComposerDraftStore } from "../composerDraftStore";
@@ -35,8 +36,9 @@ export function useRemoveClonedProject() {
         toastManager.add(
           stackedThreadToast({
             type: "error",
-            title: "Failed to remove project",
-            description: error instanceof Error ? error.message : "An error occurred.",
+            title: t("threads.newTaskDraftScreen.failedToRemoveProject"),
+            description:
+              error instanceof Error ? error.message : t("components.sidebar.errorOccurred"),
           }),
         );
         return false;

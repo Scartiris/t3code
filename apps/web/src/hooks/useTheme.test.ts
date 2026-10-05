@@ -1,3 +1,4 @@
+import { t } from "@t3tools/shared/i18n";
 import { afterEach, describe, expect, it, vi } from "vite-plus/test";
 
 function createStorage(overrides: Partial<Storage> = {}): Storage {
@@ -102,7 +103,7 @@ describe("theme failure handling", () => {
     await expect(import("./useTheme")).resolves.toBeDefined();
 
     expect(errorLog).toHaveBeenCalledWith(
-      "Failed to read theme preference for t3code:theme.",
+      t("hooks.useTheme.readThemePreferenceFailed", { storageKey: "t3code:theme" }),
       expect.objectContaining({
         operation: "read",
         storageKey: "t3code:theme",
@@ -192,7 +193,7 @@ describe("theme failure handling", () => {
 
     expect(setTheme).toHaveBeenCalledTimes(2);
     expect(errorLog).toHaveBeenCalledWith(
-      "Failed to sync the dark theme to the desktop shell.",
+      t("hooks.useTheme.syncDesktopThemeFailed", { theme: "dark" }),
       expect.objectContaining({
         theme: "dark",
         errorTag: "DesktopThemeSyncError",

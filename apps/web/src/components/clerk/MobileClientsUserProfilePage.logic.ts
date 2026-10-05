@@ -1,4 +1,5 @@
 import type { RelayClientDeviceRecord } from "@t3tools/contracts/relay";
+import { t } from "@t3tools/shared/i18n";
 
 const mobileClientUpdatedAtFormatter = new Intl.DateTimeFormat(undefined, {
   dateStyle: "medium",
@@ -6,10 +7,10 @@ const mobileClientUpdatedAtFormatter = new Intl.DateTimeFormat(undefined, {
 });
 
 const NOTIFICATION_PREFERENCES = [
-  ["notifyOnApproval", "approvals"],
-  ["notifyOnInput", "input requests"],
-  ["notifyOnCompletion", "completions"],
-  ["notifyOnFailure", "failures"],
+  ["notifyOnApproval", t("clerk.mobileClientsUserProfilePage.alertApprovals")],
+  ["notifyOnInput", t("clerk.mobileClientsUserProfilePage.alertInputRequests")],
+  ["notifyOnCompletion", t("clerk.mobileClientsUserProfilePage.alertCompletions")],
+  ["notifyOnFailure", t("clerk.mobileClientsUserProfilePage.alertFailures")],
 ] as const satisfies ReadonlyArray<
   readonly [keyof RelayClientDeviceRecord["notifications"], string]
 >;
@@ -26,20 +27,24 @@ export function mobileClientPlatformLabel(device: RelayClientDeviceRecord): stri
 
 export function mobileClientNotificationDetail(device: RelayClientDeviceRecord): string {
   if (!device.notifications.enabled) {
-    return "Push notifications are disabled on this device.";
+    return t("clerk.mobileClientsUserProfilePage.pushNotificationsDisabled");
   }
 
   const enabledPreferences = NOTIFICATION_PREFERENCES.flatMap(([preference, label]) =>
     device.notifications[preference] ? [label] : [],
   );
   return enabledPreferences.length > 0
-    ? `Alerts enabled for ${enabledPreferences.join(", ")}.`
-    : "Push notifications are enabled, but no alert types are selected.";
+    ? t("clerk.mobileClientsUserProfilePage.alertsEnabledFor", {
+        types: enabledPreferences.join(", "),
+      })
+    : t("clerk.mobileClientsUserProfilePage.alertsEnabledNoTypesSelected");
 }
 
 export function mobileClientUpdatedAtLabel(updatedAt: string): string {
   const date = new Date(updatedAt);
   return Number.isNaN(date.getTime())
-    ? "Update time unavailable"
-    : `Updated ${mobileClientUpdatedAtFormatter.format(date)}`;
+    ? t("clerk.mobileClientsUserProfilePage.updatedAtUnavailable")
+    : t("clerk.mobileClientsUserProfilePage.updatedAt", {
+        time: mobileClientUpdatedAtFormatter.format(date),
+      });
 }

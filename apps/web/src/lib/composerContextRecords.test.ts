@@ -8,6 +8,7 @@ import {
 } from "@t3tools/contracts";
 import * as Schema from "effect/Schema";
 import { upgradeLegacyContextMessage } from "@t3tools/shared/composerContextLegacy";
+import { t } from "@t3tools/shared/i18n";
 
 import {
   formatInlineContextReference,
@@ -291,8 +292,8 @@ describe("composerContextRecords", () => {
   });
   it.each([
     ["+181", "a.ts L181"],
-    ["+181 to +183", "a.ts L181 to L183"],
-    ["-63", "a.ts L63 (before)"],
+    ["+181 to +183", `a.ts L181${t("web.composerContextRecords.diffRangeEnd", { end: "183" })}`],
+    ["-63", `a.ts L63${t("web.composerContextRecords.diffRangeBefore")}`],
     ["L4", "a.ts L4"],
   ])("presents review range %s consistently as %s", (rangeLabel, expected) => {
     expect(
@@ -335,7 +336,9 @@ describe("composerContextRecords", () => {
     expect(isPullRequestSummaryContext(summary)).toBe(true);
     expect(reviewCommentContextLabel(summary)).toBe("#42");
     expect(pullRequestContextDisplayState(summary)).toBe("open");
-    expect(pullRequestContextKindLabel(summary)).toBe("Open pull request");
+    expect(pullRequestContextKindLabel(summary)).toBe(
+      t("web.composerContextRecords.openPullRequest"),
+    );
     expect(
       pullRequestContextDisplayState({
         ...summary,
@@ -364,7 +367,7 @@ describe("composerContextRecords", () => {
       pageUrl: "http://localhost:3000/checkout",
       pageTitle: "Checkout",
       comment: "Make this   bigger",
-      targetSummary: "1 selected element",
+      targetSummary: t("components.composerContextPresentation.elementCount", { count: 1 }),
       styleChanges: ["font-size: (unset) → 20px"],
       styleChangeDetails: annotation.styleChanges,
       elementIds: ["el_1"],
@@ -424,7 +427,7 @@ describe("composerContextRecords", () => {
     expect(atLimit.diff).toHaveLength(32_000);
     const overLimit = build(32_001);
     expect(overLimit.diff.length).toBeLessThanOrEqual(32_000);
-    expect(overLimit.diff.endsWith("… truncated …")).toBe(true);
+    expect(overLimit.diff.endsWith(t("web.composerContextRecords.truncationMarker"))).toBe(true);
     expect(() => decodeMessageContext({ version: 1, records: [atLimit] })).not.toThrow();
     expect(() => decodeMessageContext({ version: 1, records: [overLimit] })).not.toThrow();
   });
@@ -437,14 +440,18 @@ describe("composerContextRecords", () => {
       regions: [{ id: "rg_1", rect: { x: 1, y: 2, width: 3, height: 4 } }],
     };
     const record = previewAnnotationContextRecord(regionOnly, { screenshotContextId: "ann_1" });
-    expect(record.targetSummary).toBe("1 marked region");
+    expect(record.targetSummary).toBe(
+      t("components.composerContextPresentation.regionCount", { count: 1 }),
+    );
     expect(record.screenshotContextId).toBe("image_ann_1");
 
     // Re-encoding what a paste rebuilt must not empty the summary or drop the screenshot.
     const reencoded = previewAnnotationContextRecord(previewAnnotationFromRecord(record), {
       screenshotContextId: "ann_1",
     });
-    expect(reencoded.targetSummary).toBe("1 marked region");
+    expect(reencoded.targetSummary).toBe(
+      t("components.composerContextPresentation.regionCount", { count: 1 }),
+    );
     expect(reencoded.screenshotContextId).toBe("image_ann_1");
   });
 

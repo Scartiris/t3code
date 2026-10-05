@@ -1,4 +1,5 @@
 import { DEFAULT_UNIFIED_SETTINGS } from "@t3tools/contracts/settings";
+import { t } from "@t3tools/shared/i18n";
 import { act, StrictMode, type ReactNode } from "react";
 import { create, type ReactTestRenderer } from "react-test-renderer";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vite-plus/test";
@@ -79,7 +80,11 @@ function button(label: string) {
 }
 
 function openEditor() {
-  act(() => button("Write custom instructions for all").props.onClick());
+  act(() =>
+    button(
+      t("settings.sourceControlWritingSettings.writeCustomInstructionsForAll"),
+    ).props.onClick(),
+  );
 }
 
 function editInstructions(value: string) {
@@ -87,7 +92,9 @@ function editInstructions(value: string) {
 }
 
 function applyInstructions() {
-  act(() => button("Apply instructions to all").props.onClick());
+  act(() =>
+    button(t("settings.sourceControlWritingSettings.applyInstructionsToAll")).props.onClick(),
+  );
 }
 
 beforeEach(() => {
@@ -131,7 +138,7 @@ describe("mixed source control instructions", () => {
       customInstructions,
     }));
 
-    act(() => button("Reset change request templates").props.onClick());
+    act(() => button(`Reset ${t("settings.option.followChangeRequestTemplates")}`).props.onClick());
 
     expect(state.updateSettings).toHaveBeenCalledTimes(1);
     expect(state.styles.map((style) => style.followChangeRequestTemplates)).toEqual([
@@ -153,7 +160,7 @@ describe("mixed source control instructions", () => {
       );
     });
 
-    act(() => button("Reset source control writing style").props.onClick());
+    act(() => button(`Reset ${t("settings.option.sourceControlWritingStyle")}`).props.onClick());
 
     expect(state.updateSettings).toHaveBeenCalledTimes(1);
     expect(
@@ -171,7 +178,9 @@ describe("mixed source control instructions", () => {
     const initialStyles = state.styles;
     openEditor();
     expect(renderer!.root.findByType("textarea").props.value).toBe("");
-    expect(button("Apply instructions to all").props.disabled).toBe(true);
+    expect(
+      button(t("settings.sourceControlWritingSettings.applyInstructionsToAll")).props.disabled,
+    ).toBe(true);
 
     applyInstructions();
     expect(state.updateSettings).not.toHaveBeenCalled();
@@ -181,7 +190,9 @@ describe("mixed source control instructions", () => {
   it("applies edited instructions to every selected environment", () => {
     openEditor();
     editInstructions("  Keep titles concise.  ");
-    expect(button("Apply instructions to all").props.disabled).toBe(false);
+    expect(
+      button(t("settings.sourceControlWritingSettings.applyInstructionsToAll")).props.disabled,
+    ).toBe(false);
     applyInstructions();
 
     expect(state.updateSettings).toHaveBeenCalledTimes(1);
@@ -196,7 +207,9 @@ describe("mixed source control instructions", () => {
     openEditor();
     editInstructions("Temporary instructions");
     editInstructions("");
-    expect(button("Apply instructions to all").props.disabled).toBe(false);
+    expect(
+      button(t("settings.sourceControlWritingSettings.applyInstructionsToAll")).props.disabled,
+    ).toBe(false);
     applyInstructions();
 
     expect(state.updateSettings).toHaveBeenCalledTimes(1);
@@ -215,7 +228,9 @@ describe("mixed source control instructions", () => {
     ]);
     // Template preferences still differ, but that is the templates row's
     // concern: the instructions editor is no longer a bulk draft.
-    expect(button("Write custom instructions for all")).toBeUndefined();
+    expect(
+      button(t("settings.sourceControlWritingSettings.writeCustomInstructionsForAll")),
+    ).toBeUndefined();
     expect(renderer!.root.findByType("textarea").props.defaultValue).toBe("Shared instructions");
   });
 });

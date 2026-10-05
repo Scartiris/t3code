@@ -4,6 +4,7 @@ import {
   COMPOSER_CONTEXT_CLIPBOARD_MIME,
   encodeComposerContextClipboardHtml,
 } from "@t3tools/shared/composerContextClipboard";
+import { t } from "@t3tools/shared/i18n";
 
 export class ClipboardApiUnavailableError extends Schema.TaggedError<ClipboardApiUnavailableError>()(
   "ClipboardApiUnavailableError",
@@ -12,7 +13,7 @@ export class ClipboardApiUnavailableError extends Schema.TaggedError<ClipboardAp
   },
 ) {
   override get message(): string {
-    return `Clipboard API is unavailable while copying ${this.target}.`;
+    return t("hooks.useCopyToClipboard.apiUnavailableWhileCopying", { target: this.target });
   }
 }
 
@@ -24,7 +25,7 @@ export class ClipboardWriteError extends Schema.TaggedError<ClipboardWriteError>
   },
 ) {
   override get message(): string {
-    return `Failed to copy ${this.target} to the clipboard.`;
+    return t("hooks.useCopyToClipboard.copyFailed", { target: this.target });
   }
 }
 
@@ -35,7 +36,7 @@ export class ClipboardReadUnavailableError extends Schema.TaggedError<ClipboardR
   },
 ) {
   override get message(): string {
-    return `Clipboard API is unavailable while reading ${this.target}.`;
+    return t("hooks.useCopyToClipboard.apiUnavailableWhileReading", { target: this.target });
   }
 }
 
@@ -47,7 +48,7 @@ export class ClipboardReadError extends Schema.TaggedError<ClipboardReadError>()
   },
 ) {
   override get message(): string {
-    return `Failed to read ${this.target} from the clipboard.`;
+    return t("hooks.useCopyToClipboard.readFailed", { target: this.target });
   }
 }
 

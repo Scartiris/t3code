@@ -1,4 +1,5 @@
 import { RunId } from "@t3tools/contracts";
+import { t } from "@t3tools/shared/i18n";
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vite-plus/test";
 
@@ -18,9 +19,9 @@ describe("ChangedFilesCard", () => {
     );
 
     expect(markup).toContain('data-changed-files-state="tree"');
-    expect(markup).toContain('aria-label="Open diff"');
+    expect(markup).toContain(`aria-label="${t("chat.changedFilesTree.openDiff")}"`);
     expect(markup).toContain('role="group" aria-label="2 additions, 1 deletions"');
-    expect(markup).toContain("1 changed file");
+    expect(markup).toContain(t("chat.changedFilesTree.changedFiles", { count: 1 }));
     expect(markup).not.toContain("1 changed files");
   });
 
@@ -70,7 +71,7 @@ describe("ChangedFilesCard", () => {
     );
 
     expect(markup).toContain('data-changed-files-state="tree"');
-    expect(markup).toContain("1 changed file");
+    expect(markup).toContain(t("chat.changedFilesTree.changedFiles", { count: 1 }));
     expect(markup).toContain("apps/web/src");
     expect(markup).not.toContain("Show all");
     expect(markup).not.toContain("App.tsx");

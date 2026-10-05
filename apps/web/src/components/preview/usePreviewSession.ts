@@ -3,6 +3,7 @@
 import { useAtomValue } from "@effect/atom-react";
 import { parseScopedThreadKey, scopedThreadKey } from "@t3tools/client-runtime/environment";
 import type { ScopedThreadRef } from "@t3tools/contracts";
+import { t } from "@t3tools/shared/i18n";
 import * as Schema from "effect/Schema";
 import { AsyncResult, Atom } from "effect/unstable/reactivity";
 
@@ -18,7 +19,7 @@ class PreviewSessionThreadKeyParseError extends Schema.TaggedError<PreviewSessio
   { threadKey: Schema.String },
 ) {
   override get message(): string {
-    return `Invalid scoped preview thread key: ${this.threadKey}`;
+    return t("preview.usePreviewSession.invalidScopedThreadKey", { threadKey: this.threadKey });
   }
 }
 

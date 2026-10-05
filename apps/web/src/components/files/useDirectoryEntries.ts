@@ -1,5 +1,6 @@
 import type { EnvironmentId, ProjectEntry } from "@t3tools/contracts";
 import { executeAtomQuery } from "@t3tools/client-runtime/state/runtime";
+import { t } from "@t3tools/shared/i18n";
 import * as Cause from "effect/Cause";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
@@ -68,7 +69,9 @@ export function useDirectoryEntries(environmentId: EnvironmentId, cwd: string) {
             setErrors((previous) =>
               new Map(previous).set(
                 directoryPath,
-                cause instanceof Error ? cause.message : "Unable to load folder.",
+                cause instanceof Error
+                  ? cause.message
+                  : t("files.useDirectoryEntries.unableToLoadFolder"),
               ),
             );
           }

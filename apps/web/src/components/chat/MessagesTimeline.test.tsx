@@ -20,6 +20,16 @@ import { shouldUseRestingComposerLayout } from "../composerFooterLayout";
 import { useComposerFocusState } from "./useComposerFocusState";
 import { beforeAll, beforeEach, describe, expect, it, vi } from "vite-plus/test";
 import type { LegendListRef } from "@legendapp/list/react";
+import { t } from "@t3tools/shared/i18n";
+
+/**
+ * The work-log sentence `summarizeToolGroup` builds: one label per action group, joined by the
+ * catalog's list separator. Chinese has no case transform, so the source's lowercasing of the
+ * labels after the first is the identity here.
+ */
+function workLogSummary(labels: ReadonlyArray<string>): string {
+  return labels.join(t("workLog.presentation.listSeparator"));
+}
 
 const activityTestState = vi.hoisted(() => ({
   expanded: false,
@@ -693,10 +703,12 @@ describe("MessagesTimeline", () => {
       />,
     );
 
-    expect(markup).toContain('aria-label="Load earlier turns"');
-    expect(markup).toContain("Load earlier turns");
+    expect(markup).toContain(`aria-label="${t("chat.messagesTimeline.loadEarlierTurns")}"`);
+    expect(markup).toContain(t("chat.messagesTimeline.loadEarlierTurns"));
     expect(markup).toContain("Earlier activity could not be loaded.");
-    expect(markup.indexOf("Load earlier turns")).toBeLessThan(markup.indexOf("Recent activity"));
+    expect(markup.indexOf(t("chat.messagesTimeline.loadEarlierTurns"))).toBeLessThan(
+      markup.indexOf("Recent activity"),
+    );
   });
 
   it("keeps an empty bounded timeline actionable while earlier history loads", () => {
@@ -713,9 +725,9 @@ describe("MessagesTimeline", () => {
       />,
     );
 
-    expect(markup).toContain("Loading earlier turns…");
+    expect(markup).toContain(t("chat.messagesTimeline.loadingEarlierTurns"));
     expect(markup).toContain("disabled");
-    expect(markup).not.toContain("Send a message to start the conversation.");
+    expect(markup).not.toContain(t("chat.messagesTimeline.emptyTimeline"));
   });
 
   it("uses the larger leading inset only when the top fade is enabled", () => {
@@ -780,9 +792,9 @@ describe("MessagesTimeline", () => {
     expect(markup).not.toContain("self-start");
     expect(markup).toContain("whitespace-nowrap");
     expect(markup).toContain("size-3");
-    expect(markup).not.toContain('aria-label="Collapse all folders"');
-    expect(markup).toContain('aria-label="Open diff"');
-    expect(markup).toContain("1 changed file");
+    expect(markup).not.toContain(`aria-label="${t("chat.changedFilesTree.collapseAllFolders")}"`);
+    expect(markup).toContain(`aria-label="${t("chat.changedFilesTree.openDiff")}"`);
+    expect(markup).toContain(t("chat.changedFilesTree.changedFiles", { count: 1 }));
   });
 
   it("treats the follow re-arm band above the content bottom as the live edge", async () => {
@@ -1022,8 +1034,12 @@ describe("MessagesTimeline", () => {
       <MessagesTimeline {...buildProps()} timelineEntries={[entry]} />,
     );
 
-    expect(markup).toContain('aria-label="Preview report.pdf"');
-    expect(markup).toContain('aria-label="Download report.pdf"');
+    expect(markup).toContain(
+      `aria-label="${t("chat.messagesTimeline.previewItem", { name: "report.pdf" })}"`,
+    );
+    expect(markup).toContain(
+      `aria-label="${t("chat.messagesTimeline.downloadItem", { name: "report.pdf" })}"`,
+    );
     expect(markup).not.toContain('alt="report.pdf"');
   });
 
@@ -1048,8 +1064,12 @@ describe("MessagesTimeline", () => {
       <MessagesTimeline {...buildProps()} timelineEntries={[entry]} />,
     );
 
-    expect(markup).toContain('aria-label="Preview report.pdf"');
-    expect(markup).toContain('aria-label="Download report.pdf"');
+    expect(markup).toContain(
+      `aria-label="${t("chat.messagesTimeline.previewItem", { name: "report.pdf" })}"`,
+    );
+    expect(markup).toContain(
+      `aria-label="${t("chat.messagesTimeline.downloadItem", { name: "report.pdf" })}"`,
+    );
     expect(markup).not.toContain("<a ");
   });
 
@@ -1076,7 +1096,9 @@ describe("MessagesTimeline", () => {
     );
 
     expect(markup).toContain("report.pdf");
-    expect(markup).not.toContain('aria-label="Download report.pdf"');
+    expect(markup).not.toContain(
+      `aria-label="${t("chat.messagesTimeline.downloadItem", { name: "report.pdf" })}"`,
+    );
   });
 
   it("renders unknown attachment types as inert rows instead of crashing", () => {
@@ -1103,7 +1125,9 @@ describe("MessagesTimeline", () => {
     );
 
     expect(markup).toContain("voice-memo.ogg");
-    expect(markup).not.toContain('aria-label="Download voice-memo.ogg"');
+    expect(markup).not.toContain(
+      `aria-label="${t("chat.messagesTimeline.downloadItem", { name: "voice-memo.ogg" })}"`,
+    );
     expect(markup).not.toContain('alt="voice-memo.ogg"');
     expect(markup).not.toContain("<a ");
   });
@@ -1207,7 +1231,7 @@ describe("MessagesTimeline", () => {
       />,
     );
 
-    expect(markup).toContain("Show full message");
+    expect(markup).toContain(t("chat.messagesTimeline.showFullMessage"));
     // LegendList owns ordinary end-follow (#5449): with live follow on and no
     // anchored end space, its maintainScrollAtEnd is enabled.
     expect(markup).toContain('data-maintain-scroll-at-end="enabled"');
@@ -1228,7 +1252,7 @@ describe("MessagesTimeline", () => {
       />,
     );
 
-    expect(markup).not.toContain("Show full message");
+    expect(markup).not.toContain(t("chat.messagesTimeline.showFullMessage"));
     expect(markup).toContain('data-user-message-collapsible="false"');
     expect(markup).toContain("rounded-2xl bg-message p-3");
   });
@@ -1252,8 +1276,8 @@ describe("MessagesTimeline", () => {
     );
 
     expect(agentMarkup).toContain('data-user-message-attribution="agent"');
-    expect(agentMarkup).toContain("Sent by another agent");
-    expect(userMarkup).not.toContain("Sent by another agent");
+    expect(agentMarkup).toContain(t("chat.messagesTimeline.sentByAnotherAgent"));
+    expect(userMarkup).not.toContain(t("chat.messagesTimeline.sentByAnotherAgent"));
   });
 
   it("keeps a subagent parent-thread link at the top of an empty timeline", async () => {
@@ -1269,10 +1293,10 @@ describe("MessagesTimeline", () => {
       />,
     );
 
-    expect(markup).toContain('aria-label="Open parent thread"');
-    expect(markup).toContain("Subagent of");
+    expect(markup).toContain(`aria-label="${t("chat.messagesTimeline.openParentThread")}"`);
+    expect(markup).toContain(t("chat.messagesTimeline.subagentOf"));
     expect(markup).toContain("Architecture audit");
-    expect(markup).not.toContain("Send a message to start the conversation");
+    expect(markup).not.toContain(t("chat.messagesTimeline.emptyTimeline"));
   });
 
   it("keeps steer intent visible on committed user messages", async () => {
@@ -1401,8 +1425,8 @@ describe("MessagesTimeline", () => {
 
     expect(markup).toContain('data-superseded-attempt-id="attempt-1"');
     expect(markup).toContain('aria-expanded="false"');
-    expect(markup).toContain("Superseded attempt");
-    expect(markup).toContain("Partial output retained");
+    expect(markup).toContain(t("chat.messagesTimeline.supersededAttempt"));
+    expect(markup).toContain(t("chat.messagesTimeline.partialOutputRetained"));
     expect(markup).toContain("Current response remains visible");
     expect(markup).not.toContain("Partial response from the old attempt");
   });
@@ -1458,7 +1482,7 @@ describe("MessagesTimeline", () => {
       />,
     );
 
-    expect(markup).toContain('aria-label="Fork from this response"');
+    expect(markup).toContain(`aria-label="${t("chat.messagesTimeline.forkFromResponse")}"`);
   });
 
   it("renders inline terminal labels with the composer chip UI", async () => {
@@ -1486,7 +1510,7 @@ describe("MessagesTimeline", () => {
     expect(markup).toContain("lucide-terminal");
     expect(markup).toContain("yoo what&#x27;s");
     expect(markup).not.toContain("terminal_context");
-    expect(markup).toContain("Show full message");
+    expect(markup).toContain(t("chat.messagesTimeline.showFullMessage"));
   }, 20_000);
 
   it("renders chips for standalone element-pick context messages", () => {
@@ -1523,7 +1547,7 @@ describe("MessagesTimeline", () => {
       />,
     );
 
-    expect(markup).toContain('aria-label="Copy message"');
+    expect(markup).toContain(`aria-label="${t("chat.messageCopyButton.copyMessage")}"`);
     expect(markup).toContain('data-user-message-collapsed="true"');
     expect(markup).toContain('data-user-message-footer="true"');
   });
@@ -1591,7 +1615,7 @@ describe("MessagesTimeline", () => {
     );
 
     expect(markup).not.toContain('data-v2-item-type="run_interrupt_request"');
-    expect(markup).not.toContain("Interrupt requested");
+    expect(markup).not.toContain(t("chat.messagesTimeline.interruptRequested"));
     expect(markup).not.toContain("Waiting for the provider to stop.");
     expect(markup).not.toContain("Structured details");
   });
@@ -1678,7 +1702,7 @@ describe("MessagesTimeline", () => {
       />,
     );
 
-    expect(markup).toContain("Context handoff");
+    expect(markup).toContain(t("chat.messagesTimeline.contextHandoff"));
     expect(markup).toContain("GPT 5.6 Sol");
     expect(markup).toContain("Claude Fable 5");
     expect(markup).not.toContain("Full conversation context");
@@ -1781,9 +1805,13 @@ describe("MessagesTimeline", () => {
     );
 
     expect(markup).toContain('data-v2-item-type="thread_created"');
-    expect(markup).toContain('aria-label="Open Claude research thread"');
+    expect(markup).toContain(
+      `aria-label="${t("chat.messagesTimeline.openThread", {
+        title: "Claude research thread",
+      })}"`,
+    );
     expect(markup).toContain("Claude research thread");
-    expect(markup).toContain("Open chat");
+    expect(markup).toContain(t("chat.v2LifecycleRow.openChat"));
     expect(markup).not.toContain("Work Log");
   });
 
@@ -1822,12 +1850,12 @@ describe("MessagesTimeline", () => {
       />,
     );
 
-    expect(markup).toContain("Ran 2 commands");
+    expect(markup).toContain(t("workLog.presentation.ranCommands", { count: 2 }));
     expect(markup).toContain("lucide-terminal");
     expect(markup).not.toContain("lucide-x");
     expect(markup).not.toContain("text-destructive");
     // The failure stays discoverable for screen readers.
-    expect(markup).toContain("tool call failed");
+    expect(markup).toContain(t("chat.messagesTimeline.toolCallFailed"));
   });
 
   it("keeps mixed work logs neutral after a later tool call succeeds", () => {
@@ -1876,7 +1904,12 @@ describe("MessagesTimeline", () => {
       />,
     );
 
-    expect(markup).toContain("Ran 2 commands and received 1 update");
+    expect(markup).toContain(
+      workLogSummary([
+        t("workLog.presentation.ranCommands", { count: 2 }),
+        t("workLog.presentation.receivedUpdates", { count: 1 }),
+      ]),
+    );
     expect(markup).not.toContain('aria-label="Hidden work includes a failure"');
   });
 
@@ -1978,14 +2011,17 @@ describe("MessagesTimeline", () => {
             />,
           );
         });
-        const groupLabel = `${count} subagents`;
+        const groupLabel = t("chat.messagesTimeline.subagentCount", { count });
         const group = () =>
           renderer!.root.findAll(
             (node) => node.type === "button" && node.props["aria-label"] === groupLabel,
           )[0]!;
         const child = () =>
           renderer!.root.findAll(
-            (node) => node.type === "button" && node.props["aria-label"] === "Open Package audit",
+            (node) =>
+              node.type === "button" &&
+              node.props["aria-label"] ===
+                t("chat.v2LifecycleRow.openTitle", { title: "Package audit" }),
           );
         if (count > 1) {
           expect(child()).toHaveLength(0);
@@ -2164,7 +2200,12 @@ describe("MessagesTimeline", () => {
 
     expect(markup).toContain('data-v2-item-type="command_execution"');
     expect(markup).toContain('data-v2-item-visibility="inherited"');
-    expect(markup).toContain("Received 1 update and ran 1 command");
+    expect(markup).toContain(
+      workLogSummary([
+        t("workLog.presentation.receivedUpdates", { count: 1 }),
+        t("workLog.presentation.ranCommands", { count: 1 }),
+      ]),
+    );
   });
 
   it("renders T3 MCP dynamic tools with the product logo and pretty name", async () => {
@@ -2395,7 +2436,7 @@ describe("MessagesTimeline", () => {
       />,
     );
 
-    expect(markup).toContain("Ran 2 commands");
+    expect(markup).toContain(t("workLog.presentation.ranCommands", { count: 2 }));
     expect(markup).toContain('aria-expanded="false"');
     // Entries stay hidden until the toggle expands the group.
     expect(markup).not.toContain("vp lint");
@@ -2436,7 +2477,11 @@ describe("MessagesTimeline", () => {
     );
 
     expect(markup).toContain("lucide-zap");
-    expect(markup).toContain('aria-label="Tool call failed"');
+    expect(markup).toContain(
+      `aria-label="${t("chat.messagesTimeline.labelToolCallFailed", {
+        label: "No files found",
+      })}"`,
+    );
     // Ordinary tool failures render muted, not red.
     expect(markup).not.toContain("text-destructive");
   });
@@ -2488,8 +2533,8 @@ describe("MessagesTimeline", () => {
     ["- first\n- second", "first second", 0],
     ["first  \nsecond", "first second", 0],
     ["![image description](image.png)", "image description", 0],
-    ["![](image.png)", "Thought", 0],
-    ["---", "Thought", 0],
+    ["![](image.png)", t("chat.messagesTimeline.thought"), 0],
+    ["---", t("chat.messagesTimeline.thought"), 0],
   ] as const)(
     "shows plain text for a V2 reasoning preview: %s",
     async (markdown, expected, strongCount) => {

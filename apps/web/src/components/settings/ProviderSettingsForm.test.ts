@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vite-plus/test";
 import { ProviderDriverKind } from "@t3tools/contracts";
+import { t } from "@t3tools/shared/i18n";
 
 import { DRIVER_OPTION_BY_VALUE } from "./providerDriverMeta";
 import {
@@ -29,8 +30,8 @@ describe("ProviderSettingsForm helpers", () => {
     );
 
     expect(serverPassword).toMatchObject({
-      label: "Server password",
-      description: "Stored in plain text on disk.",
+      label: t("providerSettings.settings.serverPassword"),
+      description: t("providerSettings.settings.serverPasswordDescription"),
       control: "password",
     });
   });
@@ -43,9 +44,9 @@ describe("ProviderSettingsForm helpers", () => {
     expect(cursor?.environmentFields).toEqual([
       {
         name: "CURSOR_API_KEY",
-        label: "Cursor API key",
-        description: "Optional. Overrides browser sign-in for this provider.",
-        placeholder: "Paste API key",
+        label: t("settings.providerDriverMeta.cursorApiKeyLabel"),
+        description: t("settings.providerDriverMeta.cursorApiKeyDescription"),
+        placeholder: t("settings.providerDriverMeta.cursorApiKeyPlaceholder"),
         sensitive: true,
       },
     ]);

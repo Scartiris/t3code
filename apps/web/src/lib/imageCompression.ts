@@ -11,6 +11,7 @@
  * Supported images already within budget pass through untouched. HEIC/HEIF
  * photos are decoded to JPEG first because providers cannot consume them.
  */
+import { t } from "@t3tools/shared/i18n";
 
 /**
  * Longest edge kept when an image has to be re-encoded. Sized so a typical
@@ -470,7 +471,10 @@ export async function compressImageToByteLimit(
     ok: true,
     file: dataUrlToFile(
       reencoded.dataUrl,
-      fileNameForMimeType(file.name || "image", reencoded.mimeType),
+      fileNameForMimeType(
+        file.name || t("web.imageCompression.fallbackImageName"),
+        reencoded.mimeType,
+      ),
       reencoded.mimeType,
     ),
     recompressed: true,
@@ -506,10 +510,14 @@ export async function prepareImageForAttachment(
     return { ok: false, reason: "unreadable" };
   }
 
-  const jpeg = new File([converted], fileNameForMimeType(file.name || "image", "image/jpeg"), {
-    type: "image/jpeg",
-    lastModified: file.lastModified,
-  });
+  const jpeg = new File(
+    [converted],
+    fileNameForMimeType(file.name || t("web.imageCompression.fallbackImageName"), "image/jpeg"),
+    {
+      type: "image/jpeg",
+      lastModified: file.lastModified,
+    },
+  );
   const result = await compressImageToByteLimit(jpeg, maxBytes, {
     preferredMimeType: "image/jpeg",
     sourceSizeBytes: file.size,

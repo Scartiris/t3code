@@ -1,5 +1,6 @@
 import { renderToStaticMarkup } from "react-dom/server";
 import { EnvironmentId } from "@t3tools/contracts";
+import { t } from "@t3tools/shared/i18n";
 import { describe, expect, it } from "vite-plus/test";
 
 import { ComposerStashMenu } from "./ComposerStashMenu";
@@ -44,8 +45,8 @@ describe("ComposerStashMenu", () => {
     );
 
     expect(markup).toContain('src="data:image/png;base64,AA=="');
-    expect(markup).toContain("1 image dropped");
-    expect(markup).toContain("saving 1 image");
+    expect(markup).toContain(t("chat.composerStashMenu.imagesDropped", { count: 1 }));
+    expect(markup).toContain(t("chat.composerStashMenu.savingImages", { count: 1 }));
   });
 
   it("labels mixed file and image stashes without treating images as files", () => {
@@ -85,7 +86,7 @@ describe("ComposerStashMenu", () => {
       />,
     );
 
-    expect(markup).toContain("(2 attachments)");
-    expect(markup).not.toContain("(2 files)");
+    expect(markup).toContain(t("chat.composerStashMenu.attachmentSummary", { count: 2 }));
+    expect(markup).not.toContain(t("chat.composerStashMenu.fileSummary", { count: 2 }));
   });
 });

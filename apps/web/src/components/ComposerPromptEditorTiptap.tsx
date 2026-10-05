@@ -1,3 +1,4 @@
+import { t } from "@t3tools/shared/i18n";
 import { Extension, Node, wrappingInputRule, type JSONContent } from "@tiptap/core";
 import { TaskList } from "@tiptap/extension-task-list";
 import { ReactNodeViewRenderer, NodeViewWrapper, type NodeViewProps } from "@tiptap/react";
@@ -231,7 +232,7 @@ function ComposerMentionNodeView({ node }: NodeViewProps) {
       kind="mention"
       render={<button type="button" />}
       onClick={() => actions.openMention(path)}
-      aria-label={`Preview ${path}`}
+      aria-label={t("components.composerPromptEditorTiptap.previewPath", { path })}
       contentEditable={false}
       spellCheck={false}
       data-composer-mention-chip="true"
@@ -290,18 +291,20 @@ function ComposerSkillNodeView({ node }: NodeViewProps) {
         kind="skill"
         icon={<SkillChipIcon />}
         label={skillLabel}
-        accessibleLabel={`Skill ${skillLabel}`}
+        accessibleLabel={t("components.composerPromptEditorTiptap.skillChipAria", {
+          skill: skillLabel,
+        })}
       >
         <div className="space-y-3 p-2 text-sm">
           <p className="font-medium">{skillLabel}</p>
           <p>
             {skill?.description ??
               skillDescription ??
-              "No description is available for this skill."}
+              t("components.composerPromptEditorTiptap.noSkillDescription")}
           </p>
           {skill?.path ? (
             <Button variant="outline" size="sm" onClick={() => actions.openMention(skill.path)}>
-              View instructions
+              {t("components.composerPromptEditorTiptap.viewInstructions")}
             </Button>
           ) : null}
         </div>

@@ -1,4 +1,5 @@
 import { EnvironmentId, PROVIDER_SEND_TURN_MAX_FILE_BYTES } from "@t3tools/contracts";
+import { t } from "@t3tools/shared/i18n";
 import { describe, expect, it } from "vite-plus/test";
 
 import type { ComposerFileAttachment, ComposerImageAttachment } from "../../composerDraftStore";
@@ -157,12 +158,11 @@ describe("composer attachment files", () => {
         supportsAttachmentUploads: false,
         maxFileAttachmentBytes: null,
       }),
-    ).toBe("Waiting for the server before file attachments can send");
+    ).toBe(t("chat.composerAttachmentFiles.waitingForServer"));
   });
 
   it("rejects local staging and send when known config has no file support", () => {
-    const unsupportedReason =
-      "This server does not accept file attachments right now. Remove the files to send.";
+    const unsupportedReason = t("chat.composerAttachmentFiles.serverRejectsFileAttachments");
     expect(
       fileAttachmentStagingLimit({
         attachmentUploadsCapabilityKnown: true,

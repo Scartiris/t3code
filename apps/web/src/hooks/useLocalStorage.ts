@@ -1,3 +1,4 @@
+import { t } from "@t3tools/shared/i18n";
 import * as Schema from "effect/Schema";
 import * as Record from "effect/Record";
 import { useCallback, useMemo, useSyncExternalStore } from "react";
@@ -11,7 +12,10 @@ export class LocalStorageOperationError extends Schema.TaggedError<LocalStorageO
   },
 ) {
   override get message(): string {
-    return `Failed to ${this.operation} local storage item ${this.storageKey}.`;
+    return t("hooks.useLocalStorage.operationFailed", {
+      operation: this.operation,
+      storageKey: this.storageKey,
+    });
   }
 }
 

@@ -3,6 +3,7 @@ import {
   type OrchestrationV2LimitRecoveryUpdate,
   type RunId,
 } from "@t3tools/contracts";
+import { t } from "@t3tools/shared/i18n";
 import { GaugeIcon } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Button } from "../ui/button";
@@ -25,10 +26,12 @@ export function usageLimitRecoveryBannerItem(props: RecoveryProps): ComposerBann
     variant: "warning",
     priority: "urgent",
     icon: <GaugeIcon />,
-    title: "Usage limit reached",
+    title: t("chat.usageLimitRecoveryBanner.usageLimitReached"),
     description: resetAt
-      ? `Resets ${new Date(resetAt).toLocaleString()}`
-      : "Reset time unavailable; retry manually",
+      ? t("chat.usageLimitRecoveryBanner.resetsAt", {
+          resetAt: new Date(resetAt).toLocaleString(),
+        })
+      : t("chat.usageLimitRecoveryBanner.resetUnavailable"),
     actions: canSchedule ? <RecoveryActions key={`${runId}:${resetAt}`} {...props} /> : null,
   };
 }
@@ -56,7 +59,7 @@ function RecoveryActions({ runId, resetAt, recovery, snoozedUntil, onChange }: R
   async function toggle(action: "resume" | "snooze") {
     if (resetAt === null) return;
     if (action === "snooze" && !snoozed && Date.parse(resetAt) <= Date.now()) {
-      setError("The reset time has passed. Retry the thread manually.");
+      setError(t("chat.usageLimitRecoveryBanner.resetPassed"));
       setNowMs(Date.now());
       return;
     }
@@ -69,14 +72,20 @@ function RecoveryActions({ runId, resetAt, recovery, snoozedUntil, onChange }: R
         ...(action === "resume" ? { autoResume: !scheduled } : { snooze: !snoozed }),
       });
     } catch (cause) {
-      setError(cause instanceof Error ? cause.message : "Could not change limit recovery.");
+      setError(
+        cause instanceof Error ? cause.message : t("chat.usageLimitRecoveryBanner.changeFailed"),
+      );
     }
     setPending(false);
   }
   return (
     <div className="flex flex-wrap items-center gap-2">
       <Button size="xs" variant="ghost" disabled={pending} onClick={() => void toggle("resume")}>
-        {pending ? "Saving..." : scheduled ? "Cancel auto-resume" : "Resume at reset"}
+        {pending
+          ? t("chat.usageLimitRecoveryBanner.saving")
+          : scheduled
+            ? t("chat.usageLimitRecoveryBanner.cancelAutoResume")
+            : t("chat.usageLimitRecoveryBanner.resumeAtReset")}
       </Button>
       {!snoozed ? (
         <Button
@@ -85,7 +94,9 @@ function RecoveryActions({ runId, resetAt, recovery, snoozedUntil, onChange }: R
           disabled={pending || Date.parse(resetAt!) <= nowMs}
           onClick={() => void toggle("snooze")}
         >
-          {pending ? "Saving..." : "Snooze until reset"}
+          {pending
+            ? t("chat.usageLimitRecoveryBanner.saving")
+            : t("chat.usageLimitRecoveryBanner.snoozeUntilReset")}
         </Button>
       ) : null}
       {error ? (

@@ -1,4 +1,5 @@
 import type { EnvironmentId } from "@t3tools/contracts";
+import { t } from "@t3tools/shared/i18n";
 
 export type ReadyAttachmentUpload = {
   readonly status: "ready";
@@ -45,12 +46,10 @@ export function attachmentUploadBlockReason(input: {
   }
 
   if (failed > 0) {
-    return failed === 1
-      ? "Retry or remove the failed attachment"
-      : "Retry or remove the failed attachments";
+    return t("web.attachmentUploadState.retryOrRemoveFailedAttachments");
   }
   if (pending > 0) {
-    return pending === 1 ? "Attachment still uploading" : "Attachments still uploading";
+    return t("web.attachmentUploadState.attachmentsStillUploading");
   }
   return null;
 }

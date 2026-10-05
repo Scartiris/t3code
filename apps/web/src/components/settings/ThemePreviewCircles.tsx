@@ -1,4 +1,5 @@
 import { MoonIcon, SunIcon } from "lucide-react";
+import { t } from "@t3tools/shared/i18n";
 import type { CSSProperties } from "react";
 import {
   STANDARD_THEME_PREVIEW_COLORS as SHARED_STANDARD_THEME_PREVIEW_COLORS,
@@ -184,7 +185,10 @@ export function ThemePreviewCircles({
             <TooltipTrigger
               render={
                 <button
-                  aria-label={`Use ${label} ${mode} mode`}
+                  aria-label={t("settings.themePreviewCircles.useModeAria", {
+                    label,
+                    mode: mode === "light" ? t("common.light") : t("common.dark"),
+                  })}
                   aria-pressed={isPicked}
                   className={cn(
                     "relative flex size-[68px] shrink-0 transform-gpu cursor-pointer items-center justify-center rounded-full p-1 outline-none transition-transform hover:scale-105 focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-card",
@@ -220,7 +224,9 @@ export function ThemePreviewCircles({
               }
             />
             <TooltipPopup>
-              {mode === "light" ? "Use for light mode only" : "Use for dark mode only"}
+              {mode === "light"
+                ? t("settings.themePreviewCircles.useForLightMode")
+                : t("settings.themePreviewCircles.useForDarkMode")}
             </TooltipPopup>
           </Tooltip>
         );

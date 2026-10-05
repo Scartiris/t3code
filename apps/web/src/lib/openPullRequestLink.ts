@@ -5,6 +5,7 @@ import { type MouseEvent, useCallback, useMemo } from "react";
 
 import { pullRequestHostOf, type SourceControlProviderKind } from "@t3tools/contracts";
 import { parseChangeRequestUrl, type ChangeRequestLink } from "@t3tools/shared/changeRequestUrl";
+import { t } from "@t3tools/shared/i18n";
 import {
   canonicalRepositoryKey,
   sourceControlRepositorySelector,
@@ -346,8 +347,8 @@ export function useOpenPrLink(threadRef?: ScopedThreadRef) {
         toastManager.add(
           stackedThreadToast({
             type: "error",
-            title: "Unable to open pull request link",
-            description: error instanceof Error ? error.message : "An error occurred.",
+            title: t("pullRequest.openPullRequestLink.unableToOpenLink"),
+            description: error instanceof Error ? error.message : t("error.generic"),
           }),
         );
       });

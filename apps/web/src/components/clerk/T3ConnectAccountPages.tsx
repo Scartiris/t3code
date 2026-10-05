@@ -1,4 +1,5 @@
 import { useAuth, useClerk } from "@clerk/react";
+import { t } from "@t3tools/shared/i18n";
 import { ServerIcon, SmartphoneIcon } from "lucide-react";
 import { type ReactNode, useCallback, useState } from "react";
 import { createPortal } from "react-dom";
@@ -9,7 +10,7 @@ import { T3ConnectUserProfilePage } from "./T3ConnectUserProfilePage";
 /** Custom pages in the Clerk account modal, in menu order. */
 export const T3_CONNECT_ACCOUNT_PAGES = [
   {
-    label: "Mobile clients",
+    label: t("clerk.t3ConnectAccountPages.mobileClients"),
     url: "mobile-clients",
     icon: <SmartphoneIcon className="size-4" />,
     content: <MobileClientsUserProfilePage />,

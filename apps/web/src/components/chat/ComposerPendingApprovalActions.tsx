@@ -3,6 +3,7 @@ import {
   type ProviderApprovalOption,
   type RuntimeRequestId,
 } from "@t3tools/contracts";
+import { t } from "@t3tools/shared/i18n";
 import { memo } from "react";
 import { EllipsisIcon, TriangleAlertIcon } from "lucide-react";
 import { Button } from "../ui/button";
@@ -22,10 +23,13 @@ interface ComposerPendingApprovalActionsProps {
 }
 
 const DEFAULT_APPROVAL_OPTIONS = [
-  { decision: "cancel", label: "Cancel" },
-  { decision: "decline", label: "Decline" },
-  { decision: "acceptForSession", label: "Always allow this session" },
-  { decision: "accept", label: "Approve" },
+  { decision: "cancel", label: t("action.cancel") },
+  { decision: "decline", label: t("chat.composerPendingApprovalActions.decline") },
+  {
+    decision: "acceptForSession",
+    label: t("chat.composerPendingApprovalActions.acceptForSession"),
+  },
+  { decision: "accept", label: t("chat.composerPendingApprovalActions.approve") },
 ] satisfies ReadonlyArray<ProviderApprovalOption>;
 
 export const ComposerPendingApprovalActions = memo(function ComposerPendingApprovalActions({
@@ -71,7 +75,13 @@ export const ComposerPendingApprovalActions = memo(function ComposerPendingAppro
         <Menu>
           <MenuTrigger
             disabled={isResponding}
-            render={<Button size="icon-xs" variant="outline" aria-label="More approval options" />}
+            render={
+              <Button
+                size="icon-xs"
+                variant="outline"
+                aria-label={t("chat.composerPendingApprovalActions.moreOptions")}
+              />
+            }
           >
             <EllipsisIcon />
           </MenuTrigger>

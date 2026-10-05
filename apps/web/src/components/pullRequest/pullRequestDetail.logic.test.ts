@@ -12,6 +12,7 @@ import {
   type RepositoryIdentity,
   type ThreadPullRequestLink,
 } from "@t3tools/contracts";
+import { t } from "@t3tools/shared/i18n";
 import { describe, expect, it } from "vite-plus/test";
 import { formatInlineContextReference } from "~/lib/composerContextReferences";
 import { buildMessageContext, reviewCommentContextReference } from "~/lib/composerContextRecords";
@@ -625,7 +626,10 @@ describe("pull request timeline", () => {
   it("calls a comment markdown and a commit headline plain text", () => {
     const events = buildPullRequestTimeline(TIMELINE_SOURCE);
     // A headline reading `fix: drop *legacy* path` is not asking for emphasis.
-    expect(events.map((event) => [event.title.startsWith("Commit"), event.markdown])).toEqual(
+    const commitTitle = t("pullRequest.pullRequestDetail.timelineCommit", {
+      oid: TIMELINE_SOURCE.commits[0]!.oid.slice(0, 7),
+    });
+    expect(events.map((event) => [event.title === commitTitle, event.markdown])).toEqual(
       expect.arrayContaining([[true, false]]),
     );
     expect(events.find((event) => event.id === "c1")?.markdown).toBe(true);
@@ -799,8 +803,8 @@ describe("fix findings handoff", () => {
       checks: [],
     });
     expect(handoff.reviewComments.map((comment) => comment.rangeLabel)).toEqual([
-      "L12 (before)",
-      "file",
+      `L12${t("pullRequest.pullRequestDetail.rangeBeforeChange")}`,
+      t("pullRequest.pullRequestDetail.rangeWholeFile"),
     ]);
   });
 
@@ -1683,22 +1687,38 @@ describe("the compact row's single action slot", () => {
   });
 
   it("describes every live facet of the checks at once", () => {
-    expect(describePullRequestChecks([])).toBe("No checks reported");
-    expect(describePullRequestChecks([check("success"), check("success")])).toBe(
-      "All checks passed",
+    expect(describePullRequestChecks([])).toBe(
+      t("pullRequest.pullRequestPresentation.noChecksReported"),
     );
-    expect(describePullRequestChecks([check("success"), check("skipped")])).toBe("1 of 2 passing");
+    expect(describePullRequestChecks([check("success"), check("success")])).toBe(
+      t("pullRequest.pullRequestPresentation.allChecksPassed"),
+    );
+    expect(describePullRequestChecks([check("success"), check("skipped")])).toBe(
+      t("pullRequest.pullRequestDetail.checksPassing", { count: 1, total: 2 }),
+    );
     expect(
       describePullRequestChecks([
         ...Array.from({ length: 7 }, () => check("pending")),
         ...Array.from({ length: 8 }, () => check("success")),
         check("failure"),
       ]),
-    ).toBe("7 of 16 running · 1 failed");
-    expect(describePullRequestChecks([check("failure"), check("success")])).toBe("1 of 2 failing");
-    expect(describePullRequestChecks([check("action-required")])).toBe("1 of 1 awaiting action");
+    ).toBe(
+      `${t("pullRequest.pullRequestDetail.checksRunning", { count: 7, total: 16 })} · ${t(
+        "pullRequest.pullRequestDetail.checksFailed",
+        { count: 1 },
+      )}`,
+    );
+    expect(describePullRequestChecks([check("failure"), check("success")])).toBe(
+      t("pullRequest.pullRequestDetail.checksFailing", { count: 1, total: 2 }),
+    );
+    expect(describePullRequestChecks([check("action-required")])).toBe(
+      t("pullRequest.pullRequestDetail.checksAwaitingAction", { count: 1, total: 1 }),
+    );
     expect(describePullRequestChecks([check("action-required"), check("failure")])).toBe(
-      "1 of 2 awaiting action · 1 failed",
+      `${t("pullRequest.pullRequestDetail.checksAwaitingAction", { count: 1, total: 2 })} · ${t(
+        "pullRequest.pullRequestDetail.checksFailed",
+        { count: 1 },
+      )}`,
     );
   });
 

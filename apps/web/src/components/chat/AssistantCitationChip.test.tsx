@@ -4,6 +4,7 @@ import {
   MessageId,
   ThreadId,
 } from "@t3tools/contracts";
+import { t } from "@t3tools/shared/i18n";
 import { act, useState, type ReactNode } from "react";
 import { create, type ReactTestRenderer } from "react-test-renderer";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vite-plus/test";
@@ -117,7 +118,7 @@ describe("citation comment source disappearance", () => {
     expect(mocks.observeSource).toHaveBeenCalledTimes(1);
 
     typeComment("shortened comment");
-    clickButton("Save");
+    clickButton(t("action.save"));
     expect(onSave).toHaveBeenCalledWith("shortened comment");
     expect(renderer.root.findAllByType("textarea")).toHaveLength(0);
   });
@@ -131,7 +132,7 @@ describe("citation comment source disappearance", () => {
     expect(renderer.root.findByType("textarea").props.value).toBe("keep this draft");
     expect(renderer.root.findByType(PopoverPopup).props.anchor).toBeUndefined();
     onSave.mockReturnValue(true);
-    clickButton("Save");
+    clickButton(t("action.save"));
     expect(onSave).toHaveBeenLastCalledWith("keep this draft");
     expect(renderer.root.findAllByType("textarea")).toHaveLength(0);
   });
@@ -141,7 +142,7 @@ describe("citation comment source disappearance", () => {
     typeComment("discard this draft");
     removeSource();
     onSave.mockClear();
-    clickButton("Cancel");
+    clickButton(t("action.cancel"));
     expect(onSave).not.toHaveBeenCalled();
     expect(renderer.root.findAllByType("textarea")).toHaveLength(0);
   });

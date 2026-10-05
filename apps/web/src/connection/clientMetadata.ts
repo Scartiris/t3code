@@ -4,6 +4,7 @@ import type {
   ClientOs,
   DesktopBridge,
 } from "@t3tools/contracts";
+import { t } from "@t3tools/shared/i18n";
 
 interface BrowserIdentity {
   readonly userAgent: string;
@@ -77,7 +78,7 @@ export function clientPresentationMetadata(input: {
 }): AuthClientPresentationMetadata {
   if (input.desktopBridge !== undefined) {
     return {
-      label: "T3 Code Desktop",
+      label: t("connection.clientMetadata.desktopLabel"),
       deviceType: "desktop",
       os: clientOsFromElectronPlatform(input.desktopBridge.getClientPlatform?.()),
       surface: "desktop",
@@ -86,7 +87,7 @@ export function clientPresentationMetadata(input: {
   }
 
   return {
-    label: "T3 Code Web",
+    label: t("connection.clientMetadata.webLabel"),
     deviceType: browserDeviceType(input.identity),
     os: browserClientOs(input.identity),
     surface: "web",

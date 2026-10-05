@@ -1,3 +1,4 @@
+import { t } from "@t3tools/shared/i18n";
 import * as Option from "effect/Option";
 import type { EnvironmentThreadShell } from "@t3tools/client-runtime/state/shell";
 import {
@@ -84,15 +85,9 @@ export function agentControlledBrowserCloseConfirmation(
   ).length;
   if (activeBrowserCount === 0) return null;
   if (activeBrowserCount === 1) {
-    return [
-      "Close browser while the agent is using it?",
-      "The agent is actively controlling this browser. Closing it may interrupt the current browser action.",
-    ].join("\n");
+    return t("components.chatView.closeBrowserWhileAgentUsing");
   }
-  return [
-    `Close ${activeBrowserCount} browsers while the agent is using them?`,
-    "The agent is actively controlling these browsers. Closing them may interrupt the current browser actions.",
-  ].join("\n");
+  return t("components.chatView.closeBrowsersWhileAgentUsing", { count: activeBrowserCount });
 }
 
 /** The floating player hides only while the same source is rendered in the panel. */
@@ -514,7 +509,7 @@ export function buildLocalDraftThread(
   return presentThreadShell(draftThread.environmentId, {
     id: threadId,
     projectId: draftThread.projectId,
-    title: "New thread",
+    title: t("components.chatView.newThread"),
     providerInstanceId: fallbackModelSelection.instanceId,
     modelSelection: fallbackModelSelection,
     runtimeMode: draftThread.runtimeMode,
@@ -644,18 +639,18 @@ export function getAntigravitySendBlockReason(
 ): string | null {
   if (provider?.driver !== "antigravity") return null;
   if (!provider.installed) {
-    return "Install Antigravity in provider settings before sending.";
+    return t("components.chatView.installAntigravityBeforeSending");
   }
   if (provider.auth.status === "unauthenticated") {
-    return "Sign in to Antigravity in provider settings before sending.";
+    return t("components.chatView.signInToAntigravityBeforeSending");
   }
   const slug = model.trim();
-  if (slug.length === 0) return "Choose an Antigravity model before sending.";
+  if (slug.length === 0) return t("components.chatView.chooseAntigravityModelBeforeSending");
   // A restart clears the account status and catalog. Session startup checks
   // saved credentials and validates the model before sending the prompt.
   if (provider.auth.status === "unknown") return null;
   if (provider.models.length === 0) {
-    return "Refresh Antigravity models in provider settings before sending.";
+    return t("components.chatView.refreshAntigravityModelsBeforeSending");
   }
   // A saved model that left the catalog is kept in the picker as unavailable
   // so the user sees what the thread used. The server rejects it at turn
@@ -666,7 +661,7 @@ export function getAntigravitySendBlockReason(
     slug !== ANTIGRAVITY_DEFAULT_MODEL &&
     !provider.models.some((entry) => entry.slug === slug || entry.aliases?.includes(slug))
   ) {
-    return "That Antigravity model is no longer available. Choose another model.";
+    return t("components.chatView.antigravityModelUnavailable");
   }
   return null;
 }
@@ -733,7 +728,7 @@ export async function resolveFileAttachmentUrl(input: {
   });
   if (result._tag === "Failure") throw squashAtomCommandFailure(result);
   const url = resolveAssetUrl(input.httpBaseUrl, result.value.relativeUrl);
-  if (url === null) throw new Error("The environment returned an invalid attachment URL.");
+  if (url === null) throw new Error(t("components.chatView.invalidAttachmentUrl"));
   return url;
 }
 
@@ -746,7 +741,7 @@ export async function prepareRevertedMessageAttachments(input: {
   return Promise.all(
     (input.message.attachments ?? []).map(async (attachment) => {
       if (attachment.type !== "image" && attachment.type !== "file") {
-        throw new Error("This message has an attachment that cannot be restored.");
+        throw new Error(t("components.chatView.attachmentCannotBeRestored"));
       }
       const result = await input.createAssetUrl({
         environmentId: input.environmentId,
@@ -761,9 +756,13 @@ export async function prepareRevertedMessageAttachments(input: {
       });
       if (result._tag === "Failure") throw squashAtomCommandFailure(result);
       const url = resolveAssetUrl(input.httpBaseUrl, result.value.relativeUrl);
-      if (url === null) throw new Error("The environment returned an invalid attachment URL.");
+      if (url === null) throw new Error(t("components.chatView.invalidAttachmentUrl"));
       const response = await fetch(url, { signal: AbortSignal.timeout(30_000) });
-      if (!response.ok) throw new Error(`Could not restore attachment: ${attachment.name}`);
+      if (!response.ok) {
+        throw new Error(
+          t("components.chatView.couldNotRestoreAttachment", { name: attachment.name }),
+        );
+      }
       return new File([await response.blob()], attachment.name, { type: attachment.mimeType });
     }),
   );
@@ -818,10 +817,10 @@ export function readFileAsDataUrl(file: File): Promise<string> {
         resolve(reader.result);
         return;
       }
-      reject(new Error("Could not read image data."));
+      reject(new Error(t("components.chatView.couldNotReadImageData")));
     });
     reader.addEventListener("error", () => {
-      reject(reader.error ?? new Error("Failed to read image."));
+      reject(reader.error ?? new Error(t("components.chatView.failedToReadImage")));
     });
     reader.readAsDataURL(file);
   });
@@ -906,16 +905,15 @@ export function buildExpiredTerminalContextToastCopy(
   variant: "omitted" | "empty",
 ): { title: string; description: string } {
   const count = Math.max(1, Math.floor(expiredTerminalContextCount));
-  const noun = count === 1 ? "Expired terminal context" : "Expired terminal contexts";
   if (variant === "empty") {
     return {
-      title: `${noun} won't be sent`,
-      description: "Remove it or re-add it to include terminal output.",
+      title: t("components.chatView.expiredTerminalContextWontBeSent", { count }),
+      description: t("components.chatView.removeOrReAddTerminalContext"),
     };
   }
   return {
-    title: `${noun} omitted from message`,
-    description: "Re-add it if you want that terminal output included.",
+    title: t("components.chatView.expiredTerminalContextOmitted", { count }),
+    description: t("components.chatView.reAddTerminalContextToIncludeOutput"),
   };
 }
 
@@ -1081,8 +1079,8 @@ export function getStartedThreadModelChangeBlockReason(input: {
       return null;
     }
     return {
-      title: "Start a new chat to switch providers",
-      description: "This thread does not support switching providers after it has started.",
+      title: t("components.chatView.startNewChatToSwitchProviders"),
+      description: t("components.chatView.threadDoesNotSupportSwitchingProviders"),
     };
   }
   const currentProvider = input.providers.find(
@@ -1098,8 +1096,8 @@ export function getStartedThreadModelChangeBlockReason(input: {
     return null;
   }
   return {
-    title: "Start a new chat to change models",
-    description: "This provider does not allow switching models after a conversation has started.",
+    title: t("components.chatView.startNewChatToChangeModels"),
+    description: t("components.chatView.providerDoesNotAllowModelSwitch"),
   };
 }
 
@@ -1133,7 +1131,7 @@ export async function waitForRevertedMessage(
   const readProjection = () => Option.getOrNull(appAtomRegistry.get(threadAtom).data);
   const initial = readProjection();
   if (!initial?.messages.some((message) => message.id === messageId)) {
-    throw new Error("The message to rewind is no longer available.");
+    throw new Error(t("components.chatView.rewindMessageUnavailable"));
   }
   const messageRunId = initial.messages.find((message) => message.id === messageId)?.runId;
   return new Promise<void>((resolve, reject) => {
@@ -1168,7 +1166,7 @@ export async function waitForRevertedMessage(
     };
     unsubscribe = appAtomRegistry.subscribe(threadAtom, inspect);
     timeout = globalThis.setTimeout(() => {
-      finish(new Error("Timed out waiting for the thread to rewind."));
+      finish(new Error(t("components.chatView.rewindTimedOut")));
     }, timeoutMs);
     Promise.resolve()
       .then(revert)

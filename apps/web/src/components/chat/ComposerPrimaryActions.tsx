@@ -1,6 +1,7 @@
 import { memo, type MouseEventHandler, type PointerEventHandler } from "react";
 import { CheckIcon, ChevronDownIcon, ChevronLeftIcon, PlayIcon } from "lucide-react";
 import { CornerUpRight, ListPlus } from "lucide";
+import { t } from "@t3tools/shared/i18n";
 import { MorphIcon } from "~/components/MorphIcon";
 import { useEnvironmentIdentificationMode } from "~/hooks/useSettings";
 import { cn } from "~/lib/utils";
@@ -14,6 +15,7 @@ import { composerFloatingLayerProps } from "./composerEventScope";
 import {
   alternateComposerDispatchAction,
   resolveComposerDispatchMode,
+  type ActiveTurnComposerAction,
 } from "@t3tools/client-runtime/state/composer-dispatch";
 
 interface PendingActionState {
@@ -58,15 +60,31 @@ const formatPendingPrimaryActionLabel = (input: {
   questionIndex: number;
 }) => {
   if (input.isResponding) {
-    return "Submitting...";
+    return t("chat.composerPrimaryActions.submitting");
   }
   if (input.compact) {
-    return input.isLastQuestion ? "Submit" : "Next";
+    return input.isLastQuestion
+      ? t("chat.composerPrimaryActions.submit")
+      : t("chat.composerPrimaryActions.next");
   }
   if (!input.isLastQuestion) {
-    return "Next question";
+    return t("chat.composerPrimaryActions.nextQuestion");
   }
-  return input.questionIndex > 0 ? "Submit answers" : "Submit answer";
+  return input.questionIndex > 0
+    ? t("chat.composerPrimaryActions.submitAnswers")
+    : t("chat.composerPrimaryActions.submitAnswer");
+};
+
+/** How a follow-up delivery mode reads inside the send tooltip. */
+const dispatchActionLabel = (action: ActiveTurnComposerAction): string => {
+  switch (action) {
+    case "queue":
+      return t("chat.composerPrimaryActions.queueVerb");
+    case "steer":
+      return t("chat.composerPrimaryActions.steerVerb");
+    case "restart":
+      return t("chat.composerPrimaryActions.restartVerb");
+  }
 };
 
 // The composer's labeled primary actions (Submit, Refine, Implement) share the send button's
@@ -132,7 +150,7 @@ export const ComposerPrimaryActions = memo(function ComposerPrimaryActions({
             )}
             {...pointerFocusProps}
             onClick={onInterrupt}
-            aria-label="Stop generation"
+            aria-label={t("chat.composerPrimaryActions.stopGeneration")}
           />
         }
       >
@@ -140,7 +158,7 @@ export const ComposerPrimaryActions = memo(function ComposerPrimaryActions({
           <rect x="2" y="2" width="8" height="8" rx="1.5" />
         </svg>
       </TooltipTrigger>
-      <TooltipPopup>Interrupt</TooltipPopup>
+      <TooltipPopup>{t("chat.composerPrimaryActions.interrupt")}</TooltipPopup>
     </Tooltip>
   );
 
@@ -156,7 +174,7 @@ export const ComposerPrimaryActions = memo(function ComposerPrimaryActions({
               {...pointerFocusProps}
               onClick={onPreviousPendingQuestion}
               disabled={pendingAction.isResponding}
-              aria-label="Previous question"
+              aria-label={t("chat.composerPrimaryActions.previousQuestion")}
             >
               <ChevronLeftIcon className="size-3.5" />
             </Button>
@@ -168,7 +186,7 @@ export const ComposerPrimaryActions = memo(function ComposerPrimaryActions({
               onClick={onPreviousPendingQuestion}
               disabled={pendingAction.isResponding}
             >
-              Previous
+              {t("chat.composerPrimaryActions.previous")}
             </Button>
           )
         ) : null}
@@ -202,7 +220,9 @@ export const ComposerPrimaryActions = memo(function ComposerPrimaryActions({
           {...pointerFocusProps}
           disabled={isSendBusy || isSendDisabled || isConnecting || isEnvironmentUnavailable}
         >
-          {isConnecting || isSendBusy ? "Sending..." : "Refine"}
+          {isConnecting || isSendBusy
+            ? t("chat.composerPrimaryActions.sending")
+            : t("chat.composerPrimaryActions.refine")}
         </button>
       );
     }
@@ -215,7 +235,9 @@ export const ComposerPrimaryActions = memo(function ComposerPrimaryActions({
           {...pointerFocusProps}
           disabled={isSendBusy || isSendDisabled || isConnecting || isEnvironmentUnavailable}
         >
-          {isConnecting || isSendBusy ? "Sending..." : "Implement"}
+          {isConnecting || isSendBusy
+            ? t("chat.composerPrimaryActions.sending")
+            : t("chat.composerPrimaryActions.implement")}
         </button>
         <Menu>
           <MenuTrigger
@@ -226,7 +248,7 @@ export const ComposerPrimaryActions = memo(function ComposerPrimaryActions({
                   messageActionPillClassName,
                   "h-9 rounded-l-none border-l border-message-action-foreground/20 px-2 sm:h-8",
                 )}
-                aria-label="Implementation actions"
+                aria-label={t("chat.composerPrimaryActions.implementationActions")}
                 {...pointerFocusProps}
                 disabled={isSendBusy || isSendDisabled || isConnecting || isEnvironmentUnavailable}
               />
@@ -239,7 +261,7 @@ export const ComposerPrimaryActions = memo(function ComposerPrimaryActions({
               disabled={isSendBusy || isSendDisabled || isConnecting || isEnvironmentUnavailable}
               onClick={() => void onImplementPlanInNewThread()}
             >
-              Implement in a new thread
+              {t("chat.composerPrimaryActions.implementInNewThread")}
             </MenuItem>
           </MenuPopup>
         </Menu>
@@ -253,30 +275,38 @@ export const ComposerPrimaryActions = memo(function ComposerPrimaryActions({
 
   const showResume = canResume && !hasSendableContent && !isEditingQueuedMessage;
   const submitLabel = showResume
-    ? "Resume thread"
+    ? t("chat.composerPrimaryActions.resumeThread")
     : isEditingQueuedMessage
-      ? "Update queued message"
+      ? t("chat.composerPrimaryActions.updateQueuedMessage")
       : isQueuing
-        ? "Queue message"
+        ? t("chat.composerPrimaryActions.queueMessage")
         : isRunning
-          ? "Steer message"
-          : "Submit message";
+          ? t("chat.composerPrimaryActions.steerMessage")
+          : t("chat.sendMessage");
   const submitStatus = isEnvironmentUnavailable
-    ? "Environment disconnected"
+    ? t("chat.composerPrimaryActions.environmentDisconnected")
     : (sendDisabledReason ??
       (isConnecting
-        ? "Connecting"
+        ? t("chat.composerPrimaryActions.connecting")
         : isPreparingWorktree
-          ? "Preparing worktree"
+          ? t("chat.composerPrimaryActions.preparingWorktree")
           : isSendBusy
             ? isEditingQueuedMessage
-              ? "Updating queued message"
-              : "Submitting message"
+              ? t("chat.composerPrimaryActions.updatingQueuedMessage")
+              : t("chat.composerPrimaryActions.submittingMessage")
             : null));
   const submitTooltip =
     submitStatus ??
     (isRunning && !isEditingQueuedMessage
-      ? `Click to ${followUpBehavior}, Ctrl/⌘-click${alternateShortcutLabel ? ` or ${alternateShortcutLabel}` : ""} to ${alternateAction}`
+      ? t("chat.composerPrimaryActions.dispatchHint", {
+          primary: dispatchActionLabel(followUpBehavior),
+          shortcut: alternateShortcutLabel
+            ? t("chat.composerPrimaryActions.dispatchHintShortcut", {
+                shortcut: alternateShortcutLabel,
+              })
+            : "",
+          alternate: dispatchActionLabel(alternateAction),
+        })
       : submitLabel);
 
   const sendButton = (

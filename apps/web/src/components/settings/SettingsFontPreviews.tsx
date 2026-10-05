@@ -1,4 +1,5 @@
 import { preloadPatchFile } from "@pierre/diffs/ssr";
+import { t } from "@t3tools/shared/i18n";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { ComposerPromptEditor, type ComposerPromptEditorHandle } from "../ComposerPromptEditor";
 import { EMPTY_COMPOSER_CONTEXT_RECORDS } from "../composerContextPresentation";
@@ -20,10 +21,7 @@ const EMPTY_SKILLS: ReadonlyArray<never> = [];
 // Serialized the way the composer stores inline tokens: the $skill and the
 // markdown-style file links render as chips, so the preview shows prompt
 // text and pills exactly as the real composer draws them.
-const PROMPT_PREVIEW_TEXT =
-  "Use $frontend-design to fix the flaky test in " +
-  "[surface.test.ts](apps/web/src/terminal/ghostty/surface.test.ts) and align the header with " +
-  "[SettingsPanels.tsx](apps/web/src/components/settings/SettingsPanels.tsx) before shipping.";
+const PROMPT_PREVIEW_TEXT = t("settings.settingsFontPreviews.promptPreview");
 
 function noop() {}
 
@@ -39,7 +37,7 @@ export function PromptFontPreview() {
   return (
     <div className="mt-1 mb-2 rounded-lg border border-border bg-background px-3 py-2">
       <ComposerPromptEditor
-        ariaLabel="Prompt font preview"
+        ariaLabel={t("settings.settingsFontPreviews.promptFontPreviewAria")}
         editorRef={editorRef}
         value={prompt}
         cursor={cursor}
@@ -267,7 +265,7 @@ export function TerminalFontPreview({ family, size }: { family: string; size: nu
     <div
       ref={mountRef}
       className="relative mt-1 mb-2 h-52 overflow-hidden rounded-lg border border-border"
-      aria-label="Terminal font preview"
+      aria-label={t("settings.settingsFontPreviews.terminalFontPreviewAria")}
     />
   );
 }

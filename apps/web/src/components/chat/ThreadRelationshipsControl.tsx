@@ -24,6 +24,7 @@ import {
   canDetachThreadProviderSession,
   resolveLatestMergeBackRun,
 } from "@t3tools/client-runtime/state/thread-workflows";
+import { t } from "@t3tools/shared/i18n";
 import type { EnvironmentId, OrchestrationV2ThreadShell, ThreadId } from "@t3tools/contracts";
 import { groupBy } from "effect/Array";
 import * as DateTime from "effect/DateTime";
@@ -92,7 +93,7 @@ export function ThreadLineageRowList(props: {
         themselves and the container needs no extra tab stop of its own.
       */}
       <ul
-        aria-label="Related threads"
+        aria-label={t("chat.threadRelationshipsControl.relatedThreads")}
         className="m-0 max-h-[13.5rem] list-none overflow-y-auto overscroll-contain p-0"
       >
         {props.children}
@@ -104,7 +105,9 @@ export function ThreadLineageRowList(props: {
           className={`flex h-8 w-full cursor-pointer items-center rounded-lg ${THREAD_DETAILS_PANEL_ROW_CONTENT_CLASS} text-sm font-medium text-muted-foreground/70 hover:bg-black/[0.055] hover:text-foreground/80 dark:hover:bg-white/[0.075]`}
         >
           <PlusIcon aria-hidden className="size-4 shrink-0" />
-          Show {Math.min(props.hiddenCount, THREAD_LINEAGE_PAGE_COUNT)} more
+          {t("chat.threadRelationshipsControl.showMore", {
+            count: Math.min(props.hiddenCount, THREAD_LINEAGE_PAGE_COUNT),
+          })}
         </button>
       ) : null}
     </>
@@ -131,7 +134,11 @@ function ThreadLineageGroup(props: {
           expanded={expanded}
           onClick={() => setExpanded(!expanded)}
           accessory={
-            failedCount > 0 ? <SectionHeaderStatus>{failedCount} failed</SectionHeaderStatus> : null
+            failedCount > 0 ? (
+              <SectionHeaderStatus>
+                {t("chat.threadRelationshipsControl.failedCount", { count: failedCount })}
+              </SectionHeaderStatus>
+            ) : null
           }
         >
           {props.label}
@@ -151,11 +158,15 @@ function ThreadLineageGroup(props: {
 }
 
 function relationshipLabel(edge: ThreadRelationshipEdge, currentThreadId: ThreadId) {
-  if (edge.kind === "transfer") return "Context transfer";
+  if (edge.kind === "transfer") return t("chat.threadRelationshipsControl.contextTransfer");
   if (edge.kind === "subagent") {
-    return edge.sourceThreadId === currentThreadId ? "Subagent" : "Parent agent";
+    return edge.sourceThreadId === currentThreadId
+      ? t("chat.threadRelationshipsControl.subagent")
+      : t("chat.threadRelationshipsControl.parentAgent");
   }
-  return edge.sourceThreadId === currentThreadId ? "Fork" : "Parent thread";
+  return edge.sourceThreadId === currentThreadId
+    ? t("chat.threadRelationshipsControl.fork")
+    : t("chat.threadRelationshipsControl.parentThread");
 }
 
 function relationshipThreadTitle(input: {
@@ -265,7 +276,12 @@ export function ThreadRelationshipsPanel(props: {
   const groups = [
     { id: "related", label: null, rows: related, expanded: true },
     { id: "active", label: null, rows: active, expanded: true },
-    { id: "previous", label: "Previous agents", rows: previous, expanded: false },
+    {
+      id: "previous",
+      label: t("chat.threadRelationshipsControl.previousAgents"),
+      rows: previous,
+      expanded: false,
+    },
   ];
   // Subagents without a child thread yet have no row, so count them separately.
   const runningCount =
@@ -317,7 +333,11 @@ export function ThreadRelationshipsPanel(props: {
   return (
     <ThreadDetailsSection
       headingId="thread-details-lineage-heading"
-      title={runningCount > 0 ? `Lineage · ${runningCount} running` : "Lineage"}
+      title={
+        runningCount > 0
+          ? t("chat.threadRelationshipsControl.lineageRunning", { count: runningCount })
+          : t("chat.threadRelationshipsControl.lineage")
+      }
       data-thread-relationships-panel
       actions={
         canDetach ? (
@@ -328,7 +348,7 @@ export function ThreadRelationshipsPanel(props: {
                   size="icon-xs"
                   variant="ghost"
                   part="icon"
-                  aria-label="More thread actions"
+                  aria-label={t("chat.threadRelationshipsControl.moreThreadActions")}
                   disabled={busyAction !== null}
                 />
               }
@@ -338,7 +358,7 @@ export function ThreadRelationshipsPanel(props: {
             <MenuPopup align="end" className="min-w-60 max-w-(--available-width)">
               <MenuItem onClick={() => void detach()}>
                 <UnplugIcon className="size-3.5" />
-                Disconnect agent session
+                {t("chat.threadRelationshipsControl.disconnectAgentSession")}
               </MenuItem>
             </MenuPopup>
           </Menu>
@@ -376,8 +396,10 @@ export function ThreadRelationshipsPanel(props: {
               const providerDriver = agent?.driver ?? provider?.driver;
               const project = projects.find((project) => project.id === node?.thread?.projectId);
               const relationshipHint = node?.missing
-                ? "This related thread is unavailable"
-                : `Open ${relationship.toLowerCase()} in this chat`;
+                ? t("chat.threadRelationshipsControl.relatedThreadUnavailable")
+                : t("chat.threadRelationshipsControl.openRelationshipInChat", {
+                    relationship: relationship.toLowerCase(),
+                  });
               const RelationshipPopup = agent ? ThreadHoverCardPopup : TooltipPopup;
               const relationshipTooltip = agent ? (
                 <SubagentTooltipContent
@@ -461,8 +483,10 @@ export function ThreadRelationshipsPanel(props: {
                               part="secondary"
                               aria-label={
                                 parentTitle
-                                  ? `Merge back to ${parentTitle}`
-                                  : "Merge back to source conversation"
+                                  ? t("chat.threadRelationshipsControl.mergeBackTo", {
+                                      parentTitle,
+                                    })
+                                  : t("chat.threadRelationshipsControl.mergeBackToSource")
                               }
                               disabled={!canMerge || busyAction !== null}
                               onClick={() => void merge()}
@@ -477,10 +501,12 @@ export function ThreadRelationshipsPanel(props: {
                         />
                         <TooltipPopup side="left">
                           {latestMergeBackRun === null
-                            ? "Complete a run in this fork before merging it back"
+                            ? t("chat.threadRelationshipsControl.completeRunBeforeMerge")
                             : parentTitle
-                              ? `Merge this conversation back into ${parentTitle}`
-                              : "Merge this conversation back into its source"}
+                              ? t("chat.threadRelationshipsControl.mergeConversationInto", {
+                                  parentTitle,
+                                })
+                              : t("chat.threadRelationshipsControl.mergeConversationIntoSource")}
                         </TooltipPopup>
                       </Tooltip>
                       <span className="shrink-0 border border-transparent ps-1 pe-2.5 text-2xs font-medium text-muted-foreground">

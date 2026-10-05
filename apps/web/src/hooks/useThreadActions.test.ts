@@ -1,4 +1,5 @@
 import { EnvironmentId, ThreadId } from "@t3tools/contracts";
+import { t } from "@t3tools/shared/i18n";
 import { afterEach, describe, expect, it, vi } from "vite-plus/test";
 
 import {
@@ -21,7 +22,7 @@ describe("navigateAfterThreadDeletion", () => {
     expect(addToast).toHaveBeenCalledOnce();
     expect(addToast).toHaveBeenCalledWith(
       expect.objectContaining({
-        title: "Thread deleted, but navigation failed",
+        title: t("hooks.useThreadActions.threadDeletedNavigationFailed"),
         description: "route unavailable",
       }),
     );
@@ -47,7 +48,7 @@ describe("ThreadArchiveBlockedError", () => {
       environmentId: "environment-1",
       threadId: "thread-1",
     });
-    expect(error.message).toBe("Cannot archive while the provider is active.");
+    expect(error.message).toBe(t("hooks.useThreadActions.archiveBlockedProviderActive"));
   });
 });
 
@@ -89,7 +90,10 @@ describe("requestThreadUnpinConfirmation", () => {
     });
 
     expect(message).toBe(
-      'Unpin thread "Release prep"?\nThis will move the thread out of your pinned section.',
+      [
+        t("hooks.useThreadActions.unpinThreadConfirm", { title: "Release prep" }),
+        t("hooks.useThreadActions.unpinThreadDetail"),
+      ].join("\n"),
     );
     expect(result).toMatchObject({ _tag: "Success", value: false });
   });

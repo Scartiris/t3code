@@ -6,6 +6,7 @@ import {
 import { resolveAssetUrl } from "@t3tools/client-runtime/state/assets";
 import { squashAtomCommandFailure } from "@t3tools/client-runtime/state/runtime";
 import type { AssetResource, ContextMenuItem, EnvironmentId } from "@t3tools/contracts";
+import { t } from "@t3tools/shared/i18n";
 import { useCallback, useRef, useState, type ReactElement } from "react";
 
 import { writeTextToClipboard } from "../../hooks/useCopyToClipboard";
@@ -40,16 +41,16 @@ function useMediaActions(source: MediaActionSource) {
   });
   const actionUrl = useCallback(async () => {
     if (!source.asset) {
-      if (!source.src) throw new Error("This media is unavailable. Try reopening the preview.");
+      if (!source.src) throw new Error(t("media.mediaActions.mediaUnavailable"));
       return source.src;
     }
     const { environmentId, resource } = source.asset;
     const connection = readPreparedConnection(environmentId);
-    if (!connection) throw new Error("Reconnect to this environment and try again.");
+    if (!connection) throw new Error(t("media.mediaActions.reconnectEnvironment"));
     const result = await createAssetUrl({ environmentId, input: { resource } });
     if (result._tag === "Failure") throw squashAtomCommandFailure(result);
     const url = resolveAssetUrl(connection.httpBaseUrl, result.value.relativeUrl);
-    if (!url) throw new Error("The environment returned an invalid media URL.");
+    if (!url) throw new Error(t("media.mediaActions.invalidMediaUrl"));
     return url;
   }, [source, createAssetUrl]);
   const save = useCallback(async () => {
@@ -57,9 +58,7 @@ function useMediaActions(source: MediaActionSource) {
   }, [actionUrl, source]);
   const copyImage = useCallback(async () => {
     if (!navigator.clipboard?.write || typeof ClipboardItem === "undefined") {
-      throw new Error(
-        "Image copying is unavailable. Use a secure browser connection or save the image.",
-      );
+      throw new Error(t("media.mediaActions.copyImageUnavailable"));
     }
     // Start the clipboard write in the user gesture; fetching/decoding may finish later.
     await navigator.clipboard.write([
@@ -88,10 +87,13 @@ export function MediaActions({
     if (!api || menuOpen.current) return;
     menuOpen.current = true;
     setTooltipOpen(false);
-    let failureTitle = "Could not open media menu";
+    let failureTitle = t("media.mediaActions.openMenuFailed");
     let progressToast: ReturnType<typeof toastManager.add> | undefined;
     try {
-      const noun = source.kind === "image" ? "image" : "video";
+      const noun =
+        source.kind === "image"
+          ? t("media.mediaActions.imageNoun")
+          : t("media.mediaActions.videoNoun");
       const unavailable = source.src === null && source.asset === undefined;
       const canCopyImage =
         typeof navigator !== "undefined" &&
@@ -99,25 +101,37 @@ export function MediaActions({
         typeof ClipboardItem !== "undefined";
       const items: ContextMenuItem<MediaActionId>[] = [];
       if (reference?.kind === "file") {
-        items.push({ id: "copy-full-path", label: "Copy full path" });
+        items.push({ id: "copy-full-path", label: t("media.mediaActions.copyFullPath") });
         if (reference.relativePath)
-          items.push({ id: "copy-relative-path", label: "Copy relative path" });
+          items.push({
+            id: "copy-relative-path",
+            label: t("media.mediaActions.copyRelativePath"),
+          });
       } else if (reference?.kind === "url") {
-        items.push({ id: "copy-url", label: "Copy URL" });
+        items.push({ id: "copy-url", label: t("desktop.contextMenu.copyLink") });
       }
-      if (source.onOpenFile) items.push({ id: "open-file", label: "Open in file viewer" });
-      items.push({ id: "save", label: `Save ${noun}`, disabled: unavailable });
+      if (source.onOpenFile)
+        items.push({ id: "open-file", label: t("media.mediaActions.openInFileViewer") });
+      items.push({
+        id: "save",
+        label: t("media.mediaActions.saveMedia", { noun }),
+        disabled: unavailable,
+      });
       if (source.kind === "image") {
         items.push({
           id: "copy-image",
-          label: "Copy image",
+          label: t("desktop.contextMenu.copyImage"),
           disabled: unavailable || !canCopyImage,
         });
       }
 
       const action = await api.contextMenu.show(items, position);
       if (!action) return;
-      failureTitle = `Could not ${items.find((item) => item.id === action)?.label.toLowerCase() ?? "complete media action"}`;
+      failureTitle = t("media.mediaActions.actionFailedTitle", {
+        action:
+          items.find((item) => item.id === action)?.label.toLowerCase() ??
+          t("media.mediaActions.completeMediaAction"),
+      });
       const text =
         action === "copy-full-path" && reference?.kind === "file"
           ? reference.path
@@ -127,29 +141,41 @@ export function MediaActions({
               ? reference.url
               : undefined;
       if (text !== undefined) {
-        await writeTextToClipboard(text, reference?.kind === "file" ? "file path" : "URL");
+        await writeTextToClipboard(
+          text,
+          reference?.kind === "file" ? t("media.mediaActions.filePath") : "URL",
+        );
         toastManager.add({
           type: "success",
-          title: action === "copy-url" ? "URL copied" : "Path copied",
+          title:
+            action === "copy-url"
+              ? t("media.mediaActions.urlCopied")
+              : t("media.mediaActions.pathCopied"),
         });
       } else if (action === "open-file") {
         source.onOpenFile?.();
       } else if (action === "save" || action === "copy-image") {
         progressToast = toastManager.add({
           type: "loading",
-          title: action === "save" ? `Preparing ${noun} download…` : "Copying image…",
+          title:
+            action === "save"
+              ? t("media.mediaActions.preparingDownload", { noun })
+              : t("media.mediaActions.copyingImage"),
         });
         await (action === "save" ? save() : copyImage());
         toastManager.update(progressToast, {
           type: "success",
-          title: action === "save" ? "Download started" : "Image copied",
+          title:
+            action === "save"
+              ? t("media.mediaActions.downloadStarted")
+              : t("media.mediaActions.imageCopied"),
         });
       }
     } catch (error) {
       const toast = stackedThreadToast({
         type: "error",
         title: failureTitle,
-        description: error instanceof Error ? error.message : "The media action failed.",
+        description: error instanceof Error ? error.message : t("media.mediaActions.actionFailed"),
       });
       if (progressToast) toastManager.update(progressToast, toast);
       else toastManager.add(toast);

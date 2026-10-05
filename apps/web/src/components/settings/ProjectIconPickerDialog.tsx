@@ -1,6 +1,7 @@
 import * as Schema from "effect/Schema";
 import { deriveProjectIdentity } from "../../projectIdentity";
 import { ProjectMonogram } from "../ProjectMonogram";
+import { t } from "@t3tools/shared/i18n";
 import {
   ProjectMonogramText,
   type ProjectIconColor,
@@ -102,12 +103,12 @@ export function ProjectIconPickerDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogPopup className="w-full sm:w-[32rem]">
         <DialogHeader>
-          <DialogTitle>Choose project icon</DialogTitle>
-          <DialogDescription>Choose an icon, emoji, or monogram.</DialogDescription>
+          <DialogTitle>{t("settings.projectIconPickerDialog.title")}</DialogTitle>
+          <DialogDescription>{t("settings.projectIconPickerDialog.description")}</DialogDescription>
         </DialogHeader>
         <DialogPanel className="flex min-h-0 flex-col">
           <ToggleGroup
-            aria-label="Icon type"
+            aria-label={t("settings.projectIconPickerDialog.iconTypeAria")}
             variant="segmented"
             value={[mode]}
             onValueChange={(next) => {
@@ -115,15 +116,21 @@ export function ProjectIconPickerDialog({
               if (value === "lucide" || value === "emoji" || value === "monogram") setMode(value);
             }}
           >
-            <Toggle value="lucide">Icons</Toggle>
-            <Toggle value="emoji">Emoji</Toggle>
-            <Toggle value="monogram">Monogram</Toggle>
+            <Toggle value="lucide">{t("settings.projectIconPickerDialog.iconsTab")}</Toggle>
+            <Toggle value="emoji">{t("settings.projectIconPickerDialog.emojiTab")}</Toggle>
+            <Toggle value="monogram">{t("settings.projectIconPickerDialog.monogramTab")}</Toggle>
           </ToggleGroup>
 
           {mode !== "emoji" ? (
             <div>
-              <div className="mb-2 text-xs font-medium text-muted-foreground">Color</div>
-              <div className="flex flex-wrap gap-1.5" role="group" aria-label="Icon color">
+              <div className="mb-2 text-xs font-medium text-muted-foreground">
+                {t("settings.projectIconPickerDialog.color")}
+              </div>
+              <div
+                className="flex flex-wrap gap-1.5"
+                role="group"
+                aria-label={t("settings.projectIconPickerDialog.iconColorAria")}
+              >
                 {PROJECT_ICON_COLORS.map((option) => (
                   <button
                     key={option.value}
@@ -148,8 +155,8 @@ export function ProjectIconPickerDialog({
               <Input
                 type="search"
                 value={query}
-                aria-label="Search Lucide icons"
-                placeholder="Search all Lucide icons"
+                aria-label={t("settings.projectIconPickerDialog.searchIconsAria")}
+                placeholder={t("settings.projectIconPickerDialog.searchIconsPlaceholder")}
                 onChange={(event) => setQuery(event.currentTarget.value)}
               />
               <ScrollArea scrollFade className="max-h-64">
@@ -173,7 +180,9 @@ export function ProjectIconPickerDialog({
                 </div>
               </ScrollArea>
               {icons.length === 0 ? (
-                <p className="py-8 text-center text-sm text-muted-foreground">No icons found.</p>
+                <p className="py-8 text-center text-sm text-muted-foreground">
+                  {t("settings.projectIconPickerDialog.noIconsFound")}
+                </p>
               ) : null}
             </>
           ) : mode === "monogram" ? (
@@ -185,7 +194,7 @@ export function ProjectIconPickerDialog({
               />
               <div className="flex-1 space-y-2">
                 <label htmlFor="project-monogram" className="text-sm font-medium">
-                  Letters
+                  {t("settings.projectIconPickerDialog.letters")}
                 </label>
                 <Input
                   id="project-monogram"
@@ -196,7 +205,7 @@ export function ProjectIconPickerDialog({
                   autoComplete="off"
                 />
                 <p id="project-monogram-hint" className="text-xs text-muted-foreground">
-                  One or two letters or numbers.
+                  {t("settings.projectIconPickerDialog.lettersHint")}
                 </p>
               </div>
             </div>
@@ -223,12 +232,12 @@ export function ProjectIconPickerDialog({
               </ScrollArea>
               <div>
                 <div className="mb-2 text-xs font-medium text-muted-foreground">
-                  Or paste any emoji
+                  {t("settings.projectIconPickerDialog.orPasteEmoji")}
                 </div>
                 <Input
                   value={customEmoji}
-                  aria-label="Custom emoji"
-                  placeholder="Paste an emoji"
+                  aria-label={t("settings.projectIconPickerDialog.customEmojiAria")}
+                  placeholder={t("settings.projectIconPickerDialog.pasteEmoji")}
                   onChange={(event) => {
                     const value = event.currentTarget.value;
                     setCustomEmoji(value);
@@ -242,10 +251,10 @@ export function ProjectIconPickerDialog({
         </DialogPanel>
         <DialogFooter>
           <Button variant="outline" onClick={() => onOpenChange(false)}>
-            Cancel
+            {t("action.cancel")}
           </Button>
           <Button onClick={save} disabled={mode === "monogram" && !validMonogram}>
-            Save icon
+            {t("settings.projectIconPickerDialog.saveIcon")}
           </Button>
         </DialogFooter>
       </DialogPopup>

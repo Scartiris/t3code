@@ -18,6 +18,7 @@ import { makeStreamingTimelineFixture } from "../../test-fixtures";
 import type { TurnDiffSummary } from "../../types";
 import { describe, expect, it } from "vite-plus/test";
 import { MessageId, RunId } from "@t3tools/contracts";
+import { t } from "@t3tools/shared/i18n";
 import {
   computeStableMessagesTimelineRows,
   computeMessageDurationStart,
@@ -36,6 +37,15 @@ import {
   workEntryIsVisibleInGroup,
 } from "./MessagesTimeline.logic";
 import type { WorkLogEntry } from "../../session-logic";
+
+/**
+ * The work-log sentence `summarizeToolGroup` builds: one label per action group, joined by the
+ * catalog's list separator. Chinese has no case transform, so the source's lowercasing of the
+ * labels after the first is the identity here.
+ */
+function workLogSummary(labels: ReadonlyArray<string>): string {
+  return labels.join(t("workLog.presentation.listSeparator"));
+}
 
 describe("expanded tool group scrolling", () => {
   const entries = [{ id: "first" }, { id: "second" }];
@@ -93,6 +103,11 @@ describe("work entry labels", () => {
     label: "Tool call",
     tone: "tool" as const,
   };
+  const runningVp = `${t("chat.messagesTimeline.commandRunning")} vp`;
+  const ranVp = `${t("chat.messagesTimeline.commandRan")} vp`;
+  const failedVp = `${t("chat.messagesTimeline.commandFailed")} vp`;
+  const declinedVp = `${t("chat.messagesTimeline.commandDeclined")} vp`;
+  const stoppedVp = `${t("chat.messagesTimeline.commandStopped")} vp`;
 
   it("previews reasoning in the live row and falls back to a short label while empty", () => {
     const thought = {
@@ -110,14 +125,16 @@ describe("work entry labels", () => {
         true,
       ),
     ).toBe("First paragraph. Second paragraph.");
-    expect(liveWorkEntryLabel({ ...thought, detail: "  " }, undefined, true)).toBe("Thinking");
+    expect(liveWorkEntryLabel({ ...thought, detail: "  " }, undefined, true)).toBe(
+      t("chat.messagesTimeline.thinking"),
+    );
     expect(
       liveWorkEntryLabel(
         { ...thought, detail: "", toolLifecycleStatus: "completed" },
         undefined,
         false,
       ),
-    ).toBe("Thought");
+    ).toBe(t("chat.messagesTimeline.thought"));
     expect(
       liveWorkEntryLabel({ ...thought, toolLifecycleStatus: "completed" }, undefined, false),
     ).toBe(thought.detail);
@@ -184,7 +201,9 @@ describe("work entry labels", () => {
         input: { file_path: "src/env.ts" },
       } as NonNullable<WorkLogEntry["structuredPayload"]>,
     };
-    expect(workEntryDisplayLabel(readEntry, undefined)).toBe("Read src/env.ts");
+    expect(workEntryDisplayLabel(readEntry, undefined)).toBe(
+      t("toolActivity.toolActivity.readPath", { path: "src/env.ts", extra: "" }),
+    );
     expect(workEntryReadOutput(readEntry, undefined)).toBe("src/env.ts");
     expect(workEntryReadOutput(readEntry, "/workspace/ohseearr")).toBe(
       "/workspace/ohseearr/src/env.ts",
@@ -222,7 +241,7 @@ describe("work entry labels", () => {
         },
         undefined,
       ),
-    ).toBe("Searched TODO in web");
+    ).toBe(t("toolActivity.toolActivity.searchedQueryInTarget", { query: "TODO", target: "web" }));
   });
 
   it("labels file searches with the adapter title and its search target", () => {
@@ -261,16 +280,16 @@ describe("work entry labels", () => {
 
   it("keeps command summaries compact without replacing the full command in expanded rows", () => {
     const commandEntry = { ...entry, command: "vp test run", detail: "All tests passed" };
-    expect(liveWorkEntryLabel(commandEntry, undefined, true)).toBe("Running vp");
-    expect(liveWorkEntryLabel(commandEntry, undefined, false)).toBe("Ran vp");
+    expect(liveWorkEntryLabel(commandEntry, undefined, true)).toBe(runningVp);
+    expect(liveWorkEntryLabel(commandEntry, undefined, false)).toBe(ranVp);
     expect(workEntryDisplayLabel(commandEntry, undefined)).toBe("vp test run");
   });
 
   it("summarizes the program inside a shell wrapper while preserving the expanded command", () => {
     const command = "/bin/zsh -lc 'vp test run apps/web/src/session-logic.test.ts'";
     const commandEntry = { ...entry, command };
-    expect(liveWorkEntryLabel(commandEntry, undefined, true)).toBe("Running vp");
-    expect(liveWorkEntryLabel(commandEntry, undefined, false)).toBe("Ran vp");
+    expect(liveWorkEntryLabel(commandEntry, undefined, true)).toBe(runningVp);
+    expect(liveWorkEntryLabel(commandEntry, undefined, false)).toBe(ranVp);
     expect(workEntryDisplayLabel(commandEntry, undefined)).toBe(
       "vp test run apps/web/src/session-logic.test.ts",
     );
@@ -278,11 +297,11 @@ describe("work entry labels", () => {
   });
 
   it.each([
-    ["inProgress", "Running vp", "Running vp"],
-    ["completed", "Running vp", "Ran vp"],
-    ["failed", "Failed vp", "Failed vp"],
-    ["declined", "Declined vp", "Declined vp"],
-    ["stopped", "Stopped vp", "Stopped vp"],
+    ["inProgress", runningVp, runningVp],
+    ["completed", runningVp, ranVp],
+    ["failed", failedVp, failedVp],
+    ["declined", declinedVp, declinedVp],
+    ["stopped", stoppedVp, stoppedVp],
   ] as const)(
     "uses present tense for a live %s command and the outcome once it is no longer live",
     (toolLifecycleStatus, liveLabel, settledLabel) => {
@@ -786,7 +805,9 @@ describe("deriveMessagesTimelineRows", () => {
       supportsConversationRollback: false,
     });
     expect(rows.find((row) => row.kind === "work-toggle")).toMatchObject({
-      summary: "Listed projects 1 time and cloned 1 repository",
+      summary: ["Listed projects 1 time", "cloned 1 repository"].join(
+        t("workLog.presentation.listSeparator"),
+      ),
       hasFailure: true,
     });
   });
@@ -1031,7 +1052,7 @@ describe("deriveMessagesTimelineRows", () => {
     const runningRows = deriveMessagesTimelineRows({ ...input, timelineEntries: runningEntries });
     expect(runningRows.find((row) => row.kind === "context-compaction")).toMatchObject({
       active: true,
-      label: "Compacting context",
+      label: t("workLog.presentation.compactingContext"),
     });
     expect(runningRows.some((row) => row.kind === "thinking")).toBe(false);
 
@@ -1050,7 +1071,10 @@ describe("deriveMessagesTimelineRows", () => {
     });
     expect(completedRows.find((row) => row.kind === "context-compaction")).toMatchObject({
       active: false,
-      label: "Context compacted 899K → 19K tokens",
+      label: t("workLog.presentation.contextCompactedTokens", {
+        before: "899K",
+        after: "19K",
+      }),
     });
     expect(completedRows.at(-1)?.kind).toBe("thinking");
 
@@ -1317,7 +1341,7 @@ describe("deriveMessagesTimelineRows", () => {
     expect(foldRow?.runId).toBe("turn-1");
     expect(foldRow?.expanded).toBe(false);
     // User message boundary (00:00:00) → terminal message updatedAt (00:00:22).
-    expect(foldRow?.label).toBe("Worked for 22s");
+    expect(foldRow?.label).toBe(t("chat.messagesTimeline.workedFor", { duration: "22s" }));
     expect(collapsedRows.map((row) => row.id)).toEqual([
       "user-entry",
       "turn-fold:turn-1",
@@ -1609,7 +1633,7 @@ describe("deriveMessagesTimelineRows", () => {
     );
     // User message (00:00:00) → trailing work entry (00:00:12).
     expect(foldRow?.runId).toBe("turn-1");
-    expect(foldRow?.label).toBe("Worked for 12s");
+    expect(foldRow?.label).toBe(t("chat.messagesTimeline.workedFor", { duration: "12s" }));
   });
 
   it("uses latest-turn timings and the stopped label for an interrupted latest turn", () => {
@@ -1644,7 +1668,7 @@ describe("deriveMessagesTimelineRows", () => {
       expect.objectContaining({
         kind: "turn-fold",
         runId: "turn-1",
-        label: "You stopped after 47s",
+        label: t("chat.messagesTimeline.stoppedAfter", { duration: "47s" }),
         expanded: false,
       }),
     ]);
@@ -1761,7 +1785,11 @@ describe("deriveMessagesTimelineRows", () => {
             "steer",
           ]);
           expect(rows[1]?.createdAt).toBe(time(0));
-          if (!isWorking) expect(rows[1]).toMatchObject({ label: "Worked for 20s", expanded });
+          if (!isWorking)
+            expect(rows[1]).toMatchObject({
+              label: t("chat.messagesTimeline.workedFor", { duration: "20s" }),
+              expanded,
+            });
           expect(rows.some((row) => row.id === "final")).toBe(true);
           expect(rows.some((row) => row.id === "work")).toBe(isWorking || expanded);
         }
@@ -2183,10 +2211,10 @@ describe("deriveMessagesTimelineRows", () => {
     const settled = rows({ resume: "completed", working: false });
     expect(shape(settled)).toEqual([
       "user:launch",
-      "fold:Worked for 8.0s",
+      `fold:${t("chat.messagesTimeline.workedFor", { duration: "8.0s" })}`,
       "assistant:launch-answer",
       "user:resume",
-      "fold:Worked for 8.0s",
+      `fold:${t("chat.messagesTimeline.workedFor", { duration: "8.0s" })}`,
       "assistant:resume-answer",
     ]);
 
@@ -2200,18 +2228,18 @@ describe("deriveMessagesTimelineRows", () => {
     });
     expect(shape(expanded)).toEqual([
       "user:launch",
-      "fold:Worked for 8.0s",
+      `fold:${t("chat.messagesTimeline.workedFor", { duration: "8.0s" })}`,
       "work-toggle",
       "assistant:launch-answer",
       "user:resume",
-      "fold:Worked for 8.0s",
+      `fold:${t("chat.messagesTimeline.workedFor", { duration: "8.0s" })}`,
       "assistant:resume-answer",
     ]);
 
     // While the resume runs, only the settled launch folds.
     expect(shape(rows({ resume: "running", working: true }))).toEqual([
       "user:launch",
-      "fold:Worked for 8.0s",
+      `fold:${t("chat.messagesTimeline.workedFor", { duration: "8.0s" })}`,
       "assistant:launch-answer",
       "user:resume",
       "working",
@@ -2221,7 +2249,7 @@ describe("deriveMessagesTimelineRows", () => {
     // A failed run stays open, as on a normal thread.
     expect(shape(rows({ resume: "failed", working: false }))).toEqual([
       "user:launch",
-      "fold:Worked for 8.0s",
+      `fold:${t("chat.messagesTimeline.workedFor", { duration: "8.0s" })}`,
       "assistant:launch-answer",
       "user:resume",
       "work",
@@ -2906,8 +2934,15 @@ describe("deriveMessagesTimelineRows", () => {
   });
 
   it.each([
-    ["tools", "tool", "Used 3 tools"],
-    ["tools and status updates", "info", "Used 2 tools and received 1 update"],
+    ["tools", "tool", t("workLog.presentation.usedTools", { count: 3 })],
+    [
+      "tools and status updates",
+      "info",
+      workLogSummary([
+        t("workLog.presentation.usedTools", { count: 2 }),
+        t("workLog.presentation.receivedUpdates", { count: 1 }),
+      ]),
+    ],
   ] as const)("expands %s through the same activity group", (_, middleTone, summary) => {
     const timelineEntries = [
       {
@@ -3055,7 +3090,10 @@ describe("deriveMessagesTimelineRows", () => {
 
     expect(row).toMatchObject({
       kind: "work-toggle",
-      summary: "Used Chrome integration and ran 1 command",
+      summary: workLogSummary([
+        t("workLog.presentation.usedIntegrations", { names: "Chrome" }),
+        t("workLog.presentation.ranCommands", { count: 1 }),
+      ]),
       toolSurface: "browser",
       toolIcon: {
         _tag: "website",
@@ -3190,8 +3228,14 @@ describe("deriveMessagesTimelineRows", () => {
       expect(rows.find((row) => row.kind === "work-toggle")).toMatchObject({
         hiddenCount: statuses.some((status) => status === "error") ? 2 : 3,
         summary: statuses.some((status) => status === "error")
-          ? "Received 1 update and used 1 tool"
-          : "Used 2 tools and received 1 update",
+          ? workLogSummary([
+              t("workLog.presentation.receivedUpdates", { count: 1 }),
+              t("workLog.presentation.usedTools", { count: 1 }),
+            ])
+          : workLogSummary([
+              t("workLog.presentation.usedTools", { count: 2 }),
+              t("workLog.presentation.receivedUpdates", { count: 1 }),
+            ]),
         hasFailure,
       });
       if (statuses.some((status) => status === "error")) {
@@ -3563,7 +3607,7 @@ describe("v2 run and attempt history", () => {
     expect(foldRow?.runId).toBe("turn-1");
     expect(foldRow?.expanded).toBe(false);
     // User message boundary (00:00:00) → terminal message updatedAt (00:00:22).
-    expect(foldRow?.label).toBe("Worked for 22s");
+    expect(foldRow?.label).toBe(t("chat.messagesTimeline.workedFor", { duration: "22s" }));
     expect(collapsedRows.map((row) => row.id)).toEqual([
       "user-entry",
       "turn-fold:turn-1",
@@ -3805,7 +3849,7 @@ describe("v2 run and attempt history", () => {
     expect(collapsedRows.find((row) => row.kind === "attempt-fold")).toMatchObject({
       attemptId: supersededAttemptId,
       runId,
-      label: "Superseded attempt",
+      label: t("chat.messagesTimeline.supersededAttempt"),
       expanded: false,
     });
 

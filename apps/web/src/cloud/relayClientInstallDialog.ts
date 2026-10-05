@@ -3,6 +3,7 @@ import {
   type RelayClientInstallProgressEvent,
   type RelayClientInstallProgressStage,
 } from "@t3tools/contracts";
+import { t } from "@t3tools/shared/i18n";
 import * as Schema from "effect/Schema";
 
 export class RelayClientInstallConfirmationConflictError extends Schema.TaggedError<RelayClientInstallConfirmationConflictError>()(
@@ -15,7 +16,11 @@ export class RelayClientInstallConfirmationConflictError extends Schema.TaggedEr
   },
 ) {
   override get message(): string {
-    return `Cannot confirm relay client installation ${this.requestedVersion}; installation ${this.activeVersion} has dialog status ${this.activeDialogStatus}.`;
+    return t("cloud.relayClientInstallDialog.confirmationConflict", {
+      requestedVersion: this.requestedVersion,
+      activeVersion: this.activeVersion,
+      activeDialogStatus: this.activeDialogStatus,
+    });
   }
 }
 

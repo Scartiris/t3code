@@ -7,6 +7,7 @@ import {
   type ProviderInstallState,
   type ServerProvider,
 } from "@t3tools/contracts";
+import { t } from "@t3tools/shared/i18n";
 import { beforeEach, describe, expect, it, vi } from "vite-plus/test";
 
 import { visitElements } from "../../test/reactElementTree";
@@ -247,7 +248,13 @@ describe("Antigravity setup", () => {
       input: { instanceId, flowId: "flow-1", callbackUrl },
     });
     let view = renderSetup();
-    expect(visitElements(view, (element) => element.props.children === "Signed in.")).toBeNull();
+    expect(
+      visitElements(
+        view,
+        (element) =>
+          element.props.children === t("settings.providerAuthenticationSection.signedIn"),
+      ),
+    ).toBeNull();
     expect(
       visitElements(view, (element) => element.props.id === `provider-callback-${instanceId}`)
         ?.props.value,
@@ -255,14 +262,22 @@ describe("Antigravity setup", () => {
 
     setup.auth = authState({ phase: "verifying", authorizationUrl: null });
     expect(
-      visitElements(renderSetup(), (element) => element.props.children === "Signed in."),
+      visitElements(
+        renderSetup(),
+        (element) =>
+          element.props.children === t("settings.providerAuthenticationSection.signedIn"),
+      ),
     ).toBeNull();
     setup.auth = authState({ phase: "succeeded", authorizationUrl: null });
     view = renderSetup({
       provider: { ...provider, status: "ready", auth: { status: "authenticated" } },
     });
     expect(
-      visitElements(view, (element) => element.props.children === "Signed in."),
+      visitElements(
+        view,
+        (element) =>
+          element.props.children === t("settings.providerAuthenticationSection.signedIn"),
+      ),
     ).not.toBeNull();
   });
 
@@ -276,8 +291,14 @@ describe("Antigravity setup", () => {
       provider: { ...provider, status: "ready", auth: { status: "authenticated" } },
     });
     const expired = renderSetup();
-    expect(button(expired, "Sign in")).not.toBeNull();
-    expect(visitElements(expired, (element) => element.props.children === "Signed in.")).toBeNull();
+    expect(button(expired, t("settings.providerAuthenticationSection.signIn"))).not.toBeNull();
+    expect(
+      visitElements(
+        expired,
+        (element) =>
+          element.props.children === t("settings.providerAuthenticationSection.signedIn"),
+      ),
+    ).toBeNull();
     expect(
       visitElements(expired, (element) => element.props.children === "Google sign-in complete."),
     ).toBeNull();
@@ -311,8 +332,8 @@ describe("Antigravity setup", () => {
     });
     setup.startAuth.mockReturnValueOnce(pending);
     const view = renderSetup();
-    click(view, "Sign in");
-    click(view, "Sign in");
+    click(view, t("settings.providerAuthenticationSection.signIn"));
+    click(view, t("settings.providerAuthenticationSection.signIn"));
 
     expect(setup.startAuth).toHaveBeenCalledTimes(1);
     expect(setup.startAuth).toHaveBeenCalledWith({ environmentId, input: { instanceId } });
@@ -325,14 +346,15 @@ describe("Antigravity setup", () => {
       ...setup.installation!,
       operationId: "install-1",
       phase: "verifying",
-      message: "Checking the downloaded runtime.",
+      message: t("settings.providerSetupSection.checkingDownloadedRuntime"),
     };
 
     const view = renderSetup();
     expect(
       countElements(
         view,
-        (element) => element.props.children === "Checking the downloaded runtime.",
+        (element) =>
+          element.props.children === t("settings.providerSetupSection.checkingDownloadedRuntime"),
       ),
     ).toBe(1);
   });
@@ -346,12 +368,12 @@ describe("Antigravity setup", () => {
       installedVersion: null,
     };
     const view = renderSetup();
-    click(view, "Remove downloaded runtime");
+    click(view, t("settings.providerSetupSection.removeDownloadedRuntime"));
     await flushPromises();
     expect(setup.removeInstall).not.toHaveBeenCalled();
 
     setup.confirm.mockResolvedValue(true);
-    click(view, "Remove downloaded runtime");
+    click(view, t("settings.providerSetupSection.removeDownloadedRuntime"));
     await flushPromises();
     expect(setup.removeInstall).toHaveBeenCalledWith({ environmentId, input: { instanceId } });
   });
@@ -371,7 +393,7 @@ describe("Antigravity setup", () => {
           auth: { status: "authenticated" },
         },
       });
-      click(view, "Sign out");
+      click(view, t("settings.providerAuthenticationSection.signOut"));
       await flushPromises();
       expect(setup.logoutAuth).toHaveBeenCalledWith({ environmentId, input: { instanceId } });
     },
@@ -384,18 +406,18 @@ describe("Antigravity setup", () => {
       const view = renderSetup({
         provider: { ...provider, auth: { status, canLogout: true } },
       });
-      expect(button(view, "Sign in")).not.toBeNull();
-      expect(button(view, "Sign out")).toBeNull();
-      expect(button(view, "Change account")).toBeNull();
+      expect(button(view, t("settings.providerAuthenticationSection.signIn"))).not.toBeNull();
+      expect(button(view, t("settings.providerAuthenticationSection.signOut"))).toBeNull();
+      expect(button(view, t("settings.providerAuthenticationSection.changeAccount"))).toBeNull();
     },
   );
 
   it("offers account actions after verified login when discovery cannot identify auth", () => {
     setup.auth = authState({ phase: "succeeded", flowId: null, authorizationUrl: null });
     const view = renderSetup({ provider: { ...provider, auth: { status: "unknown" } } });
-    expect(button(view, "Change account")).not.toBeNull();
-    expect(button(view, "Sign out")).not.toBeNull();
-    expect(button(view, "Sign in")).toBeNull();
+    expect(button(view, t("settings.providerAuthenticationSection.changeAccount"))).not.toBeNull();
+    expect(button(view, t("settings.providerAuthenticationSection.signOut"))).not.toBeNull();
+    expect(button(view, t("settings.providerAuthenticationSection.signIn"))).toBeNull();
   });
 
   it("does not let a shared managed install hide an invalid custom binary path", () => {
@@ -409,7 +431,9 @@ describe("Antigravity setup", () => {
       provider: { ...provider, installed: false },
       binaryPath: "/missing/antigravity",
     });
-    expect(button(view, "Sign in")?.props.disabled).toBe(true);
+    expect(button(view, t("settings.providerAuthenticationSection.signIn"))?.props.disabled).toBe(
+      true,
+    );
     expect(setup.startAuth).not.toHaveBeenCalled();
   });
 

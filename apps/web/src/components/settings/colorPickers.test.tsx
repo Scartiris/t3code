@@ -1,3 +1,4 @@
+import { t } from "@t3tools/shared/i18n";
 import { act, type ReactNode, type ReactElement } from "react";
 import { create, type ReactTestRenderer } from "react-test-renderer";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vite-plus/test";
@@ -80,6 +81,16 @@ async function frame() {
   });
 }
 
+// The plane and its two range inputs put a localized label in front of the axis
+// names `components/ui/color-picker` still writes in English.
+function axisAria(label: string, axis: "saturation" | "brightness") {
+  return `${label} ${axis}`;
+}
+
+function planeAria(label: string) {
+  return `${label} saturation and brightness`;
+}
+
 describe("shared color controls in settings", () => {
   it("adjusts each provider color axis independently and reports the value being changed", async () => {
     const onCommit = vi.fn();
@@ -88,9 +99,9 @@ describe("shared color controls in settings", () => {
         <ProviderAccentColorPicker displayName="Codex" value="#ff0000" onCommit={onCommit} />,
       );
     });
-    const hue = "Accent color hue";
-    const saturation = "Accent color saturation";
-    const brightness = "Accent color brightness";
+    const hue = t("settings.providerAccentColorPicker.accentColorHue");
+    const saturation = axisAria(t("settings.providerAccentColorPicker.accentColor"), "saturation");
+    const brightness = axisAria(t("settings.providerAccentColorPicker.accentColor"), "brightness");
     expect(await key(hue, "ArrowLeft")).toHaveBeenCalledOnce();
     expect(slider(hue).props["aria-valuenow"]).toBe(359);
     await key(hue, "ArrowRight");
@@ -128,8 +139,8 @@ describe("shared color controls in settings", () => {
         <ProviderAccentColorPicker displayName="Codex" value="#ff0000" onCommit={onCommit} />,
       );
     });
-    const saturation = "Accent color saturation";
-    const brightness = "Accent color brightness";
+    const saturation = axisAria(t("settings.providerAccentColorPicker.accentColor"), "saturation");
+    const brightness = axisAria(t("settings.providerAccentColorPicker.accentColor"), "brightness");
     await key(saturation, "Home");
     await key(saturation, "ArrowLeft");
     expect(slider(saturation).props.value).toBe(0);
@@ -154,8 +165,8 @@ describe("shared color controls in settings", () => {
     await act(async () => {
       renderer = create(<ThemeColorField role="accent" value="#ff000080" onChange={onChange} />);
     });
-    const saturation = "Accent color saturation";
-    const brightness = "Accent color brightness";
+    const saturation = axisAria(t("settings.themeColorPicker.roleAccent"), "saturation");
+    const brightness = axisAria(t("settings.themeColorPicker.roleAccent"), "brightness");
     await act(async () =>
       slider(saturation).props.onChange({ currentTarget: { valueAsNumber: 50 } }),
     );
@@ -177,7 +188,9 @@ describe("shared color controls in settings", () => {
     await act(async () => {
       renderer = create(<ThemeColorField role="accent" value="#ff000080" onChange={onChange} />);
     });
-    const hue = "Accent color hue";
+    const hue = t("settings.themeColorPicker.hueAria", {
+      label: t("settings.themeColorPicker.roleAccent"),
+    });
     await act(async () => slider(hue).props.onPointerDown(pointer(25)));
     await act(async () => slider(hue).props.onPointerMove(pointer(50)));
     expect(onChange).not.toHaveBeenCalled();
@@ -198,7 +211,7 @@ describe("shared color controls in settings", () => {
     await act(async () => {
       renderer = create(<ThemeColorField role="accent" value="#ff000080" onChange={onChange} />);
     });
-    const planeLabel = "Accent color saturation and brightness";
+    const planeLabel = planeAria(t("settings.themeColorPicker.roleAccent"));
     await act(async () => plane(planeLabel).props.onPointerDown(pointer(-50, -50)));
     await act(async () => plane(planeLabel).props.onPointerCancel(pointer(-50, -50)));
     expect(onChange).toHaveBeenLastCalledWith("accent", "#ffffff80");
@@ -217,8 +230,10 @@ describe("shared color controls in settings", () => {
     await act(async () => {
       renderer = create(render("#ff0000"));
     });
-    const hue = "Accent color hue";
-    const planeLabel = "Accent color saturation and brightness";
+    const hue = t("settings.themeColorPicker.hueAria", {
+      label: t("settings.themeColorPicker.roleAccent"),
+    });
+    const planeLabel = planeAria(t("settings.themeColorPicker.roleAccent"));
     await key(hue, "ArrowRight", true);
     await act(async () => plane(planeLabel).props.onPointerDown(pointer(0, 0)));
     await frame();
@@ -239,11 +254,11 @@ describe("shared color controls in settings", () => {
         (node) =>
           node.type === "button" &&
           Array.isArray(node.props.children) &&
-          node.props.children.includes("Clear color"),
+          node.props.children.includes(t("settings.providerAccentColorPicker.clearColor")),
       );
     expect(onCommit).not.toHaveBeenCalled();
     expect(clearButtons()).toHaveLength(0);
-    await key("Accent color hue", "ArrowRight", true);
+    await key(t("settings.providerAccentColorPicker.accentColorHue"), "ArrowRight", true);
     expect(onCommit).toHaveBeenCalledOnce();
     expect(clearButtons()).toHaveLength(1);
     await act(async () => clearButtons()[0]!.props.onClick());
@@ -264,7 +279,7 @@ describe("shared color controls in settings", () => {
         />,
       );
     });
-    const hue = "Accent color hue";
+    const hue = t("settings.providerAccentColorPicker.accentColorHue");
     await key(hue, "ArrowRight", true);
     await key(hue, "ArrowRight", true);
     expect(onCommit).not.toHaveBeenCalled();

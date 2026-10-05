@@ -1,4 +1,5 @@
 import { EnvironmentId, ThreadId } from "@t3tools/contracts";
+import { t } from "@t3tools/shared/i18n";
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it, vi } from "vite-plus/test";
 
@@ -59,8 +60,8 @@ describe("PreviewEmptyState", () => {
       { url: "https://myapp.test/admin#users", lastVisitedAt: Date.now(), title: "Admin" },
       { url: "http://localhost:5173/", lastVisitedAt: Date.now(), title: "Recent Local" },
     ]);
-    expect(html).toContain("Recently used");
-    expect(html).toContain("Local servers");
+    expect(html).toContain(t("preview.previewEmptyState.recentlyUsed"));
+    expect(html).toContain(t("preview.previewEmptyState.localServers"));
     expect(html).toContain("myapp.test/admin#users");
     expect(html).toContain("Admin");
     expect(html).toContain("Recent Local");
@@ -70,14 +71,14 @@ describe("PreviewEmptyState", () => {
   it("renders only the recents group when no servers are found", () => {
     mocks.servers = [];
     const html = render([{ url: "https://myapp.test/", lastVisitedAt: 0 }]);
-    expect(html).toContain("Recently used");
-    expect(html).not.toContain("Local servers");
+    expect(html).toContain(t("preview.previewEmptyState.recentlyUsed"));
+    expect(html).not.toContain(t("preview.previewEmptyState.localServers"));
   });
 
   it("keeps the original empty state when both groups are empty", () => {
     mocks.servers = [];
     const html = render([]);
-    expect(html).toContain("No preview yet");
+    expect(html).toContain(t("preview.previewEmptyState.noPreviewYet"));
   });
 
   it("renders an out-of-range lastVisitedAt entry without throwing", () => {

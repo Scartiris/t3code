@@ -1,4 +1,5 @@
 import type { DesktopUpdateState } from "@t3tools/contracts";
+import { t } from "@t3tools/shared/i18n";
 import { TriangleAlertIcon } from "lucide-react";
 import { type ComponentProps, useCallback, useEffect, useId, useRef, useState } from "react";
 import { flushSync } from "react-dom";
@@ -102,7 +103,7 @@ function SidebarUpdateArchitectureWarningContent() {
   return (
     <Alert variant="warning">
       <TriangleAlertIcon />
-      <AlertTitle>Intel build on Apple Silicon</AlertTitle>
+      <AlertTitle>{t("sidebar.sidebarUpdatePill.intelBuildOnAppleSilicon")}</AlertTitle>
       <AlertDescription>{description}</AlertDescription>
     </Alert>
   );
@@ -146,10 +147,10 @@ function SidebarUpdateControl() {
   const tooltip = showUpdateDetails
     ? state
       ? getDesktopUpdateButtonTooltip(state)
-      : "Update available"
+      : t("sidebar.sidebarUpdatePill.updateAvailable")
     : showCheckIcon
-      ? "Checking for updates…"
-      : "Check for updates";
+      ? t("sidebar.sidebarUpdatePill.checkingForUpdates")
+      : t("sidebar.sidebarUpdatePill.checkForUpdates");
   const disabled = showCheckIcon
     ? true
     : showUpdateDetails
@@ -193,7 +194,7 @@ function SidebarUpdateControl() {
           toastManager.add(
             stackedThreadToast({
               type: "error",
-              title: "Could not download update",
+              title: t("sidebar.sidebarUpdatePill.couldNotDownloadUpdate"),
               description: actionError,
             }),
           );
@@ -202,8 +203,11 @@ function SidebarUpdateControl() {
           toastManager.add(
             stackedThreadToast({
               type: "error",
-              title: "Could not start update download",
-              description: error instanceof Error ? error.message : "An unexpected error occurred.",
+              title: t("sidebar.sidebarUpdatePill.couldNotStartUpdateDownload"),
+              description:
+                error instanceof Error
+                  ? error.message
+                  : t("sidebar.sidebarUpdatePill.unexpectedError"),
             }),
           );
         })
@@ -222,8 +226,11 @@ function SidebarUpdateControl() {
         toastManager.add(
           stackedThreadToast({
             type: "error",
-            title: "Could not confirm update",
-            description: error instanceof Error ? error.message : "Update confirmation failed.",
+            title: t("sidebar.sidebarUpdatePill.couldNotConfirmUpdate"),
+            description:
+              error instanceof Error
+                ? error.message
+                : t("sidebar.sidebarUpdatePill.updateConfirmationFailed"),
           }),
         );
         return;
@@ -241,7 +248,7 @@ function SidebarUpdateControl() {
           toastManager.add(
             stackedThreadToast({
               type: "error",
-              title: "Could not install update",
+              title: t("sidebar.sidebarUpdatePill.couldNotInstallUpdate"),
               description: actionError,
             }),
           );
@@ -250,8 +257,11 @@ function SidebarUpdateControl() {
           toastManager.add(
             stackedThreadToast({
               type: "error",
-              title: "Could not install update",
-              description: error instanceof Error ? error.message : "An unexpected error occurred.",
+              title: t("sidebar.sidebarUpdatePill.couldNotInstallUpdate"),
+              description:
+                error instanceof Error
+                  ? error.message
+                  : t("sidebar.sidebarUpdatePill.unexpectedError"),
             }),
           );
         })
@@ -270,9 +280,9 @@ function SidebarUpdateControl() {
         toastManager.add(
           stackedThreadToast({
             type: "error",
-            title: "Could not check for updates",
+            title: t("sidebar.sidebarUpdatePill.couldNotCheckForUpdates"),
             description:
-              result.state.message ?? "Automatic updates are not available in this build.",
+              result.state.message ?? t("sidebar.sidebarUpdatePill.automaticUpdatesUnavailable"),
           }),
         );
       })
@@ -280,8 +290,11 @@ function SidebarUpdateControl() {
         toastManager.add(
           stackedThreadToast({
             type: "error",
-            title: "Could not check for updates",
-            description: error instanceof Error ? error.message : "Update check failed.",
+            title: t("sidebar.sidebarUpdatePill.couldNotCheckForUpdates"),
+            description:
+              error instanceof Error
+                ? error.message
+                : t("sidebar.sidebarUpdatePill.updateCheckFailed"),
           }),
         );
       })
@@ -392,7 +405,7 @@ function SidebarUpdateControl() {
         {showReleaseNotesPopover && state ? (
           <PopoverPopup
             align="center"
-            aria-label="Nightly update release notes"
+            aria-label={t("sidebar.sidebarUpdatePill.nightlyReleaseNotes")}
             initialFocus={false}
             onKeyDownCapture={(event) => {
               if (

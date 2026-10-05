@@ -5,6 +5,7 @@ import {
   ProjectReadFileError,
   type ProjectReadFileResult,
 } from "@t3tools/contracts";
+import { t } from "@t3tools/shared/i18n";
 import * as Cause from "effect/Cause";
 import * as Option from "effect/Option";
 import * as Schema from "effect/Schema";
@@ -140,7 +141,9 @@ function failureCause<A>(result: AsyncResult.AsyncResult<A, unknown>): unknown {
 
 function errorMessage(cause: unknown): string | null {
   if (cause === null) return null;
-  return cause instanceof Error ? cause.message : "Workspace query failed.";
+  return cause instanceof Error
+    ? cause.message
+    : t("files.projectFilesQueryState.workspaceQueryFailed");
 }
 
 const isProjectReadFileError = Schema.is(ProjectReadFileError);

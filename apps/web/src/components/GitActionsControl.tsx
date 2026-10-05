@@ -1,3 +1,4 @@
+import { t } from "@t3tools/shared/i18n";
 import { ThreadDetailsControl } from "./chat/ThreadDetailsControl";
 import { useAtomValue } from "@effect/atom-react";
 import { type ScopedThreadRef } from "@t3tools/contracts";
@@ -197,8 +198,8 @@ const PUBLISH_PROVIDER_OPTIONS = [
   {
     value: "forgejo",
     label: "Forgejo / Gitea",
-    description: "Your signed-in server",
-    host: "your server",
+    description: t("components.gitActionsControl.yourSignedInServer"),
+    host: t("components.gitActionsControl.yourServer"),
     pathPlaceholder: "owner/repo",
     Icon: ForgejoIcon,
   },
@@ -266,7 +267,7 @@ function getPublishProviderReadiness(input: {
   if (!discovered) {
     return {
       ready: false,
-      hint: "Provider status unavailable. Open Settings -> Source Control and rescan.",
+      hint: t("components.gitActionsControl.providerStatusUnavailable"),
     };
   }
   if (discovered.status !== "available") {
@@ -277,7 +278,9 @@ function getPublishProviderReadiness(input: {
       ready: false,
       hint:
         Option.getOrNull(discovered.auth.detail) ??
-        `${discovered.label} is not authenticated. Open Settings -> Source Control for setup guidance.`,
+        t("components.gitActionsControl.providerNotAuthenticated", {
+          provider: discovered.label,
+        }),
     };
   }
   return { ready: true, hint: null };
@@ -295,8 +298,8 @@ function getMenuActionDisabledReason({
   hasPrimaryRemote: boolean;
 }): string | null {
   if (!item.disabled) return null;
-  if (isBusy) return "Git action in progress.";
-  if (!gitStatus) return "Git status is unavailable.";
+  if (isBusy) return t("components.gitActionsControl.gitActionInProgress");
+  if (!gitStatus) return t("components.gitActionsControl.gitStatusUnavailable");
 
   const hasBranch = gitStatus.refName !== null;
   const hasChanges = gitStatus.hasWorkingTreeChanges;
@@ -306,51 +309,62 @@ function getMenuActionDisabledReason({
 
   if (item.id === "commit") {
     if (!hasChanges) {
-      return "Worktree is clean. Make changes before committing.";
+      return t("components.gitActionsControl.worktreeClean");
     }
-    return "Commit is currently unavailable.";
+    return t("components.gitActionsControl.commitUnavailable");
   }
 
   if (item.id === "push") {
     if (!hasBranch) {
-      return "Detached HEAD: check out a branch before pushing.";
+      return t("components.gitActionsControl.detachedHeadBeforePush");
     }
     if (hasChanges) {
-      return "Commit or stash local changes before pushing.";
+      return t("components.gitActionsControl.commitOrStashBeforePush");
     }
     if (isBehind) {
-      return "Branch is behind upstream. Pull/rebase before pushing.";
+      return t("components.gitActionsControl.branchBehindBeforePush");
     }
     if (!gitStatus.hasUpstream && !hasPrimaryRemote) {
-      return 'Add an "origin" remote before pushing.';
+      return t("components.gitActionsControl.addOriginRemoteBeforePush");
     }
     if (!isAhead) {
-      return "No local commits to push.";
+      return t("components.gitActionsControl.noLocalCommitsToPush");
     }
-    return "Push is currently unavailable.";
+    return t("components.gitActionsControl.pushUnavailable");
   }
 
   if (!hasBranch) {
-    return `Detached HEAD: check out a branch before creating a ${terminology.singular}.`;
+    return t("components.gitActionsControl.detachedHeadBeforeCreate", {
+      singular: terminology.singular,
+    });
   }
   if (hasChanges) {
-    return `Commit local changes before creating a ${terminology.singular}.`;
+    return t("components.gitActionsControl.commitBeforeCreate", {
+      singular: terminology.singular,
+    });
   }
   if (!gitStatus.hasUpstream && !hasPrimaryRemote) {
-    return `Add an "origin" remote before creating a ${terminology.singular}.`;
+    return t("components.gitActionsControl.addOriginRemoteBeforeCreate", {
+      singular: terminology.singular,
+    });
   }
   if (!isAhead) {
-    return `No local commits to include in a ${terminology.singular}.`;
+    return t("components.gitActionsControl.noLocalCommitsToInclude", {
+      singular: terminology.singular,
+    });
   }
   if (isBehind) {
-    return `Branch is behind upstream. Pull/rebase before creating a ${terminology.singular}.`;
+    return t("components.gitActionsControl.branchBehindBeforeCreate", {
+      singular: terminology.singular,
+    });
   }
-  return `Create ${terminology.singular} is currently unavailable.`;
+  return t("components.gitActionsControl.createUnavailable", {
+    singular: terminology.singular,
+  });
 }
 
-const COMMIT_DIALOG_TITLE = "Commit changes";
-const COMMIT_DIALOG_DESCRIPTION =
-  "Review and confirm your commit. Leave the message blank to auto-generate one.";
+const COMMIT_DIALOG_TITLE = t("components.gitActionsControl.commitDialogTitle");
+const COMMIT_DIALOG_DESCRIPTION = t("components.gitActionsControl.commitDialogDescription");
 
 function GitActionItemIcon({
   icon,
@@ -622,7 +636,11 @@ function PublishRepositoryDialog(props: PublishRepositoryDialogProps) {
       : currentPublishProvider.host;
   const publishPathPlaceholder = currentPublishProvider.pathPlaceholder;
   const publishProviderLabel = currentPublishProvider.label;
-  const publishWizardSteps = ["Provider", "Repository", "Summary"] as const;
+  const publishWizardSteps = [
+    t("components.gitActionsControl.provider"),
+    t("components.gitActionsControl.repository"),
+    t("components.gitActionsControl.summary"),
+  ] as const;
   const publishWizardStepSummaries = [
     publishProviderLabel,
     publishResult?.repository.nameWithOwner ?? null,
@@ -658,7 +676,7 @@ function PublishRepositoryDialog(props: PublishRepositoryDialogProps) {
       if (result._tag === "Failure") {
         if (!isAtomCommandInterrupted(result)) {
           const error = squashAtomCommandFailure(result);
-          setPublishError(error instanceof Error ? error.message : "An error occurred.");
+          setPublishError(error instanceof Error ? error.message : t("error.generic"));
         }
         return;
       }
@@ -708,8 +726,8 @@ function PublishRepositoryDialog(props: PublishRepositoryDialogProps) {
     <Dialog open={props.open} onOpenChange={handleOpenChange}>
       <WizardPopup>
         <WizardHeader
-          title="Publish repository"
-          description="Pick where to host it, then point us at a repo to push to."
+          title={t("components.gitActionsControl.publishRepository")}
+          description={t("components.gitActionsControl.publishRepositoryDescription")}
         >
           <WizardSteps
             steps={publishWizardSteps}
@@ -728,7 +746,7 @@ function PublishRepositoryDialog(props: PublishRepositoryDialogProps) {
         <WizardPanel>
           <div className={cn("space-y-2", publishWizardStep !== 0 && "hidden")}>
             <span id="publish-provider-cards-label" className="text-xs font-medium text-foreground">
-              Provider
+              {t("components.gitActionsControl.provider")}
             </span>
             <RadioGroup
               value={publishProvider}
@@ -764,13 +782,13 @@ function PublishRepositoryDialog(props: PublishRepositoryDialogProps) {
                                 openSourceControlSettings();
                               }}
                             >
-                              Setup Required
+                              {t("components.gitActionsControl.setupRequired")}
                             </Button>
                           }
                         />
                         <TooltipPopup side="top" align="end">
                           {readiness.hint ??
-                            "Open Settings -> Source Control to configure this provider."}
+                            t("components.gitActionsControl.configureProviderHint")}
                         </TooltipPopup>
                       </Tooltip>
                     </div>
@@ -805,7 +823,7 @@ function PublishRepositoryDialog(props: PublishRepositoryDialogProps) {
                 htmlFor="publish-repository-path"
                 className="text-xs font-medium text-foreground"
               >
-                Repository
+                {t("components.gitActionsControl.repository")}
               </label>
               <div className="flex items-stretch overflow-hidden rounded-md border border-input bg-background focus-within:outline-2 focus-within:-outline-offset-1 focus-within:outline-ring">
                 <span className="flex shrink-0 items-center gap-1.5 border-r border-input bg-muted/50 px-2.5 font-mono text-xs text-muted-foreground">
@@ -837,7 +855,7 @@ function PublishRepositoryDialog(props: PublishRepositoryDialogProps) {
                 id="publish-visibility-cards-label"
                 className="text-xs font-medium text-foreground"
               >
-                Visibility
+                {t("components.gitActionsControl.visibility")}
               </span>
               <RadioGroup
                 value={publishVisibility}
@@ -851,14 +869,14 @@ function PublishRepositoryDialog(props: PublishRepositoryDialogProps) {
                 {[
                   {
                     value: "private" as const,
-                    label: "Private",
-                    description: "Only invited people",
+                    label: t("components.gitActionsControl.private"),
+                    description: t("components.gitActionsControl.onlyInvitedPeople"),
                     Icon: LockIcon,
                   },
                   {
                     value: "public" as const,
-                    label: "Public",
-                    description: "Anyone on the web",
+                    label: t("components.gitActionsControl.public"),
+                    description: t("components.gitActionsControl.anyoneOnTheWeb"),
                     Icon: GlobeIcon,
                   },
                 ].map((option) => {
@@ -903,12 +921,14 @@ function PublishRepositoryDialog(props: PublishRepositoryDialogProps) {
                     publishAdvancedOpen ? "" : "-rotate-90",
                   )}
                 />
-                Advanced
+                {t("components.gitActionsControl.advanced")}
               </button>
               {publishAdvancedOpen ? (
                 <div className="mt-3 grid gap-3 sm:grid-cols-2">
                   <label className="space-y-1.5" htmlFor="publish-remote-name">
-                    <span className="text-xs font-medium text-foreground">Remote</span>
+                    <span className="text-xs font-medium text-foreground">
+                      {t("components.gitActionsControl.remote")}
+                    </span>
                     <Input
                       id="publish-remote-name"
                       value={publishRemoteName}
@@ -922,7 +942,7 @@ function PublishRepositoryDialog(props: PublishRepositoryDialogProps) {
                       id="publish-protocol-label"
                       className="text-xs font-medium text-foreground"
                     >
-                      Protocol
+                      {t("components.gitActionsControl.protocol")}
                     </span>
                     <ToggleGroup
                       value={[publishProtocol]}
@@ -950,7 +970,9 @@ function PublishRepositoryDialog(props: PublishRepositoryDialogProps) {
                 className="flex items-center gap-2 rounded-md border border-input bg-muted/40 px-3 py-2 text-xs text-muted-foreground dark:border-transparent dark:bg-white/[0.035]"
               >
                 <Spinner size="sm" aria-hidden />
-                Publishing repository to {publishProviderLabel}...
+                {t("components.gitActionsControl.publishingRepositoryTo", {
+                  provider: publishProviderLabel,
+                })}
               </div>
             ) : null}
             {publishError && !publishRepositoryAction.isPending ? (
@@ -958,7 +980,7 @@ function PublishRepositoryDialog(props: PublishRepositoryDialogProps) {
                 role="alert"
                 className="rounded-md border border-destructive/40 bg-destructive/10 px-3 py-2 text-xs text-destructive"
               >
-                <p className="font-medium">Publish failed</p>
+                <p className="font-medium">{t("components.gitActionsControl.publishFailed")}</p>
                 <p className="mt-0.5 text-destructive/90">{publishError}</p>
               </div>
             ) : null}
@@ -973,13 +995,18 @@ function PublishRepositoryDialog(props: PublishRepositoryDialogProps) {
                   </span>
                   <h3 className="text-sm font-semibold text-foreground">
                     {publishResult.status === "pushed"
-                      ? "Repository published"
-                      : "Repository created"}
+                      ? t("components.gitActionsControl.repositoryPublished")
+                      : t("components.gitActionsControl.repositoryCreated")}
                   </h3>
                   <p className="max-w-xs text-pretty text-xs text-muted-foreground">
                     {publishResult.status === "pushed"
-                      ? `${publishResult.branch} is now live on ${publishProviderLabel}.`
-                      : `Remote "${publishResult.remoteName}" is set up. Make a commit and push it to share your code.`}
+                      ? t("components.gitActionsControl.branchNowLiveOn", {
+                          branch: publishResult.branch,
+                          provider: publishProviderLabel,
+                        })
+                      : t("components.gitActionsControl.remoteSetUp", {
+                          remote: publishResult.remoteName,
+                        })}
                   </p>
                 </div>
                 <div className="flex items-center gap-2 rounded-lg border border-input bg-muted/40 px-3 py-2 dark:border-transparent dark:bg-white/[0.035]">
@@ -996,12 +1023,14 @@ function PublishRepositoryDialog(props: PublishRepositoryDialogProps) {
                     void openLink(publishResult.repository.url).catch(() => undefined);
                   }}
                 >
-                  Open on {publishProviderLabel}
+                  {t("components.gitActionsControl.openOnProvider", {
+                    provider: publishProviderLabel,
+                  })}
                 </Button>
               </>
             ) : (
               <div className="rounded-md border border-input bg-background px-3 py-2 text-xs text-muted-foreground dark:border-transparent dark:bg-white/[0.035]">
-                Publish result unavailable.
+                {t("components.gitActionsControl.publishResultUnavailable")}
               </div>
             )}
           </div>
@@ -1009,7 +1038,9 @@ function PublishRepositoryDialog(props: PublishRepositoryDialogProps) {
 
         <WizardFooter>
           {publishWizardStep === 2 ? (
-            <Button onClick={() => handleOpenChange(false)}>Done</Button>
+            <Button onClick={() => handleOpenChange(false)}>
+              {t("components.gitActionsControl.done")}
+            </Button>
           ) : (
             <>
               <Button
@@ -1023,24 +1054,24 @@ function PublishRepositoryDialog(props: PublishRepositoryDialogProps) {
                   setPublishWizardStep((step) => Math.max(0, step - 1));
                 }}
               >
-                {publishWizardStep === 0 ? "Cancel" : "Back"}
+                {publishWizardStep === 0 ? t("action.cancel") : t("sidebar.back")}
               </Button>
               {publishWizardStep < 1 ? (
                 <Button
                   disabled={!hasReadyPublishProvider || !selectedPublishProviderReadiness.ready}
                   onClick={() => setPublishWizardStep((step) => Math.min(1, step + 1))}
                 >
-                  Next
+                  {t("components.gitActionsControl.next")}
                 </Button>
               ) : (
                 <Button disabled={!canSubmitPublishRepository} onClick={submitPublishRepository}>
                   {publishRepositoryAction.isPending ? (
                     <>
                       <Spinner size="sm" aria-hidden />
-                      Publishing...
+                      {t("components.gitActionsControl.publishing")}
                     </>
                   ) : (
-                    "Publish"
+                    t("components.gitActionsControl.publish")
                   )}
                 </Button>
               )}
@@ -1249,7 +1280,7 @@ export default function GitActionsControl({
     [gitStatusForActions, hasPrimaryRemote, isDefaultRef, isGitActionRunning],
   );
   const quickActionDisabledReason = quickAction.disabled
-    ? (quickAction.hint ?? "This action is currently unavailable.")
+    ? (quickAction.hint ?? t("components.gitActionsControl.actionUnavailable"))
     : null;
   const gitActionProgress = resolveGitActionProgressPresentation(vcsActionState);
   const pendingDefaultBranchActionCopy = pendingDefaultBranchAction
@@ -1363,8 +1394,8 @@ export default function GitActionsControl({
         toastManager.add(
           stackedThreadToast({
             type: "error",
-            title: "Action failed",
-            description: error instanceof Error ? error.message : "An error occurred.",
+            title: t("components.gitActionsControl.actionFailed"),
+            description: error instanceof Error ? error.message : t("error.generic"),
             timeout: errorToastTiming.timeout,
             ...(scopedToastData !== undefined ? { data: scopedToastData } : {}),
           }),
@@ -1508,8 +1539,8 @@ export default function GitActionsControl({
           toastManager.add(
             stackedThreadToast({
               type: "error",
-              title: "Pull failed",
-              description: error instanceof Error ? error.message : "An error occurred.",
+              title: t("components.gitActionsControl.pullFailed"),
+              description: error instanceof Error ? error.message : t("error.generic"),
               timeout: errorToastTiming.timeout,
               ...(threadToastData !== undefined ? { data: threadToastData } : {}),
             }),
@@ -1518,11 +1549,19 @@ export default function GitActionsControl({
         }
 
         const pullResult = result.value;
-        const title = pullResult.status === "pulled" ? "Pulled" : "Already up to date";
+        const title =
+          pullResult.status === "pulled"
+            ? t("components.gitActionsControl.pulled")
+            : t("components.gitActionsControl.alreadyUpToDate");
         const description =
           pullResult.status === "pulled"
-            ? `Updated ${pullResult.refName} from ${pullResult.upstreamRef ?? "upstream"}`
-            : `${pullResult.refName} is already synchronized.`;
+            ? t("components.gitActionsControl.updatedRefFrom", {
+                ref: pullResult.refName,
+                upstream: pullResult.upstreamRef ?? t("components.gitActionsControl.upstream"),
+              })
+            : t("components.gitActionsControl.refAlreadySynchronized", {
+                ref: pullResult.refName,
+              });
         if (isPanel) {
           setInlineSuccess({ title, description, scopeKey: successScopeKey });
           return;
@@ -1591,7 +1630,7 @@ export default function GitActionsControl({
       if (!gitCwd) {
         toastManager.add({
           type: "error",
-          title: "Editor opening is unavailable.",
+          title: t("components.gitActionsControl.editorUnavailable"),
           data: threadToastData,
         });
         return;
@@ -1606,8 +1645,8 @@ export default function GitActionsControl({
         toastManager.add(
           stackedThreadToast({
             type: "error",
-            title: "Unable to open file",
-            description: error instanceof Error ? error.message : "An error occurred.",
+            title: t("components.gitActionsControl.unableToOpenFile"),
+            description: error instanceof Error ? error.message : t("error.generic"),
             ...(threadToastData !== undefined ? { data: threadToastData } : {}),
           }),
         );
@@ -1628,8 +1667,8 @@ export default function GitActionsControl({
       toastManager.add(
         stackedThreadToast({
           type: "error",
-          title: "Git initialization failed",
-          description: error instanceof Error ? error.message : "An error occurred.",
+          title: t("components.gitActionsControl.gitInitFailed"),
+          description: error instanceof Error ? error.message : t("error.generic"),
           ...(threadToastData !== undefined ? { data: threadToastData } : {}),
         }),
       );
@@ -1702,12 +1741,14 @@ export default function GitActionsControl({
           }}
         >
           <CloudUploadIcon />
-          <MenuItemLabel>Publish repository...</MenuItemLabel>
+          <MenuItemLabel>
+            {t("components.gitActionsControl.publishRepositoryEllipsis")}
+          </MenuItemLabel>
         </MenuItem>
       ) : null}
       {gitStatusForActions?.refName === null && (
         <p className="px-2 py-1.5 text-xs text-warning">
-          Detached HEAD: create and check out a branch to enable push and pull request actions.
+          {t("components.gitActionsControl.detachedHeadEnableActions")}
         </p>
       )}
       {gitStatusForActions &&
@@ -1715,7 +1756,9 @@ export default function GitActionsControl({
         !gitStatusForActions.hasWorkingTreeChanges &&
         gitStatusForActions.behindCount > 0 &&
         gitStatusForActions.aheadCount === 0 && (
-          <p className="px-2 py-1.5 text-xs text-warning">Behind upstream. Pull/rebase first.</p>
+          <p className="px-2 py-1.5 text-xs text-warning">
+            {t("components.gitActionsControl.behindUpstreamPullFirst")}
+          </p>
         )}
       {gitStatusError && <p className="px-2 py-1.5 text-xs text-destructive">{gitStatusError}</p>}
     </>
@@ -1735,7 +1778,9 @@ export default function GitActionsControl({
           >
             <GitBranchPlusIcon className="size-4" />
             <MenuItemLabel>
-              {initAction.isPending ? "Initializing..." : "Initialize Git"}
+              {initAction.isPending
+                ? t("components.gitActionsControl.initializing")
+                : t("components.gitActionsControl.initializeGit")}
             </MenuItemLabel>
           </MenuItem>
         ) : (
@@ -1765,7 +1810,7 @@ export default function GitActionsControl({
             >
               <MenuSubTrigger density="touch" disabled={isGitActionRunning}>
                 <SourceControlIcon className="size-4" />
-                <MenuItemLabel>Git actions</MenuItemLabel>
+                <MenuItemLabel>{t("components.gitActionsControl.gitActions")}</MenuItemLabel>
               </MenuSubTrigger>
               <MenuSubPopup>{gitItems}</MenuSubPopup>
             </MenuSub>
@@ -1782,13 +1827,15 @@ export default function GitActionsControl({
         >
           <GitBranchPlusIcon className="size-3.5" aria-hidden />
           <span className="ml-0.5">
-            {initAction.isPending ? "Initializing..." : "Initialize Git"}
+            {initAction.isPending
+              ? t("components.gitActionsControl.initializing")
+              : t("components.gitActionsControl.initializeGit")}
           </span>
         </ThreadDetailsControl>
       ) : compact && !gitActionProgress && !visibleInlineSuccess ? null : (
         <ActionGroup
           role="group"
-          aria-label="Git actions"
+          aria-label={t("components.gitActionsControl.gitActions")}
           {...(isPanel ? { ref: panelAnchorRef } : {})}
           className={cn(
             "shrink-0",
@@ -1899,7 +1946,7 @@ export default function GitActionsControl({
                 <MenuTrigger
                   render={
                     <ThreadDetailsControl
-                      aria-label="Git action options"
+                      aria-label={t("components.gitActionsControl.gitActionOptions")}
                       size={isPanel ? "sm" : "icon-xs"}
                       variant={isPanel ? "ghost" : "outline"}
                       part="secondary"
@@ -1936,7 +1983,7 @@ export default function GitActionsControl({
           onClick={onOpenChanges}
         >
           <FileDiffIcon className={THREAD_DETAILS_PANEL_ICON_CLASS} aria-hidden />
-          <span className="flex-1 text-left">Changes</span>
+          <span className="flex-1 text-left">{t("components.gitActionsControl.changes")}</span>
           <span className="flex items-center gap-1 font-mono text-2xs tabular-nums">
             <span className="text-success">+{changesTotals?.insertions ?? 0}</span>
             <span className="text-destructive">-{changesTotals?.deletions ?? 0}</span>
@@ -1963,12 +2010,18 @@ export default function GitActionsControl({
           <DialogPanel>
             <div className="space-y-3 rounded-xl bg-zinc-25 p-3 text-sm ring-1 ring-black/5 dark:bg-white/[0.035] dark:ring-white/5">
               <div className="grid grid-cols-[auto_1fr] items-center gap-x-2 gap-y-1">
-                <span className="text-muted-foreground">Branch</span>
+                <span className="text-muted-foreground">
+                  {t("components.gitActionsControl.branch")}
+                </span>
                 <span className="flex items-center justify-between gap-2">
                   <span className="font-medium">
-                    {gitStatusForActions?.refName ?? "(detached HEAD)"}
+                    {gitStatusForActions?.refName ?? t("components.gitActionsControl.detachedHead")}
                   </span>
-                  {isDefaultRef && <span className="text-right text-warning">Default branch</span>}
+                  {isDefaultRef && (
+                    <span className="text-right text-warning">
+                      {t("components.gitActionsControl.defaultBranch")}
+                    </span>
+                  )}
                 </span>
               </div>
               <div className="space-y-1">
@@ -1985,10 +2038,15 @@ export default function GitActionsControl({
                         }}
                       />
                     )}
-                    <span className="text-muted-foreground">Files</span>
+                    <span className="text-muted-foreground">
+                      {t("components.gitActionsControl.files")}
+                    </span>
                     {!allSelected && !isEditingFiles && (
                       <span className="text-muted-foreground">
-                        ({selectedFiles.length} of {allFiles.length})
+                        {t("components.gitActionsControl.filesSelectedCount", {
+                          selected: selectedFiles.length,
+                          total: allFiles.length,
+                        })}
                       </span>
                     )}
                   </div>
@@ -1998,12 +2056,14 @@ export default function GitActionsControl({
                       size="xs"
                       onClick={() => setIsEditingFiles((prev) => !prev)}
                     >
-                      {isEditingFiles ? "Done" : "Edit"}
+                      {isEditingFiles
+                        ? t("components.gitActionsControl.done")
+                        : t("components.gitActionsControl.edit")}
                     </Button>
                   )}
                 </div>
                 {!gitStatusForActions || allFiles.length === 0 ? (
-                  <p className="font-medium">none</p>
+                  <p className="font-medium">{t("components.gitActionsControl.none")}</p>
                 ) : (
                   <div className="space-y-2">
                     <div className="h-44 rounded-lg bg-card ring-1 ring-black/5 dark:bg-white/[0.025] dark:ring-white/5">
@@ -2043,7 +2103,9 @@ export default function GitActionsControl({
                                   />
                                   <span className="shrink-0">
                                     {isExcluded ? (
-                                      <span className="text-muted-foreground">Excluded</span>
+                                      <span className="text-muted-foreground">
+                                        {t("components.gitActionsControl.excluded")}
+                                      </span>
                                     ) : (
                                       <>
                                         <span className="text-diff-addition">
@@ -2077,11 +2139,13 @@ export default function GitActionsControl({
               </div>
             </div>
             <div className="space-y-1">
-              <p className="text-sm font-medium">Commit message (optional)</p>
+              <p className="text-sm font-medium">
+                {t("components.gitActionsControl.commitMessageOptional")}
+              </p>
               <Textarea
                 value={dialogCommitMessage}
                 onChange={(event) => setDialogCommitMessage(event.target.value)}
-                placeholder="Leave empty to auto-generate"
+                placeholder={t("components.gitActionsControl.leaveEmptyToAutoGenerate")}
                 size="sm"
               />
             </div>
@@ -2097,7 +2161,7 @@ export default function GitActionsControl({
                 setIsEditingFiles(false);
               }}
             >
-              Cancel
+              {t("action.cancel")}
             </Button>
             <Button
               variant="outline"
@@ -2105,10 +2169,10 @@ export default function GitActionsControl({
               disabled={noneSelected}
               onClick={runDialogActionOnNewBranch}
             >
-              Commit on new branch
+              {t("components.gitActionsControl.commitOnNewBranch")}
             </Button>
             <Button size="sm" disabled={noneSelected} onClick={runDialogAction}>
-              Commit
+              {t("components.gitActionsControl.commit")}
             </Button>
           </DialogFooter>
         </DialogPopup>
@@ -2133,7 +2197,8 @@ export default function GitActionsControl({
         <DialogPopup className="max-w-xl">
           <DialogHeader>
             <DialogTitle>
-              {pendingDefaultBranchActionCopy?.title ?? "Run action on default branch?"}
+              {pendingDefaultBranchActionCopy?.title ??
+                t("components.gitActionsControl.runActionOnDefaultBranch")}
             </DialogTitle>
             <DialogDescription>{pendingDefaultBranchActionCopy?.description}</DialogDescription>
           </DialogHeader>
@@ -2144,7 +2209,7 @@ export default function GitActionsControl({
               size="sm"
               onClick={() => setPendingDefaultBranchAction(null)}
             >
-              Abort
+              {t("components.gitActionsControl.abort")}
             </Button>
             <Button
               className="w-full max-w-full sm:w-auto"
@@ -2152,14 +2217,15 @@ export default function GitActionsControl({
               size="sm-multiline"
               onClick={continuePendingDefaultBranchAction}
             >
-              {pendingDefaultBranchActionCopy?.continueLabel ?? "Continue"}
+              {pendingDefaultBranchActionCopy?.continueLabel ??
+                t("components.gitActionsControl.continue")}
             </Button>
             <Button
               className="w-full max-w-full sm:w-auto"
               size="sm-multiline"
               onClick={checkoutFeatureBranchAndContinuePendingAction}
             >
-              Check out feature branch & continue
+              {t("components.gitActionsControl.checkoutFeatureBranchAndContinue")}
             </Button>
           </DialogFooter>
         </DialogPopup>

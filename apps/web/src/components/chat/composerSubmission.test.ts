@@ -9,6 +9,7 @@ import {
   expandAssistantCitationsForProvider,
   serializeAssistantCitation,
 } from "@t3tools/shared/assistantCitations";
+import { t } from "@t3tools/shared/i18n";
 import { describe, expect, it, vi } from "vite-plus/test";
 
 import { submitComposerDraft } from "./composerSubmission";
@@ -49,7 +50,7 @@ describe("submitComposerDraft", () => {
     expect(dispatchedDrafts).toEqual([]);
     expect(draft).toHaveLength(PROVIDER_SEND_TURN_MAX_INPUT_CHARS + 1);
     expect(validationMessage).toBe(
-      "Prompt is 1 character over the 120,000-character limit. Shorten or split it before sending.",
+      t("chat.composerSubmission.promptTooLong", { count: "1", limit: "120,000" }),
     );
     expect(preventDefault).toHaveBeenCalledOnce();
 
@@ -90,8 +91,10 @@ describe("submitComposerDraft", () => {
     });
 
     expect(result).toEqual({
-      validationMessage:
-        "Prompt is 18 characters over the 120,000-character limit. Shorten or split it before sending.",
+      validationMessage: t("chat.composerSubmission.promptTooLong", {
+        count: "18",
+        limit: "120,000",
+      }),
       didDispatch: false,
     });
     expect(draft).toHaveLength(PROVIDER_SEND_TURN_MAX_INPUT_CHARS);
@@ -161,8 +164,10 @@ describe("submitComposerDraft", () => {
       });
 
       expect(result).toEqual({
-        validationMessage:
-          "Prompt is 1 character over the 120,000-character limit. Shorten or split it before sending.",
+        validationMessage: t("chat.composerSubmission.promptTooLong", {
+          count: "1",
+          limit: "120,000",
+        }),
         didDispatch: false,
       });
       expect(onSend).not.toHaveBeenCalled();
@@ -192,8 +197,10 @@ describe("submitComposerDraft", () => {
     });
 
     expect(result).toEqual({
-      validationMessage:
-        "Prompt is 1 character over the 120,000-character limit. Shorten or split it before sending.",
+      validationMessage: t("chat.composerSubmission.promptTooLong", {
+        count: "1",
+        limit: "120,000",
+      }),
       didDispatch: false,
     });
     expect(onSend).not.toHaveBeenCalled();
@@ -235,7 +242,9 @@ describe("submitComposerDraft", () => {
     });
 
     expect(result.didDispatch).toBe(false);
-    expect(result.validationMessage).toContain("over the 120,000-character limit");
+    expect(result.validationMessage).toContain(
+      t("chat.composerSubmission.promptTooLong", { count: "28", limit: "120,000" }),
+    );
     expect(onSend).not.toHaveBeenCalled();
   });
 

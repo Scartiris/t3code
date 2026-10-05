@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from "vite-plus/test";
 import { EnvironmentId, ProjectId, ProviderInstanceId, ThreadId } from "@t3tools/contracts";
+import { t } from "@t3tools/shared/i18n";
 import type { Project, Thread } from "../types";
 import { makeThreadFixture } from "../test-fixtures";
 import {
@@ -54,7 +55,7 @@ describe("linked pull request thread navigation", () => {
       threadSearchItems: items,
     });
     expect(groups.flatMap((group) => group.items)).toEqual(items);
-    expect(items[0]?.description).toBe("Archived thread");
+    expect(items[0]?.description).toBe(t("components.commandPalette.archivedThread"));
     await items[0]?.run();
     expect(runThread).toHaveBeenCalledWith({ environmentId, id });
   });
@@ -173,8 +174,8 @@ describe("buildCommandPaletteProjectMetadata", () => {
       locationByEnvironmentId: new Map(),
     });
 
-    expect(metadata.searchTerms).toContain("Remote");
-    expect(metadata.environmentLabels).toEqual(["Remote"]);
+    expect(metadata.searchTerms).toContain(t("components.commandPalette.remote"));
+    expect(metadata.environmentLabels).toEqual([t("components.commandPalette.remote")]);
   });
 });
 
@@ -396,8 +397,8 @@ describe("buildThreadActionItems", () => {
         "thread:thread-older",
         "thread:thread-newer",
       ]);
-      expect(items[0]?.timestamp).toBe("1d ago");
-      expect(items[1]?.timestamp).toBe("5d ago");
+      expect(items[0]?.timestamp).toBe(`1d ${t("web.timestampFormat.agoSuffix")}`);
+      expect(items[1]?.timestamp).toBe(`5d ${t("web.timestampFormat.agoSuffix")}`);
     } finally {
       vi.useRealTimers();
     }

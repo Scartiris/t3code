@@ -5,6 +5,7 @@ import {
   gitHubRoutingPermissionFor,
   type GitHubRoutingPermission,
 } from "@t3tools/client-runtime/connection";
+import { t } from "@t3tools/shared/i18n";
 import { useState } from "react";
 
 import { environmentCatalog } from "~/connection/catalog";
@@ -17,12 +18,15 @@ import { FoldedSettingsSection } from "./FoldedSettingsSection";
 import { searchableSetting } from "./settingsSearch";
 
 const options: ReadonlyArray<{ value: GitHubRoutingPermission; label: string }> = [
-  { value: "off", label: "Off" },
-  { value: "read", label: "Read PRs" },
-  { value: "read-write", label: "Read and act" },
+  { value: "off", label: t("settings.gitHubRoutingSettings.off") },
+  { value: "read", label: t("settings.gitHubRoutingSettings.readPrs") },
+  { value: "read-write", label: t("settings.gitHubRoutingSettings.readAndAct") },
 ];
 
-const summaryLabels = { "read-write": "read and act", read: "read PRs" } as const;
+const summaryLabels = {
+  "read-write": t("settings.gitHubRoutingSettings.readAndAct"),
+  read: t("settings.gitHubRoutingSettings.readPrs"),
+} as const;
 
 /**
  * Closed-header summary: the machines that share, grouped by permission.
@@ -69,13 +73,11 @@ export function GitHubRoutingSettings({
             label: environment.label,
             permission: gitHubRoutingPermissionFor(environment.entry, permissions),
           })),
-        ) ?? "Off"
+        ) ?? t("settings.gitHubRoutingSettings.off")
       }
     >
       <p className="px-3 py-2.5 text-xs text-muted-foreground sm:px-4">
-        Machines you trust here can read PR data through each other's GitHub access. Enable both
-        machines. Read and act may use broader permissions than the machine that owns them. This
-        applies only to this device.
+        {t("settings.gitHubRoutingSettings.description")}
       </p>
       {environments.map((environment) => (
         <EnvironmentRow
@@ -99,7 +101,7 @@ export function GitHubRoutingSettings({
                   if (result._tag === "Failure")
                     toastManager.add({
                       type: "error",
-                      title: "Could not save GitHub routing permission",
+                      title: t("settings.gitHubRoutingSettings.saveFailed"),
                     });
                 },
               );
@@ -108,7 +110,7 @@ export function GitHubRoutingSettings({
             <SelectTrigger
               size="xs"
               className="w-32"
-              aria-label={`${environment.label} GitHub routing`}
+              aria-label={t("settings.gitHubRoutingSettings.rowAria", { label: environment.label })}
             >
               <SelectValue />
             </SelectTrigger>

@@ -16,6 +16,7 @@ import type {
   SourceControlRepositoryVisibility,
   ThreadId,
 } from "@t3tools/contracts";
+import { t } from "@t3tools/shared/i18n";
 import * as Cause from "effect/Cause";
 import * as Option from "effect/Option";
 import { AsyncResult } from "effect/unstable/reactivity";
@@ -157,7 +158,12 @@ export function useVcsInitAction(scope: SourceControlActionScope) {
       input: { cwd: target.cwd },
     });
   }, [init, scope]);
-  return useAction({ kind: "init", label: "Initializing repository", scope, action });
+  return useAction({
+    kind: "init",
+    label: t("gitActions.sourceControlActions.initializingRepository"),
+    scope,
+    action,
+  });
 }
 
 export function useVcsPullAction(scope: SourceControlActionScope) {
@@ -190,7 +196,7 @@ export function useVcsPullAction(scope: SourceControlActionScope) {
   }, [pull, scope]);
   return useAction({
     kind: "pull",
-    label: "Pulling latest changes...",
+    label: t("gitActions.sourceControlActions.pullingLatestChanges"),
     scope,
     action,
     onSuccess: status.refresh,
@@ -282,7 +288,7 @@ export function useSourceControlPublishRepositoryAction(scope: SourceControlActi
   );
   return useAction({
     kind: "publishRepository",
-    label: "Publishing repository",
+    label: t("gitActions.sourceControlActions.publishingRepository"),
     scope,
     action,
     onSuccess: status.refresh,
@@ -321,7 +327,7 @@ export function usePreparePullRequestThreadAction(scope: SourceControlActionScop
   );
   return useAction({
     kind: "preparePullRequestThread",
-    label: "Preparing pull request thread",
+    label: t("gitActions.sourceControlActions.preparingPullRequestThread"),
     scope,
     action,
   });

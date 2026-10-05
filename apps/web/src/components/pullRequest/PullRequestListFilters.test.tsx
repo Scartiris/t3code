@@ -1,4 +1,5 @@
 import type { EnvironmentId, ProjectId } from "@t3tools/contracts";
+import { t } from "@t3tools/shared/i18n";
 import { CircleIcon } from "lucide-react";
 import { Children, isValidElement, type ReactElement, type ReactNode } from "react";
 import { describe, expect, it, vi } from "vite-plus/test";
@@ -74,7 +75,9 @@ function menu(overrides: Partial<Parameters<typeof PullRequestFiltersMenu>[0]>) 
 describe("pull request filters menu", () => {
   it("does not emit a change when the selected state is chosen again", () => {
     const onState = vi.fn();
-    const group = findValueChange(findLabeledGroup(menu({ onState }), "State"));
+    const group = findValueChange(
+      findLabeledGroup(menu({ onState }), t("pullRequest.pullRequestListFilters.state")),
+    );
     expect(group).toBeDefined();
 
     group?.props.onValueChange("open");
@@ -88,7 +91,10 @@ describe("pull request filters menu", () => {
   it("names the chosen narrowing and leaves the others alone", () => {
     const onFilters = vi.fn();
     const group = findValueChange(
-      findLabeledGroup(menu({ filters: { review: "approved" }, onFilters }), "Draft"),
+      findLabeledGroup(
+        menu({ filters: { review: "approved" }, onFilters }),
+        t("pullRequest.pullRequestListFilters.draft"),
+      ),
     );
     expect(group).toBeDefined();
 
@@ -101,7 +107,7 @@ describe("pull request filters menu", () => {
     const group = findValueChange(
       findLabeledGroup(
         menu({ filters: { review: "none", checks: "failing" }, onFilters }),
-        "Review",
+        t("pullRequest.pullRequestListFilters.review"),
       ),
     );
     expect(group).toBeDefined();
@@ -127,7 +133,9 @@ describe("pull request filters menu", () => {
       projectEnvironmentId: environmentId,
       onProject,
     });
-    const radioGroup = findValueChange(findLabeledGroup(view, "Project"));
+    const radioGroup = findValueChange(
+      findLabeledGroup(view, t("pullRequest.pullRequestListFilters.project")),
+    );
     expect(radioGroup).toBeDefined();
 
     radioGroup?.props.onValueChange(pullRequestProjectKey({ id: projectId, environmentId }));
@@ -157,7 +165,9 @@ describe("pull request filters menu", () => {
       ],
       onProject,
     });
-    const radioGroup = findValueChange(findLabeledGroup(view, "Project"));
+    const radioGroup = findValueChange(
+      findLabeledGroup(view, t("pullRequest.pullRequestListFilters.project")),
+    );
     expect(radioGroup).toBeDefined();
 
     radioGroup?.props.onValueChange(

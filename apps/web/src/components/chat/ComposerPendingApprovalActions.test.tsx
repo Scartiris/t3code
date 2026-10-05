@@ -1,4 +1,5 @@
 import { RuntimeRequestId } from "@t3tools/contracts";
+import { t } from "@t3tools/shared/i18n";
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vite-plus/test";
 
@@ -15,10 +16,10 @@ describe("ComposerPendingApprovalActions", () => {
       />,
     );
 
-    expect(markup).toContain(">Decline<");
-    expect(markup).toContain(">Approve<");
-    expect(markup).not.toContain(">Cancel<");
-    expect(markup).not.toContain("Always allow this session");
+    expect(markup).toContain(`>${t("chat.composerPendingApprovalActions.decline")}<`);
+    expect(markup).toContain(`>${t("chat.composerPendingApprovalActions.approve")}<`);
+    expect(markup).not.toContain(`>${t("action.cancel")}<`);
+    expect(markup).not.toContain(t("chat.composerPendingApprovalActions.acceptForSession"));
   });
 
   it("keeps secondary provider labels out of the compact action row", () => {
@@ -38,7 +39,7 @@ describe("ComposerPendingApprovalActions", () => {
 
     expect(markup).not.toContain("Always allow Safari");
     expect(markup).toContain(">Approve<");
-    expect(markup).not.toContain("Always allow this session");
+    expect(markup).not.toContain(t("chat.composerPendingApprovalActions.acceptForSession"));
   });
 
   it("preserves provider labels for the main decisions", () => {
@@ -57,7 +58,7 @@ describe("ComposerPendingApprovalActions", () => {
 
     expect(markup).toContain("Allow once");
     expect(markup).toContain("Deny");
-    expect(markup).not.toContain(">Approve<");
-    expect(markup).not.toContain(">Decline<");
+    expect(markup).not.toContain(`>${t("chat.composerPendingApprovalActions.approve")}<`);
+    expect(markup).not.toContain(`>${t("chat.composerPendingApprovalActions.decline")}<`);
   });
 });

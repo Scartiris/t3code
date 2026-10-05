@@ -1,4 +1,5 @@
 import { useAtomValue } from "@effect/atom-react";
+import { t } from "@t3tools/shared/i18n";
 import { useMemo, useState, type ReactNode } from "react";
 
 import { useActiveProjectTarget, type ActiveProjectTarget } from "~/hooks/useActiveProjectTarget";
@@ -46,23 +47,28 @@ function HighlightedFuzzyText(props: {
 function getEmptyStateMessage(query: string, error: string | null, isPending: boolean): string {
   if (error) return error;
   const isSearching = query.trim().length > 0;
-  if (isPending) return isSearching ? "Searching workspace files…" : "Indexing workspace files…";
-  return isSearching ? "No matching files." : "No files found.";
+  if (isPending)
+    return isSearching
+      ? t("files.projectFilePicker.searchingWorkspaceFiles")
+      : t("files.projectFilePicker.indexingWorkspaceFiles");
+  return isSearching
+    ? t("files.projectFilePicker.noMatchingFiles")
+    : t("files.projectFilePicker.noFilesFound");
 }
 
 function EmptyProjectFilePicker() {
   return (
     <CommandPaletteContent
-      aria-label="File picker"
-      escapeLabel="Back"
-      footerActionLabel="Open file"
-      inputProps={{ disabled: true, placeholder: "Search files…" }}
+      aria-label={t("files.projectFilePicker.filePicker")}
+      escapeLabel={t("files.projectFilePicker.back")}
+      footerActionLabel={t("files.projectFilePicker.openFile")}
+      inputProps={{ disabled: true, placeholder: t("files.projectFilePicker.searchFiles") }}
       mode="none"
       testId="project-file-picker"
       value=""
     >
       <div className="py-10 text-center text-sm text-muted-foreground">
-        Open a project to search its files.
+        {t("files.projectFilePicker.openProjectToSearch")}
       </div>
     </CommandPaletteContent>
   );
@@ -117,11 +123,11 @@ function OpenProjectFilePicker(props: ProjectFilePickerProps & { target: ActiveP
 
   return (
     <CommandPaletteContent
-      aria-label="File picker"
+      aria-label={t("files.projectFilePicker.filePicker")}
       autoHighlight="always"
-      escapeLabel="Back"
-      footerActionLabel="Open file"
-      inputProps={{ placeholder: "Search files…" }}
+      escapeLabel={t("files.projectFilePicker.back")}
+      footerActionLabel={t("files.projectFilePicker.openFile")}
+      inputProps={{ placeholder: t("files.projectFilePicker.searchFiles") }}
       mode="none"
       onItemHighlighted={(value) => {
         setHighlightedItemValue(typeof value === "string" ? value : null);

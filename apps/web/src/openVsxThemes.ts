@@ -1,4 +1,5 @@
 import { sha256 } from "@noble/hashes/sha2";
+import { t } from "@t3tools/shared/i18n";
 import JSZip from "jszip";
 import { parse, type ParseError } from "jsonc-parser";
 
@@ -224,7 +225,7 @@ async function withSearchTimeout<T>(
     return await operation(controller.signal);
   } catch (cause) {
     if (controller.signal.aborted && !parentSignal?.aborted) {
-      throw new Error("Open VSX took too long to respond.", { cause });
+      throw new Error(t("web.openVsxThemes.searchTimedOut"), { cause });
     }
     throw cause;
   } finally {
@@ -249,20 +250,20 @@ export async function searchOpenVsxThemes(
   url.searchParams.set("size", "16");
   const value = await withSearchTimeout(async (requestSignal) => {
     const response = await fetch(url, { signal: requestSignal });
-    if (!response.ok) throw new Error("Open VSX search is unavailable right now.");
+    if (!response.ok) throw new Error(t("web.openVsxThemes.searchUnavailable"));
     const searchBytes = await readCappedResponse(
       response,
       MAX_SEARCH_BYTES,
-      "Open VSX returned an unexpectedly large response.",
+      t("web.openVsxThemes.searchResponseTooLarge"),
     );
     try {
       return JSON.parse(new TextDecoder().decode(searchBytes)) as unknown;
     } catch {
-      throw new Error("Open VSX returned an unreadable response.");
+      throw new Error(t("web.openVsxThemes.searchResponseUnreadable"));
     }
   }, signal);
   if (!isRecord(value) || !Array.isArray(value.extensions)) {
-    throw new Error("Open VSX returned an unreadable search response.");
+    throw new Error(t("web.openVsxThemes.searchResultsUnreadable"));
   }
   const identities = value.extensions.flatMap((candidate): Array<[string, string]> => {
     if (!isRecord(candidate)) return [];
@@ -301,14 +302,14 @@ export async function searchOpenVsxThemes(
           );
           const manifest = parseJsoncObject(
             new TextDecoder().decode(manifestBytes),
-            "Extension manifest",
+            t("web.openVsxThemes.manifestLabel"),
           );
           return themeContributions(manifest).length > 0 &&
             manifestLicenseMatches(manifest, extension.license)
             ? extension
             : null;
         } catch {
-          throw new Error("Open VSX returned unreadable theme details.");
+          throw new Error(t("web.openVsxThemes.themeDetailsUnreadable"));
         }
       }, signal),
     ),
@@ -316,7 +317,7 @@ export async function searchOpenVsxThemes(
   if (signal?.aborted) throw new DOMException("The operation was aborted.", "AbortError");
   const completedDetails = details.filter((result) => result.status === "fulfilled");
   if (identities.length > 0 && completedDetails.length === 0) {
-    throw new Error("Open VSX theme details are unavailable right now.");
+    throw new Error(t("web.openVsxThemes.themeDetailsUnavailable"));
   }
   return completedDetails.flatMap((result) => (result.value ? [result.value] : [])).slice(0, 8);
 }
@@ -324,7 +325,8 @@ export async function searchOpenVsxThemes(
 function parseJsoncObject(source: string, description: string): Record<string, unknown> {
   const errors: ParseError[] = [];
   const value: unknown = parse(source, errors, { allowTrailingComma: true });
-  if (errors.length > 0 || !isRecord(value)) throw new Error(`${description} is not valid JSON.`);
+  if (errors.length > 0 || !isRecord(value))
+    throw new Error(t("web.openVsxThemes.notValidJson", { description }));
   return value;
 }
 
@@ -472,12 +474,12 @@ async function readZipText(
 ): Promise<string> {
   signal?.throwIfAborted();
   const file = zip.file(path) as InspectableZipObject | null;
-  if (!file) throw new Error(`${description} is missing from the extension package.`);
+  if (!file) throw new Error(t("web.openVsxThemes.missingFromPackage", { description }));
   if (typeof file._data?.uncompressedSize !== "number" || !file.internalStream) {
-    throw new Error(`${description} has unreadable size metadata.`);
+    throw new Error(t("web.openVsxThemes.unreadableSizeMetadata", { description }));
   }
   if (file._data.uncompressedSize > MAX_THEME_BYTES) {
-    throw new Error(`${description} is too large.`);
+    throw new Error(t("web.openVsxThemes.fileTooLarge", { description }));
   }
 
   return new Promise((resolve, reject) => {
@@ -502,7 +504,7 @@ async function readZipText(
           settled = true;
           stream.pause();
           cleanup();
-          reject(new Error(`${description} is too large.`));
+          reject(new Error(t("web.openVsxThemes.fileTooLarge", { description })));
           return;
         }
         chunks.push(chunk);
@@ -613,12 +615,8 @@ async function readCappedResponse(
 
 async function fetchPackage(url: string, signal?: AbortSignal): Promise<Uint8Array> {
   const response = await fetch(url, signal ? { signal } : {});
-  if (!response.ok) throw new Error("That Open VSX theme could not be downloaded.");
-  return readCappedResponse(
-    response,
-    MAX_VSIX_BYTES,
-    "That theme extension is too large to import safely.",
-  );
+  if (!response.ok) throw new Error(t("web.openVsxThemes.themeDownloadFailed"));
+  return readCappedResponse(response, MAX_VSIX_BYTES, t("web.openVsxThemes.themePackageTooLarge"));
 }
 
 export async function importOpenVsxThemeExtension(
@@ -626,44 +624,47 @@ export async function importOpenVsxThemeExtension(
   signal?: AbortSignal,
 ): Promise<ReadonlyArray<ThemeDefinition>> {
   const manifestResponse = await fetch(extension.manifestUrl, signal ? { signal } : {});
-  if (!manifestResponse.ok) throw new Error("That Open VSX extension has no readable manifest.");
+  if (!manifestResponse.ok) throw new Error(t("web.openVsxThemes.manifestUnreadable"));
   const manifestBytes = await readCappedResponse(
     manifestResponse,
     MAX_MANIFEST_BYTES,
-    "That Open VSX extension manifest is too large.",
+    t("web.openVsxThemes.manifestTooLarge"),
   );
-  const manifest = parseJsoncObject(new TextDecoder().decode(manifestBytes), "Extension manifest");
+  const manifest = parseJsoncObject(
+    new TextDecoder().decode(manifestBytes),
+    t("web.openVsxThemes.manifestLabel"),
+  );
   const advertisedContributions = themeContributions(manifest);
   if (advertisedContributions.length === 0) {
-    throw new Error("That extension does not contain color themes.");
+    throw new Error(t("web.openVsxThemes.noColorThemes"));
   }
   if (advertisedContributions.length > MAX_THEMES_PER_EXTENSION) {
-    throw new Error("That extension contains too many color themes to import safely.");
+    throw new Error(t("web.openVsxThemes.tooManyColorThemes"));
   }
 
   const packageBytes = await fetchPackage(extension.vsixUrl, signal);
   signal?.throwIfAborted();
   const checksumResponse = await fetch(extension.sha256Url, signal ? { signal } : {});
-  if (!checksumResponse.ok) throw new Error("That Open VSX theme has no readable checksum.");
+  if (!checksumResponse.ok) throw new Error(t("web.openVsxThemes.checksumUnreadable"));
   const expectedChecksum = new TextDecoder()
     .decode(
       await readCappedResponse(
         checksumResponse,
         256,
-        "That Open VSX checksum response is invalid.",
+        t("web.openVsxThemes.checksumResponseInvalid"),
       ),
     )
     .trim()
     .split(/\s+/)[0];
   if (!expectedChecksum || !/^[a-f\d]{64}$/i.test(expectedChecksum)) {
-    throw new Error("That Open VSX theme has an invalid checksum.");
+    throw new Error(t("web.openVsxThemes.checksumInvalid"));
   }
   signal?.throwIfAborted();
   const actualChecksum = [...sha256(packageBytes)]
     .map((byte) => byte.toString(16).padStart(2, "0"))
     .join("");
   if (actualChecksum.toLowerCase() !== expectedChecksum.toLowerCase()) {
-    throw new Error("That Open VSX theme failed its integrity check.");
+    throw new Error(t("web.openVsxThemes.integrityCheckFailed"));
   }
   signal?.throwIfAborted();
   let zip: JSZip;
@@ -675,12 +676,12 @@ export async function importOpenVsxThemeExtension(
   } catch (cause) {
     if (signal?.aborted) signal.throwIfAborted();
     if (cause instanceof Error && cause.message.startsWith("That extension package")) throw cause;
-    throw new Error("That Open VSX extension package could not be opened.", { cause });
+    throw new Error(t("web.openVsxThemes.packageUnreadable"), { cause });
   }
 
   const packagedManifest = parseJsoncObject(
-    await readZipText(zip, "extension/package.json", "Extension manifest", signal),
-    "Extension manifest",
+    await readZipText(zip, "extension/package.json", t("web.openVsxThemes.manifestLabel"), signal),
+    t("web.openVsxThemes.manifestLabel"),
   );
   if (
     typeof packagedManifest.publisher !== "string" ||
@@ -690,15 +691,15 @@ export async function importOpenVsxThemeExtension(
       extension.id.toLowerCase() ||
     packagedManifest.version !== extension.version
   ) {
-    throw new Error("That extension package does not match the selected Open VSX theme.");
+    throw new Error(t("web.openVsxThemes.packageMismatch"));
   }
   if (!manifestLicenseMatches(packagedManifest, extension.license)) {
-    throw new Error("That extension package does not match its advertised license.");
+    throw new Error(t("web.openVsxThemes.licenseMismatch"));
   }
   const contributions = themeContributions(packagedManifest);
-  if (contributions.length === 0) throw new Error("That extension does not contain color themes.");
+  if (contributions.length === 0) throw new Error(t("web.openVsxThemes.noColorThemes"));
   if (contributions.length > MAX_THEMES_PER_EXTENSION) {
-    throw new Error("That extension contains too many color themes to import safely.");
+    throw new Error(t("web.openVsxThemes.tooManyColorThemes"));
   }
 
   const parsed: Array<{ theme: ThemeDefinition; sourceName: string; sourcePath: string }> = [];
@@ -743,10 +744,10 @@ export async function importOpenVsxThemeExtension(
     }
   }
   if (failures.length > 0) {
-    throw new Error("One or more color themes in that extension could not be imported safely.");
+    throw new Error(t("web.openVsxThemes.someThemesUnimportable"));
   }
   if (parsed.length === 0) {
-    throw new Error("That extension has no compatible color themes.");
+    throw new Error(t("web.openVsxThemes.noCompatibleThemes"));
   }
   const extensionId = extension.id.toLowerCase();
   const sourcePathCounts = new Map<string, number>();

@@ -1,3 +1,4 @@
+import { t } from "@t3tools/shared/i18n";
 import { describe, expect, it } from "vite-plus/test";
 
 import { editorLabelForPlatform, openInEditorMenuLabel } from "./editorLabels";
@@ -9,9 +10,9 @@ describe("editorLabelForPlatform", () => {
   });
 
   it.each([
-    ["MacIntel", "Finder"],
-    ["Win32", "File Explorer"],
-    ["Linux x86_64", "Files"],
+    ["MacIntel", t("web.utils.finder")],
+    ["Win32", t("web.utils.fileExplorer")],
+    ["Linux x86_64", t("web.utils.files")],
   ])("uses the platform file-manager name on %s", (platform, label) => {
     expect(editorLabelForPlatform("file-manager", platform)).toBe(label);
   });

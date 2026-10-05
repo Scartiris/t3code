@@ -4,6 +4,7 @@ import {
   ProviderDriverKind,
   type ProviderOptionDescriptor,
 } from "@t3tools/contracts";
+import { t } from "@t3tools/shared/i18n";
 import { buildTraitsTriggerDisplay, buildUnavailableModelOptionDescriptors } from "./TraitsPicker";
 
 function selectDescriptor(
@@ -160,18 +161,18 @@ describe("buildTraitsTriggerDisplay", () => {
       currentValue: true,
     };
     expect(display([EFFORT, thinking])).toEqual({
-      label: "High · Thinking On",
+      label: `High · Thinking ${t("chat.traitsPicker.on")}`,
       speedIcon: null,
     });
   });
 
   it("falls back to a text label when fast mode is the only trait", () => {
     expect(display([fastModeDescriptor(true)])).toEqual({
-      label: "Fast",
+      label: t("chat.traitsPicker.fast"),
       speedIcon: null,
     });
     expect(display([fastModeDescriptor(false)])).toEqual({
-      label: "Normal",
+      label: t("chat.traitsPicker.normal"),
       speedIcon: null,
     });
   });
@@ -215,14 +216,14 @@ describe("buildUnavailableModelOptionDescriptors", () => {
     ).toEqual([
       {
         id: "variant",
-        label: "Reasoning",
+        label: t("chat.traitsPicker.variant"),
         type: "select",
         options: [{ id: "max", label: "max" }],
         currentValue: "max",
       },
       {
         id: "agent",
-        label: "Agent",
+        label: t("chat.traitsPicker.agent"),
         type: "select",
         options: [{ id: "build", label: "build" }],
         currentValue: "build",

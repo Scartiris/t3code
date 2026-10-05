@@ -2,6 +2,7 @@ import {
   codexFeedbackNotice,
   type CodexFeedbackSubmission,
 } from "@t3tools/client-runtime/state/threads";
+import { t } from "@t3tools/shared/i18n";
 import { MessageSquareIcon } from "lucide-react";
 
 import { writeTextToClipboard } from "../../hooks/useCopyToClipboard";
@@ -28,22 +29,23 @@ export function feedbackBannerItem(
           size="xs"
           variant="ghost"
           onClick={() => {
-            void writeTextToClipboard(submission.feedbackId, "Codex feedback thread ID").catch(
-              (error: unknown) => {
-                toastManager.add({
-                  type: "error",
-                  title: "Could not copy thread ID",
-                  description: error instanceof Error ? error.message : "An error occurred.",
-                });
-              },
-            );
+            void writeTextToClipboard(
+              submission.feedbackId,
+              t("chat.composerFeedback.feedbackThreadIdLabel"),
+            ).catch((error: unknown) => {
+              toastManager.add({
+                type: "error",
+                title: t("chat.composerFeedback.copyThreadIdFailed"),
+                description: error instanceof Error ? error.message : t("error.generic"),
+              });
+            });
           }}
         >
-          Copy ID
+          {t("chat.composerFeedback.copyId")}
         </Button>
       ) : undefined,
     ...(submission.status !== "uploading"
-      ? { dismissLabel: "Dismiss feedback notice", onDismiss }
+      ? { dismissLabel: t("chat.composerFeedback.dismissFeedbackNotice"), onDismiss }
       : {}),
   };
 }

@@ -1,5 +1,6 @@
 import { isAtomCommandInterrupted } from "@t3tools/client-runtime/state/runtime";
 import type { EnvironmentId, PullRequestRef } from "@t3tools/contracts";
+import { t } from "@t3tools/shared/i18n";
 import {
   cloneElement,
   useState,
@@ -90,7 +91,7 @@ export function PullRequestLinkPreview({
       : resolvePullRequestState({ state: detail.state, isDraft: detail.isDraft });
   const authorLabel =
     detail?.author === null
-      ? "ghost"
+      ? t("pullRequest.pullRequestLinkPreview.ghostAuthor")
       : detail?.author.name && detail.author.name !== detail.author.login
         ? `${detail.author.name} (@${detail.author.login})`
         : (detail?.author.login ?? null);
@@ -131,7 +132,9 @@ export function PullRequestLinkPreview({
                   <span className="min-w-0 truncate">{authorLabel}</span>
                   <span aria-hidden>·</span>
                   <span className="shrink-0">
-                    opened {formatRelativeTimeLabel(detail.createdAt)}
+                    {t("pullRequest.pullRequestLinkPreview.opened", {
+                      time: formatRelativeTimeLabel(detail.createdAt),
+                    })}
                   </span>
                 </div>
               </div>

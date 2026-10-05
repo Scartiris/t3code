@@ -1,4 +1,5 @@
 import type { DesktopUpdateState } from "@t3tools/contracts";
+import { t } from "@t3tools/shared/i18n";
 import * as AsyncResult from "effect/unstable/reactivity/AsyncResult";
 import { AtomRegistry } from "effect/unstable/reactivity";
 import { afterEach, describe, expect, it, vi } from "vite-plus/test";
@@ -114,7 +115,7 @@ describe("desktopUpdateStateAtom", () => {
     await vi.waitFor(() => expect(reportError).toHaveBeenCalledOnce());
     expect(getUpdateState).toHaveBeenCalledTimes(3);
     const [, errorMessage, errorContext] = reportError.mock.calls[0] ?? [];
-    expect(errorMessage).toBe("Failed to read the initial desktop update state after 3 attempts.");
+    expect(errorMessage).toBe(t("state.desktopUpdate.initialStateReadFailed", { attemptCount: 3 }));
     expect(errorContext).toMatchObject({
       errorTag: "DesktopUpdateStateReadError",
       attemptCount: 3,

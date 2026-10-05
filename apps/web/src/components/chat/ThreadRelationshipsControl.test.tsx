@@ -1,3 +1,4 @@
+import { t } from "@t3tools/shared/i18n";
 import { describe, expect, it } from "vite-plus/test";
 import { renderToStaticMarkup } from "react-dom/server";
 
@@ -25,8 +26,12 @@ describe("thread lineage row list", () => {
   });
 
   it("offers one page at a time", () => {
-    expect(renderRowList(6)).toContain("Show 12 more");
-    expect(renderRowList(6 + 12)).toContain("Show 2 more");
+    expect(renderRowList(6)).toContain(
+      t("chat.threadRelationshipsControl.showMore", { count: 12 }),
+    );
+    expect(renderRowList(6 + 12)).toContain(
+      t("chat.threadRelationshipsControl.showMore", { count: 2 }),
+    );
   });
 
   it("omits the expansion affordance when everything fits", () => {
@@ -40,7 +45,7 @@ describe("thread lineage row list", () => {
     const markup = renderRowList(6);
     const list = /<ul([^>]*)>/.exec(markup)?.[1] ?? "";
 
-    expect(list).toContain('aria-label="Related threads"');
+    expect(list).toContain(`aria-label="${t("chat.threadRelationshipsControl.relatedThreads")}"`);
     expect(list).toContain("max-h-[13.5rem]");
     expect(list).toContain("overflow-y-auto");
     expect(list).toContain("overscroll-contain");

@@ -6,6 +6,7 @@ import {
   PreviewTabId,
   ThreadId,
 } from "@t3tools/contracts";
+import { t } from "@t3tools/shared/i18n";
 import { AsyncResult, Atom, AtomRegistry } from "effect/unstable/reactivity";
 import { describe, expect, it, vi } from "vite-plus/test";
 
@@ -233,8 +234,14 @@ describe("previewAutomationRequestConsumer", () => {
       }),
     ).toEqual({
       _tag: "PreviewAutomationTabNotFoundError",
-      message:
-        "Preview automation target for click request request-1 is unavailable on environment environment-1 thread thread-1 (tab tab-1, bridge unavailable).",
+      message: t("preview.previewAutomationErrors.targetUnavailable", {
+        operation: "click",
+        requestId: "request-1",
+        environmentId,
+        threadId,
+        tabId,
+        bridgeState: "不可用",
+      }),
       detail: {
         requestId: "request-1",
         operation: "click",
@@ -310,8 +317,11 @@ describe("previewAutomationRequestConsumer", () => {
       ),
     ).toEqual({
       _tag: "PreviewAutomationTargetNotEditableError",
-      message:
-        "Preview automation type request request-type requires an editable target in tab tab-1.",
+      message: t("preview.previewAutomationErrors.targetNotEditable", {
+        operation: "type",
+        requestId: "request-type",
+        tabId,
+      }),
       detail: {
         requestId: "request-type",
         operation: "type",
@@ -337,8 +347,13 @@ describe("previewAutomationRequestConsumer", () => {
 
     expect(response).toEqual({
       _tag: "PreviewAutomationExecutionError",
-      message:
-        "Preview automation snapshot request request-2 failed on environment environment-1 thread thread-1 (tab tab-1).",
+      message: t("preview.previewAutomationErrors.operationFailed", {
+        operation: "snapshot",
+        requestId: "request-2",
+        environmentId,
+        threadId,
+        tabId,
+      }),
       detail: {
         requestId: "request-2",
         operation: "snapshot",
@@ -390,8 +405,13 @@ describe("previewAutomationRequestConsumer", () => {
       ok: false,
       error: {
         _tag: "PreviewAutomationExecutionError",
-        message:
-          "Preview automation click request request-failed failed on environment environment-1 thread thread-1 (tab tab-1).",
+        message: t("preview.previewAutomationErrors.operationFailed", {
+          operation: "click",
+          requestId: "request-failed",
+          environmentId,
+          threadId,
+          tabId,
+        }),
         detail: {
           requestId: "request-failed",
           operation: "click",

@@ -11,6 +11,7 @@ import {
   type EditorId,
   type EnvironmentId,
 } from "@t3tools/contracts";
+import { t } from "@t3tools/shared/i18n";
 import { useCallback, useMemo } from "react";
 
 import { resolveDiffPathForWorkspace } from "./diffFileActions";
@@ -84,7 +85,7 @@ export function buildFileContextMenuItems(input: {
   if (!input.hasAbsolutePath) return [];
   const items: ContextMenuItem<FileContextMenuAction>[] = [];
   if (input.capabilities.canOpenDefault) {
-    items.push({ id: "open", label: "Open", icon: "pencil" });
+    items.push({ id: "open", label: t("web.fileContextMenu.open"), icon: "pencil" });
   }
   if (input.capabilities.revealLabel !== undefined) {
     items.push({
@@ -97,7 +98,7 @@ export function buildFileContextMenuItems(input: {
   if (editorIds.length > 0) {
     items.push({
       id: "open-with",
-      label: "Open with",
+      label: t("web.fileContextMenu.openWith"),
       children: editorIds.map((editorId) => ({
         id: `editor:${editorId}` as FileContextMenuAction,
         label: EDITOR_LABEL_BY_ID.get(editorId) ?? editorId,
@@ -157,10 +158,12 @@ export function useFileContextMenu(environmentId: EnvironmentId | null) {
         type: "error",
         title:
           action === "open"
-            ? "Could not open file"
+            ? t("web.fileContextMenu.couldNotOpenFile")
             : reveal
-              ? "Unable to reveal file"
-              : `Could not open in ${EDITOR_LABEL_BY_ID.get(editor) ?? editor}`,
+              ? t("web.fileContextMenu.unableToRevealFile")
+              : t("web.fileContextMenu.couldNotOpenIn", {
+                  editor: EDITOR_LABEL_BY_ID.get(editor) ?? editor,
+                }),
         description: absolutePath,
       });
     };

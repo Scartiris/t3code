@@ -1,4 +1,5 @@
 import { ProviderDriverKind, ProviderInstanceId, type ServerProvider } from "@t3tools/contracts";
+import { t } from "@t3tools/shared/i18n";
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vite-plus/test";
 
@@ -77,7 +78,12 @@ describe("ProviderStatusBanner", () => {
     );
 
     expect(markup).toContain('role="alert"');
-    expect(markup).toContain('aria-label="Dismiss Codex provider warning"');
+    expect(markup).toContain(
+      `aria-label="${t("chat.providerStatusBanner.dismissProvider", {
+        providerName: "Codex",
+        providerStatus: "warning",
+      })}"`,
+    );
   });
 
   it("labels error dismiss controls with the correct severity", () => {
@@ -88,7 +94,12 @@ describe("ProviderStatusBanner", () => {
       />,
     );
 
-    expect(markup).toContain('aria-label="Dismiss Codex provider error"');
+    expect(markup).toContain(
+      `aria-label="${t("chat.providerStatusBanner.dismissProvider", {
+        providerName: "Codex",
+        providerStatus: "error",
+      })}"`,
+    );
   });
 });
 
@@ -115,7 +126,7 @@ describe("getProviderStatusMessage", () => {
         auth: { status: "unauthenticated" },
         message: "",
       }),
-    ).toBe("Open provider setup to sign in with Google.");
+    ).toBe(t("chat.providerStatusBanner.signInWithGoogle"));
   });
 
   it("requires installation on the environment before sign-in", () => {
@@ -129,7 +140,7 @@ describe("getProviderStatusMessage", () => {
         auth: { status: "unauthenticated" },
         message: "",
       }),
-    ).toBe("Open provider setup to install Antigravity on this environment.");
+    ).toBe(t("chat.providerStatusBanner.installPrompt", { providerName: "Antigravity" }));
   });
 
   it("keeps CLI sign-in advice for a provider without integrated setup", () => {
@@ -140,6 +151,6 @@ describe("getProviderStatusMessage", () => {
         auth: { status: "unauthenticated" },
         message: "",
       }),
-    ).toBe("Sign in via the CLI to authenticate again.");
+    ).toBe(t("chat.providerStatusBanner.signInViaCli"));
   });
 });

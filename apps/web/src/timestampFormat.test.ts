@@ -1,3 +1,4 @@
+import { t } from "@t3tools/shared/i18n";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vite-plus/test";
 
 import {
@@ -112,19 +113,27 @@ describe("formatRelativeTimeUntilLabel", () => {
   });
 
   it("returns Expired when the instant is in the past", () => {
-    expect(formatRelativeTimeUntilLabel("2026-04-07T11:59:00.000Z")).toBe("Expired");
+    expect(formatRelativeTimeUntilLabel("2026-04-07T11:59:00.000Z")).toBe(
+      t("web.timestampFormat.expired"),
+    );
   });
 
   it("formats seconds remaining", () => {
-    expect(formatRelativeTimeUntilLabel("2026-04-07T12:00:45.000Z")).toBe("45s left");
+    expect(formatRelativeTimeUntilLabel("2026-04-07T12:00:45.000Z")).toBe(
+      `45s ${t("web.timestampFormat.leftSuffix")}`,
+    );
   });
 
   it("formats minutes remaining", () => {
-    expect(formatRelativeTimeUntilLabel("2026-04-07T12:15:00.000Z")).toBe("15m left");
+    expect(formatRelativeTimeUntilLabel("2026-04-07T12:15:00.000Z")).toBe(
+      `15m ${t("web.timestampFormat.leftSuffix")}`,
+    );
   });
 
   it("formats hours remaining", () => {
-    expect(formatRelativeTimeUntilLabel("2026-04-07T18:00:00.000Z")).toBe("6h left");
+    expect(formatRelativeTimeUntilLabel("2026-04-07T18:00:00.000Z")).toBe(
+      `6h ${t("web.timestampFormat.leftSuffix")}`,
+    );
   });
 });
 
@@ -139,21 +148,31 @@ describe("formatExpiresInLabel", () => {
   });
 
   it("returns Expired when the instant is in the past", () => {
-    expect(formatExpiresInLabel("2026-04-07T11:59:00.000Z")).toBe("Expired");
+    expect(formatExpiresInLabel("2026-04-07T11:59:00.000Z")).toBe(t("web.timestampFormat.expired"));
   });
 
   it("uses sub-minute second count", () => {
-    expect(formatExpiresInLabel("2026-04-07T12:00:45.000Z")).toBe("Expires in 45s");
+    expect(formatExpiresInLabel("2026-04-07T12:00:45.000Z")).toBe(
+      t("web.timestampFormat.expiresInSeconds", { seconds: 45 }),
+    );
   });
 
   it("uses minutes and seconds under one hour", () => {
-    expect(formatExpiresInLabel("2026-04-07T12:04:12.000Z")).toBe("Expires in 4m 12s");
-    expect(formatExpiresInLabel("2026-04-07T12:15:00.000Z")).toBe("Expires in 15m");
+    expect(formatExpiresInLabel("2026-04-07T12:04:12.000Z")).toBe(
+      t("web.timestampFormat.expiresInMinutesSeconds", { minutes: 4, seconds: 12 }),
+    );
+    expect(formatExpiresInLabel("2026-04-07T12:15:00.000Z")).toBe(
+      t("web.timestampFormat.expiresInMinutes", { minutes: 15 }),
+    );
   });
 
   it("uses hours with minute and second remainder", () => {
-    expect(formatExpiresInLabel("2026-04-07T14:02:03.000Z")).toBe("Expires in 2h 2m 3s");
-    expect(formatExpiresInLabel("2026-04-07T18:00:00.000Z")).toBe("Expires in 6h");
+    expect(formatExpiresInLabel("2026-04-07T14:02:03.000Z")).toBe(
+      t("web.timestampFormat.expiresInDuration", { duration: "2h 2m 3s" }),
+    );
+    expect(formatExpiresInLabel("2026-04-07T18:00:00.000Z")).toBe(
+      t("web.timestampFormat.expiresInDuration", { duration: "6h" }),
+    );
   });
 });
 
@@ -174,7 +193,7 @@ describe("formatDayAwareTimestamp", () => {
     const messageAt = iso(2026, 7, 13, 23, 30);
     const justPastMidnight = new Date(2026, 7, 14, 0, 30).getTime();
     expect(formatDayAwareTimestamp(messageAt, "12-hour", justPastMidnight)).toBe(
-      `yesterday at ${time(messageAt)}`,
+      t("web.timestampFormat.yesterdayAt", { time: time(messageAt) }),
     );
   });
 
@@ -223,14 +242,14 @@ describe("formatDayAwareTimestamp", () => {
 describe("formatUpcomingTimestamp", () => {
   const now = new Date(2026, 7, 14, 12, 0).getTime();
 
-  it.each([
-    [14, ""],
-    [15, "tomorrow at "],
-    [13, "yesterday at "],
-  ])("keeps the reset day visible for day %i", (day, prefix) => {
+  it.each<[number, (time: string) => string]>([
+    [14, (time) => time],
+    [15, (time) => t("web.timestampFormat.tomorrowAt", { time })],
+    [13, (time) => t("web.timestampFormat.yesterdayAt", { time })],
+  ])("keeps the reset day visible for day %i", (day, dayLabel) => {
     const resetAt = new Date(2026, 7, day, 14, 30).toISOString();
     expect(formatUpcomingTimestamp(resetAt, "12-hour", now)).toBe(
-      `${prefix}${formatShortTimestamp(resetAt, "12-hour")}`,
+      dayLabel(formatShortTimestamp(resetAt, "12-hour")),
     );
   });
 
@@ -289,7 +308,7 @@ describe("getRelativeTimeState", () => {
     expect(getRelativeTimeState("2026-04-07T11:45:00.000Z")).toEqual({
       status: "relative",
       value: "15m",
-      suffix: "ago",
+      suffix: t("web.timestampFormat.agoSuffix"),
     });
   });
 });
@@ -305,8 +324,12 @@ describe("formatElapsedDurationLabel", () => {
   });
 
   it("returns just now when the instant is current or in the future", () => {
-    expect(formatElapsedDurationLabel("2026-04-07T12:00:00.000Z")).toBe("just now");
-    expect(formatElapsedDurationLabel("2026-04-07T12:01:00.000Z")).toBe("just now");
+    expect(formatElapsedDurationLabel("2026-04-07T12:00:00.000Z")).toBe(
+      t("web.timestampFormat.justNow"),
+    );
+    expect(formatElapsedDurationLabel("2026-04-07T12:01:00.000Z")).toBe(
+      t("web.timestampFormat.justNow"),
+    );
   });
 
   it("formats seconds, minutes, hours, and days", () => {

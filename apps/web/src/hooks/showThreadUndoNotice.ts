@@ -3,6 +3,7 @@ import {
   isAtomCommandInterrupted,
   squashAtomCommandFailure,
 } from "@t3tools/client-runtime/state/runtime";
+import { t } from "@t3tools/shared/i18n";
 import { create } from "zustand";
 
 import { stackedThreadToast, toastManager } from "../components/ui/toast";
@@ -66,7 +67,7 @@ function refreshNotice() {
                 stackedThreadToast({
                   type: "error",
                   title: failureTitle,
-                  description: error instanceof Error ? error.message : "An error occurred.",
+                  description: error instanceof Error ? error.message : t("error.generic"),
                 }),
               );
             };

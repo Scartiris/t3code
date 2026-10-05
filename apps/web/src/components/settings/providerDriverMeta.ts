@@ -9,6 +9,7 @@ import {
   PiSettings,
   ProviderDriverKind,
 } from "@t3tools/contracts";
+import { t } from "@t3tools/shared/i18n";
 import type * as Schema from "effect/Schema";
 
 type ProviderSettingsSchema = {
@@ -64,9 +65,9 @@ const PROVIDER_CLIENT_DEFINITIONS: readonly ProviderClientDefinition[] = [
     environmentFields: [
       {
         name: "CURSOR_API_KEY",
-        label: "Cursor API key",
-        description: "Optional. Overrides browser sign-in for this provider.",
-        placeholder: "Paste API key",
+        label: t("settings.providerDriverMeta.cursorApiKeyLabel"),
+        description: t("settings.providerDriverMeta.cursorApiKeyDescription"),
+        placeholder: t("settings.providerDriverMeta.cursorApiKeyPlaceholder"),
         sensitive: true,
       },
     ],

@@ -1,6 +1,7 @@
 import { act, cloneElement, type ReactElement, type ReactNode } from "react";
 import { create, type ReactTestRenderer } from "react-test-renderer";
 import { EnvironmentId, ThreadId, type OrchestrationV2ContextTransfer } from "@t3tools/contracts";
+import { t } from "@t3tools/shared/i18n";
 import * as DateTime from "effect/DateTime";
 import { afterEach, expect, it, vi } from "vite-plus/test";
 
@@ -94,8 +95,8 @@ it("shows the matching child agent details and refreshes them when the agent set
       .join(" ")
       .replace(/\s+/g, " ");
   expect(text()).toContain("Checker");
-  expect(text()).toContain("Lineage · 3 running");
-  expect(text()).toContain("running");
+  expect(text()).toContain(t("chat.threadRelationshipsControl.lineageRunning", { count: 3 }));
+  expect(text()).toContain(t("chat.threadRelationshipsControl.lineageRunning", { count: 3 }));
   expect(text()).not.toContain("gpt-5.4");
   expect(text()).not.toContain("gpt-5.3");
   expect(text()).not.toContain("tok");
@@ -116,8 +117,10 @@ it("shows the matching child agent details and refreshes them when the agent set
     ],
   };
   await act(async () => renderer.update(cloneElement(panel)));
-  expect(renderer.root.findByType("h3").children).toEqual(["Lineage"]);
-  expect(text()).toContain("Previous agents (1)");
+  expect(renderer.root.findByType("h3").children).toEqual([
+    t("chat.threadRelationshipsControl.lineage"),
+  ]);
+  expect(text()).toContain(`${t("chat.threadRelationshipsControl.previousAgents")} (1)`);
   expect(text()).not.toContain("Checker");
   await act(async () =>
     renderer.root.findByProps({ type: "button", "aria-expanded": false }).props.onClick(),
@@ -132,7 +135,7 @@ it("shows the matching child agent details and refreshes them when the agent set
     renderer.root.findByProps({ type: "button", "aria-expanded": true }).props.onClick(),
   );
   expect(text()).not.toContain("Checker");
-  expect(text()).toContain("Previous agents (1)");
+  expect(text()).toContain(`${t("chat.threadRelationshipsControl.previousAgents")} (1)`);
   await act(async () =>
     renderer.root.findByProps({ type: "button", "aria-expanded": false }).props.onClick(),
   );
@@ -147,7 +150,7 @@ it("shows the matching child agent details and refreshes them when the agent set
     })),
   };
   await act(async () => renderer.update(cloneElement(panel)));
-  expect(text()).toContain("Lineage · 8 running");
+  expect(text()).toContain(t("chat.threadRelationshipsControl.lineageRunning", { count: 8 }));
 
   state.projection = {
     ...projection,
@@ -162,12 +165,14 @@ it("shows the matching child agent details and refreshes them when the agent set
     })),
   };
   await act(async () => renderer.update(cloneElement(panel)));
-  expect(text()).toContain("1 failed");
+  expect(text()).toContain(t("chat.threadRelationshipsControl.failedCount", { count: 1 }));
   expect(text()).not.toContain("Old agent 7");
   await act(async () =>
     renderer.root
       .findAllByType("button")
-      .find((button) => button.children.includes("Show "))!
+      .find((button) =>
+        button.children.includes(t("chat.threadRelationshipsControl.showMore", { count: 2 })),
+      )!
       .props.onClick(),
   );
   expect(text()).toContain("Old agent 7");
@@ -177,7 +182,7 @@ it("shows the matching child agent details and refreshes them when the agent set
     subagents: [{ ...agent, childThreadId: null }],
   };
   await act(async () => renderer.update(cloneElement(panel)));
-  expect(text()).toContain("Lineage · 1 running");
+  expect(text()).toContain(t("chat.threadRelationshipsControl.lineageRunning", { count: 1 }));
 });
 
 it("shows readable models and only differing workspace details in agent tooltips", async () => {

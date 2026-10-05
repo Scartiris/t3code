@@ -1,5 +1,6 @@
 import { useState } from "react";
 import type { EnvironmentId, ScopedThreadRef } from "@t3tools/contracts";
+import { t } from "@t3tools/shared/i18n";
 
 import { cn } from "~/lib/utils";
 
@@ -79,7 +80,7 @@ export function PullRequestMarkdownEditor({
       }}
     >
       <ToggleGroup
-        aria-label="Markdown editor mode"
+        aria-label={t("pullRequest.pullRequestMarkdownEditor.modeLabel")}
         variant="segmented"
         value={[preview ? "preview" : "write"]}
         disabled={saving}
@@ -88,13 +89,15 @@ export function PullRequestMarkdownEditor({
           if (mode === "write" || mode === "preview") setPreview(mode === "preview");
         }}
       >
-        <Toggle value="write">Write</Toggle>
-        <Toggle value="preview">Preview</Toggle>
+        <Toggle value="write">{t("pullRequest.pullRequestMarkdownEditor.write")}</Toggle>
+        <Toggle value="preview">{t("pullRequest.pullRequestMarkdownEditor.preview")}</Toggle>
       </ToggleGroup>
       {preview ? (
         <div className="rounded-lg border border-border/60 px-3 py-2">
           {empty ? (
-            <p className="text-xs text-muted-foreground">Nothing to preview.</p>
+            <p className="text-xs text-muted-foreground">
+              {t("pullRequest.pullRequestMarkdownEditor.nothingToPreview")}
+            </p>
           ) : (
             <PullRequestMarkdown
               text={draft}
@@ -117,10 +120,10 @@ export function PullRequestMarkdownEditor({
       )}
       <div className="flex justify-end gap-2">
         <Button size="xs" variant="ghost" disabled={saving} onClick={onCancel}>
-          Cancel
+          {t("action.cancel")}
         </Button>
         <Button size="xs" variant="outline" disabled={saveDisabled} onClick={() => onSave(draft)}>
-          {saving ? "Saving..." : "Save"}
+          {saving ? t("pullRequest.pullRequestMarkdownEditor.saving") : t("action.save")}
         </Button>
       </div>
     </div>

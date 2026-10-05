@@ -12,6 +12,7 @@ import {
   type ServerSettingsPatch,
 } from "@t3tools/contracts";
 import type { EnvironmentConnectionPhase } from "@t3tools/client-runtime/connection";
+import { t } from "@t3tools/shared/i18n";
 import {
   clearProjectSettingsOverrides,
   resolveProjectSettings,
@@ -204,6 +205,25 @@ function projectOverrideWrites(
   return [...writes.values()];
 }
 
+/** Why a patch writes nothing, so the row explains the disabled state instead of failing silently. */
+function scopedSettingsUnavailableReason(
+  scope: ResolvedSettingsScope,
+  patch: ScopedSettingsPatch,
+  hasWrite: boolean,
+  unscopableKeys: readonly string[],
+  isProjectScope: boolean,
+): string | null {
+  if (hasWrite || Object.keys(patch).length === 0) return null;
+  if (scope.kind === "unavailable") return scope.message;
+  if (unscopableKeys.length > 0) {
+    return t("settings.scopedSettings.environmentWideSetting");
+  }
+  if (isProjectScope) return t("settings.scopedSettings.connectCheckoutsToSave");
+  return t("settings.scopedSettings.connectToSave", {
+    scope: scope.kind === "environment" ? scope.label : t("settings.scopedSettings.anEnvironment"),
+  });
+}
+
 /**
  * Environment scopes write the patch to every connected environment; project
  * and checkout scopes write the scopable keys into each member's override
@@ -291,16 +311,13 @@ export function planScopedSettingsPatch(
           : [];
   const hasClientWrite = Object.keys(clientPatch).length > 0;
   const hasWrite = hasClientWrite || serverWrites.length > 0;
-  const unavailableReason =
-    hasWrite || Object.keys(patch).length === 0
-      ? null
-      : scope.kind === "unavailable"
-        ? scope.message
-        : unscopableKeys.length > 0
-          ? "This setting is environment-wide and cannot be overridden by a project."
-          : isProjectScope
-            ? "Connect the selected checkouts, or update their environments, to save a project override."
-            : `Connect ${scope.kind === "environment" ? scope.label : "an environment"} to save this setting.`;
+  const unavailableReason = scopedSettingsUnavailableReason(
+    scope,
+    patch,
+    hasWrite,
+    unscopableKeys,
+    isProjectScope,
+  );
   return { clientPatch, hasClientWrite, serverWrites, unavailableReason };
 }
 
@@ -321,9 +338,7 @@ export function planScopedSettingsClear(
     hasClientWrite: false,
     serverWrites,
     unavailableReason:
-      serverWrites.length > 0
-        ? null
-        : "Connect the selected checkouts, or update their environments, to reset this override.",
+      serverWrites.length > 0 ? null : t("settings.scopedSettings.connectCheckoutsToResetOverride"),
   };
 }
 
@@ -384,7 +399,7 @@ export function planProjectOverridesClear(
     hasClientWrite: false,
     serverWrites,
     unavailableReason:
-      serverWrites.length > 0 ? null : "Connect the environments to reset these overrides.",
+      serverWrites.length > 0 ? null : t("settings.scopedSettings.connectEnvironmentsToReset"),
   };
 }
 

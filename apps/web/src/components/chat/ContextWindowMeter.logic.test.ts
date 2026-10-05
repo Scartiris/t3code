@@ -1,4 +1,5 @@
 import { ProviderDriverKind, ProviderInstanceId, type ServerProvider } from "@t3tools/contracts";
+import { t } from "@t3tools/shared/i18n";
 import { describe, expect, it } from "vite-plus/test";
 import { deriveProviderInstanceEntries } from "../../providerInstances";
 import {
@@ -123,19 +124,19 @@ describe("resolveContextWindowModelDisplayName", () => {
 describe("formatContextWindowCompactionMessage", () => {
   it("describes compaction in terms of the selected model", () => {
     expect(formatContextWindowCompactionMessage("GPT-5.6 Sol")).toBe(
-      "Context for GPT-5.6 Sol compacts automatically when needed.",
+      t("chat.contextWindowMeter.autoCompactForModel", { model: "GPT-5.6 Sol" }),
     );
   });
 
   it("uses neutral copy when the model is unavailable", () => {
     expect(formatContextWindowCompactionMessage(null)).toBe(
-      "Context compacts automatically when needed.",
+      t("chat.contextWindowMeter.autoCompactWhenNeeded"),
     );
   });
 
   it("shows the configured auto-compaction threshold", () => {
     expect(formatContextWindowCompactionMessage("Claude Sonnet 5", 300_000)).toBe(
-      "Compacts automatically at 300,000 tokens.",
+      t("chat.contextWindowMeter.autoCompactAtThreshold", { threshold: "300,000" }),
     );
   });
 });

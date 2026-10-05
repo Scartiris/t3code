@@ -7,6 +7,7 @@ import {
   type ScopedThreadRef,
   type ServerProviderModel,
 } from "@t3tools/contracts";
+import { t } from "@t3tools/shared/i18n";
 import {
   applyClaudePromptEffortPrefix,
   buildProviderOptionSelectionsFromDescriptors,
@@ -45,10 +46,10 @@ import { useComposerMenuState } from "./useComposerMenuState";
 type ProviderOptions = ReadonlyArray<ProviderOptionSelection>;
 
 const SAVED_OPTION_LABELS: Readonly<Record<string, string>> = {
-  agent: "Agent",
-  effort: "Effort",
-  reasoningEffort: "Reasoning effort",
-  variant: "Reasoning",
+  agent: t("chat.traitsPicker.agent"),
+  effort: t("chat.traitsPicker.effort"),
+  reasoningEffort: t("chat.traitsPicker.reasoningEffort"),
+  variant: t("chat.traitsPicker.variant"),
 };
 
 function savedOptionLabel(id: string): string {
@@ -96,7 +97,7 @@ const ULTRATHINK_PROMPT_PREFIX = "Ultrathink:\n";
 function DefaultBadge() {
   return (
     <Badge variant="outline" size="sm" className="min-w-0">
-      Default
+      {t("chat.traitsPicker.default")}
     </Badge>
   );
 }
@@ -408,8 +409,7 @@ export const TraitsMenuContent = memo(function TraitsMenuContentImpl({
               </div>
               {ultrathinkInBodyText && descriptor.id === primarySelectDescriptor?.id ? (
                 <div className="px-2 pb-1.5 text-muted-foreground/80 text-xs">
-                  Your prompt contains &quot;ultrathink&quot; in the text. Remove it to change this
-                  option.
+                  {t("chat.traitsPicker.ultrathinkInPrompt")}
                 </div>
               ) : null}
               <MenuRadioGroup
@@ -472,7 +472,9 @@ export const TraitsMenuContent = memo(function TraitsMenuContentImpl({
                 {(["on", "off"] as const).map((value) => (
                   <MenuRadioItem key={value} value={value} hideIndicator closeOnClick>
                     <span className="flex w-full min-w-0 items-center justify-between gap-3">
-                      <span>{value === "on" ? "On" : "Off"}</span>
+                      <span>
+                        {value === "on" ? t("chat.traitsPicker.on") : t("chat.traitsPicker.off")}
+                      </span>
                     </span>
                   </MenuRadioItem>
                 ))}
@@ -503,7 +505,9 @@ export function buildTraitsTriggerDisplay(input: {
   for (const descriptor of input.descriptors) {
     if (descriptor.id === "fastMode" && descriptor.type === "boolean") {
       speedIcon = descriptor.currentValue === true ? "fast" : null;
-      fastModeFallbackLabel = speedIcon ? "Fast" : "Normal";
+      fastModeFallbackLabel = speedIcon
+        ? t("chat.traitsPicker.fast")
+        : t("chat.traitsPicker.normal");
       continue;
     }
     if (
@@ -526,7 +530,8 @@ export function buildTraitsTriggerDisplay(input: {
               ? "fast"
               : null;
         fastModeFallbackLabel =
-          descriptor.options.find(({ id }) => id === currentValue)?.label ?? "Normal";
+          descriptor.options.find(({ id }) => id === currentValue)?.label ??
+          t("chat.traitsPicker.normal");
         continue;
       }
     }
@@ -534,7 +539,11 @@ export function buildTraitsTriggerDisplay(input: {
       input.ultrathinkPromptControlled && descriptor.id === input.primarySelectDescriptorId
         ? "Ultrathink"
         : descriptor.type === "boolean"
-          ? `${descriptor.label} ${descriptor.currentValue === true ? "On" : "Off"}`
+          ? `${descriptor.label} ${
+              descriptor.currentValue === true
+                ? t("chat.traitsPicker.on")
+                : t("chat.traitsPicker.off")
+            }`
           : getProviderOptionCurrentLabel(
               descriptor,
               input.modelSelection,
@@ -609,7 +618,10 @@ export const TraitsPicker = memo(function TraitsPicker({
     modelSelection: instanceId && model ? { instanceId, model, options: modelOptions ?? [] } : null,
     reportedModelSelection,
   });
-  const speedLabel = speedIcon === "ultrafast" ? "Ultrafast mode on" : "Fast mode on";
+  const speedLabel =
+    speedIcon === "ultrafast"
+      ? t("chat.traitsPicker.ultrafastModeOn")
+      : t("chat.traitsPicker.fastModeOn");
   const accessibleLabel = speedIcon ? `${triggerLabel}, ${speedLabel}` : triggerLabel;
   const fastModeIcon = speedIcon ? (
     <>

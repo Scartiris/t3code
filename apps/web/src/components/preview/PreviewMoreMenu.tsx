@@ -1,6 +1,7 @@
 "use client";
 
 import type { DesktopPreviewColorScheme, EnvironmentId } from "@t3tools/contracts";
+import { t } from "@t3tools/shared/i18n";
 import { Minus, MoreVertical, Plus as PlusIcon, RotateCcw } from "lucide-react";
 
 import { Button } from "~/components/ui/button";
@@ -26,9 +27,9 @@ const COLOR_SCHEME_OPTIONS: ReadonlyArray<{
   value: DesktopPreviewColorScheme;
   label: string;
 }> = [
-  { value: "system", label: "System" },
-  { value: "light", label: "Light" },
-  { value: "dark", label: "Dark" },
+  { value: "system", label: t("common.system") },
+  { value: "light", label: t("common.light") },
+  { value: "dark", label: t("common.dark") },
 ];
 
 interface Props {
@@ -99,32 +100,39 @@ export function PreviewMoreMenu({
           render={
             <MenuTrigger
               render={
-                <Button variant="ghost" size="icon-xs" type="button" aria-label="Preview menu" />
+                <Button
+                  variant="ghost"
+                  size="icon-xs"
+                  type="button"
+                  aria-label={t("preview.previewMoreMenu.previewMenu")}
+                />
               }
             />
           }
         >
           <MoreVertical />
         </TooltipTrigger>
-        <TooltipPopup>More</TooltipPopup>
+        <TooltipPopup>{t("preview.previewMoreMenu.more")}</TooltipPopup>
       </Tooltip>
       <MenuPopup align="end" sideOffset={6}>
         <MenuItem onClick={callTab(bridge.hardReload)} disabled={tabDisabled}>
-          Hard reload
+          {t("preview.previewMoreMenu.hardReload")}
         </MenuItem>
         <MenuItem onClick={callTab(bridge.openDevTools)} disabled={tabDisabled}>
-          Open DevTools
+          {t("preview.previewMoreMenu.openDevTools")}
         </MenuItem>
         <MenuItem onClick={onNativePictureInPicture} disabled={tabDisabled}>
           {nativePictureInPicture
-            ? "Close separate preview window"
-            : "Open separate preview window"}
+            ? t("preview.previewMoreMenu.closeSeparatePreviewWindow")
+            : t("preview.previewMoreMenu.openSeparatePreviewWindow")}
         </MenuItem>
         <MenuItem onClick={onToggleDeviceToolbar} disabled={tabDisabled}>
-          {deviceToolbarVisible ? "Hide device toolbar" : "Show device toolbar"}
+          {deviceToolbarVisible
+            ? t("preview.previewMoreMenu.hideDeviceToolbar")
+            : t("preview.previewMoreMenu.showDeviceToolbar")}
         </MenuItem>
         <MenuSub>
-          <MenuSubTrigger disabled={tabDisabled}>Appearance</MenuSubTrigger>
+          <MenuSubTrigger disabled={tabDisabled}>{t("settings.section.appearance")}</MenuSubTrigger>
           <MenuSubPopup>
             <MenuRadioGroup
               value={colorScheme}
@@ -154,14 +162,14 @@ export function PreviewMoreMenu({
           className="justify-between"
           disabled={tabDisabled}
         >
-          <span>Zoom</span>
+          <span>{t("preview.previewMoreMenu.zoom")}</span>
           <span className="flex items-center gap-1">
             <Button
               variant="outline"
               size="icon-xs"
               type="button"
               onClick={callTab(bridge.zoomOut)}
-              aria-label="Zoom out"
+              aria-label={t("desktop.menu.zoomOut")}
               disabled={tabDisabled}
             >
               <Minus />
@@ -174,7 +182,7 @@ export function PreviewMoreMenu({
               size="icon-xs"
               type="button"
               onClick={callTab(bridge.zoomIn)}
-              aria-label="Zoom in"
+              aria-label={t("desktop.menu.zoomIn")}
               disabled={tabDisabled}
             >
               <PlusIcon />
@@ -184,7 +192,7 @@ export function PreviewMoreMenu({
               size="icon-xs"
               type="button"
               onClick={callTab(bridge.resetZoom)}
-              aria-label="Reset zoom"
+              aria-label={t("preview.previewMoreMenu.resetZoom")}
               disabled={tabDisabled}
             >
               <RotateCcw />
@@ -208,7 +216,9 @@ export function PreviewMoreMenu({
             // Truncation needs a block box: `text-overflow` on an inline child
             // never applies and a long name would push the popup past its width.
             <MenuGroupLabel className="max-w-64">
-              <span className="block truncate">Profile: {profileName}</span>
+              <span className="block truncate">
+                {t("preview.previewMoreMenu.profileLabel", { profileName })}
+              </span>
             </MenuGroupLabel>
           ) : null}
           <MenuItem
@@ -216,12 +226,12 @@ export function PreviewMoreMenu({
               void bridge.clearCookies(environmentId, profileId).catch(() => undefined)
             }
           >
-            Clear cookies
+            {t("preview.previewMoreMenu.clearCookies")}
           </MenuItem>
           <MenuItem
             onClick={() => void bridge.clearCache(environmentId, profileId).catch(() => undefined)}
           >
-            Clear cache
+            {t("preview.previewMoreMenu.clearCache")}
           </MenuItem>
         </MenuGroup>
       </MenuPopup>

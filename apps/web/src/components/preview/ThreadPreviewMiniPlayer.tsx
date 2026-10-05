@@ -1,6 +1,7 @@
 "use client";
 
 import { FILL_PREVIEW_VIEWPORT, type ScopedThreadRef } from "@t3tools/contracts";
+import { t } from "@t3tools/shared/i18n";
 import { PanelRightIcon, PictureInPicture2, XIcon } from "lucide-react";
 import {
   type PointerEvent as ReactPointerEvent,
@@ -131,8 +132,8 @@ function BrowserMiniPlayer({ threadRef, tabId, miniPlayer }: Props & { readonly 
     void operation(runtimeTabId).catch((error) => {
       toastManager.add({
         type: "error",
-        title: "Unable to update popped-out preview",
-        description: error instanceof Error ? error.message : "An error occurred.",
+        title: t("preview.threadPreviewMiniPlayer.unableToUpdatePoppedOutPreview"),
+        description: error instanceof Error ? error.message : t("error.generic"),
       });
     });
   };
@@ -144,7 +145,7 @@ function BrowserMiniPlayer({ threadRef, tabId, miniPlayer }: Props & { readonly 
       threadRef={threadRef}
       miniPlayer={miniPlayer}
       sourceSize={sourceSize}
-      label="Floating browser preview"
+      label={t("preview.threadPreviewMiniPlayer.floatingBrowserPreview")}
       recording={recording}
       onOpenInPanel={openInPanel}
       pillActions={
@@ -156,8 +157,8 @@ function BrowserMiniPlayer({ threadRef, tabId, miniPlayer }: Props & { readonly 
                 size="icon-xs"
                 aria-label={
                   desktopOverlay?.pictureInPicture
-                    ? "Close popped-out preview"
-                    : "Pop preview into separate window"
+                    ? t("preview.threadPreviewMiniPlayer.closePoppedOutPreview")
+                    : t("preview.threadPreviewMiniPlayer.popPreviewIntoWindow")
                 }
                 disabled={!desktopOverlay?.hasWebContents}
                 onPointerDown={(event) => event.stopPropagation()}
@@ -169,8 +170,8 @@ function BrowserMiniPlayer({ threadRef, tabId, miniPlayer }: Props & { readonly 
           </TooltipTrigger>
           <TooltipPopup side="top">
             {desktopOverlay?.pictureInPicture
-              ? "Close separate window"
-              : "Pop into separate window"}
+              ? t("preview.threadPreviewMiniPlayer.closeSeparateWindow")
+              : t("preview.threadPreviewMiniPlayer.popIntoWindow")}
           </TooltipPopup>
         </Tooltip>
       }
@@ -188,7 +189,7 @@ function BrowserMiniPlayer({ threadRef, tabId, miniPlayer }: Props & { readonly 
           />
           {!desktopOverlay?.hasWebContents ? (
             <div className="pointer-events-none absolute inset-0 z-[49] flex items-center justify-center rounded-[inherit] bg-muted text-xs text-muted-foreground">
-              Reconnecting preview…
+              {t("preview.threadPreviewMiniPlayer.reconnectingPreview")}
             </div>
           ) : null}
         </>
@@ -209,7 +210,8 @@ function DeviceMiniPlayer({
     (entry) => entry.hostId === source.hostId && entry.id === source.deviceId,
   );
   const hostLabel =
-    deviceState.hosts.find((host) => host.id === source.hostId)?.label ?? "Device host";
+    deviceState.hosts.find((host) => host.id === source.hostId)?.label ??
+    t("preview.threadPreviewMiniPlayer.deviceHost");
   const cornerRadius = useCallback(
     (player: PreviewMiniPlayerSize) => resolveDeviceMiniPlayerCornerRadius(source.platform, player),
     [source.platform],
@@ -230,7 +232,7 @@ function DeviceMiniPlayer({
       threadRef={threadRef}
       miniPlayer={miniPlayer}
       sourceSize={sourceSize}
-      label="Floating device preview"
+      label={t("preview.threadPreviewMiniPlayer.floatingDevicePreview")}
       onOpenInPanel={openInPanel}
       cornerRadius={cornerRadius}
     >
@@ -398,7 +400,9 @@ function MiniPlayerShell({
           >
             <div
               role={recording ? "status" : undefined}
-              aria-label={recording ? "Recording preview" : undefined}
+              aria-label={
+                recording ? t("preview.threadPreviewMiniPlayer.recordingPreview") : undefined
+              }
               aria-hidden={!recording}
               className="absolute right-0 top-0 size-2 transition-opacity group-hover:opacity-0 group-focus-within:opacity-0"
             >
@@ -423,7 +427,7 @@ function MiniPlayerShell({
                     <Button
                       variant="ghost"
                       size="icon-xs"
-                      aria-label="Open preview in right panel"
+                      aria-label={t("preview.threadPreviewMiniPlayer.openPreviewInRightPanel")}
                       onPointerDown={(event) => event.stopPropagation()}
                       onClick={onOpenInPanel}
                     />
@@ -431,7 +435,9 @@ function MiniPlayerShell({
                 >
                   <PanelRightIcon />
                 </TooltipTrigger>
-                <TooltipPopup side="top">Open in right panel</TooltipPopup>
+                <TooltipPopup side="top">
+                  {t("preview.threadPreviewMiniPlayer.openInRightPanel")}
+                </TooltipPopup>
               </Tooltip>
               {pillActions}
               <Tooltip>
@@ -440,7 +446,7 @@ function MiniPlayerShell({
                     <Button
                       variant="ghost"
                       size="icon-xs"
-                      aria-label="Close floating preview"
+                      aria-label={t("preview.threadPreviewMiniPlayer.closeFloatingPreview")}
                       onPointerDown={(event) => event.stopPropagation()}
                       onClick={close}
                     />
@@ -448,7 +454,9 @@ function MiniPlayerShell({
                 >
                   <XIcon />
                 </TooltipTrigger>
-                <TooltipPopup side="top">Close floating preview</TooltipPopup>
+                <TooltipPopup side="top">
+                  {t("preview.threadPreviewMiniPlayer.closeFloatingPreview")}
+                </TooltipPopup>
               </Tooltip>
             </div>
           </div>

@@ -1,4 +1,5 @@
 import type { RelayClientDeviceRecord } from "@t3tools/contracts/relay";
+import { t } from "@t3tools/shared/i18n";
 import { SmartphoneIcon } from "lucide-react";
 
 import { useManagedRelayDevices } from "../../cloud/managedRelayState";
@@ -28,7 +29,10 @@ function MobileClientStatusBadge({
 }) {
   return (
     <Badge variant={enabled ? "success" : "outline"}>
-      {label}: {enabled ? "On" : "Off"}
+      {label}:{" "}
+      {enabled
+        ? t("clerk.mobileClientsUserProfilePage.statusOn")
+        : t("clerk.mobileClientsUserProfilePage.statusOff")}
     </Badge>
   );
 }
@@ -52,9 +56,12 @@ function MobileClientRow({ device }: { readonly device: RelayClientDeviceRecord 
       <div className="mt-2 flex flex-wrap gap-1.5">
         <MobileClientStatusBadge
           enabled={device.notifications.enabled}
-          label="Push notifications"
+          label={t("clerk.mobileClientsUserProfilePage.pushNotifications")}
         />
-        <MobileClientStatusBadge enabled={device.liveActivities.enabled} label="Live Activities" />
+        <MobileClientStatusBadge
+          enabled={device.liveActivities.enabled}
+          label={t("clerk.mobileClientsUserProfilePage.liveActivities")}
+        />
       </div>
       <p className="mt-1.5 text-xs leading-4.5 text-muted-foreground/80">
         {mobileClientNotificationDetail(device)}
@@ -65,7 +72,11 @@ function MobileClientRow({ device }: { readonly device: RelayClientDeviceRecord 
 
 function MobileClientsSkeleton() {
   return (
-    <div aria-label="Loading mobile clients" className="divide-y border-t" role="status">
+    <div
+      aria-label={t("clerk.mobileClientsUserProfilePage.loadingAria")}
+      className="divide-y border-t"
+      role="status"
+    >
       {MOBILE_CLIENT_SKELETON_ROWS.map((row) => (
         <div key={row} className="py-4">
           <div className="flex gap-3">
@@ -92,10 +103,9 @@ function EmptyMobileClients() {
         <SmartphoneIcon />
       </EmptyMedia>
       <EmptyHeader>
-        <EmptyTitle>No mobile clients</EmptyTitle>
+        <EmptyTitle>{t("clerk.mobileClientsUserProfilePage.emptyTitle")}</EmptyTitle>
         <EmptyDescription>
-          Install T3 Code on your phone and sign in to T3 Connect to get push notifications and Live
-          Activities.
+          {t("clerk.mobileClientsUserProfilePage.emptyDescription")}
         </EmptyDescription>
       </EmptyHeader>
     </Empty>
@@ -111,8 +121,8 @@ export function MobileClientsUserProfilePage() {
 
   return (
     <ClerkUserProfilePage
-      title="Mobile clients"
-      description="Mobile devices that get notifications from your environments."
+      title={t("clerk.mobileClientsUserProfilePage.title")}
+      description={t("clerk.mobileClientsUserProfilePage.description")}
       action={
         <ClerkUserProfileRefreshButton
           isPending={devicesState.isPending}
@@ -128,12 +138,12 @@ export function MobileClientsUserProfilePage() {
           >
             <div>
               <p className="font-medium text-destructive-foreground">
-                Could not load mobile clients
+                {t("clerk.mobileClientsUserProfilePage.loadFailedTitle")}
               </p>
               <p className="mt-0.5 text-xs text-muted-foreground">{devicesState.error}</p>
             </div>
             <Button size="xs" variant="outline" onClick={devicesState.refresh}>
-              Try again
+              {t("clerk.mobileClientsUserProfilePage.tryAgain")}
             </Button>
           </div>
         ) : null}

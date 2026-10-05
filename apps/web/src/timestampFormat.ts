@@ -1,4 +1,5 @@
 import { type TimestampFormat } from "@t3tools/contracts/settings";
+import { t } from "@t3tools/shared/i18n";
 
 function getTimestampFormatOptions(
   timestampFormat: TimestampFormat,
@@ -168,7 +169,7 @@ const numericDateWithYearFormatter = new Intl.DateTimeFormat(timestampLocale, {
 
 /**
  * Chat timestamp that adds the date once the message is no longer from today:
- * today `12:34 PM`, yesterday `yesterday at 12:34 PM`, older `8/13 12:34 PM`
+ * today `12:34 PM`, yesterday `昨天 12:34 PM`, older `8/13 12:34 PM`
  * (locale digit order), with the year included once the calendar year differs.
  * Boundaries are local calendar days, not 24-hour windows.
  */
@@ -188,7 +189,7 @@ export function formatDayAwareTimestamp(
   const dayDiff = Math.round((startOfToday - startOfMessageDay) / 86_400_000);
 
   if (dayDiff <= 0) return time;
-  if (dayDiff === 1) return `yesterday at ${time}`;
+  if (dayDiff === 1) return t("web.timestampFormat.yesterdayAt", { time });
   const dateFormatter =
     date.getFullYear() === now.getFullYear() ? numericDateFormatter : numericDateWithYearFormatter;
   return `${dateFormatter.format(date)} ${time}`;
@@ -197,7 +198,7 @@ export function formatDayAwareTimestamp(
 /**
  * The forward-looking counterpart of {@link formatDayAwareTimestamp} for an
  * instant that has not happened yet (a usage-limit reset): today `12:34 PM`,
- * tomorrow `tomorrow at 12:34 PM`, later `8/13 12:34 PM`.
+ * tomorrow `明天 12:34 PM`, later `8/13 12:34 PM`.
  */
 export function formatUpcomingTimestamp(
   isoDate: string,
@@ -215,7 +216,7 @@ export function formatUpcomingTimestamp(
 
   if (dayDiff < 0) return formatDayAwareTimestamp(isoDate, timestampFormat, nowMs);
   if (dayDiff === 0) return time;
-  if (dayDiff === 1) return `tomorrow at ${time}`;
+  if (dayDiff === 1) return t("web.timestampFormat.tomorrowAt", { time });
   const dateFormatter =
     date.getFullYear() === now.getFullYear() ? numericDateFormatter : numericDateWithYearFormatter;
   return `${dateFormatter.format(date)} ${time}`;
@@ -223,7 +224,7 @@ export function formatUpcomingTimestamp(
 
 /**
  * Format a relative time string from an ISO date.
- * Returns `{ value: "20s", suffix: "ago" }` or `{ value: "just now", suffix: null }`
+ * Returns `{ value: "20s", suffix: "前" }` or `{ value: "刚刚", suffix: null }`
  * so callers can style the numeric portion independently.
  */
 type RelativeTimeParts = { value: string; suffix: string | null };
@@ -236,15 +237,15 @@ export function formatRelativeTime(isoDate: string): RelativeTimeParts | null {
   const date = parseTimestampDate(isoDate);
   if (!date) return null;
   const diffMs = Date.now() - date.getTime();
-  if (diffMs < 0) return { value: "just now", suffix: null };
+  if (diffMs < 0) return { value: t("web.timestampFormat.justNow"), suffix: null };
   const seconds = Math.floor(diffMs / 1000);
-  if (seconds < 60) return { value: "just now", suffix: null };
+  if (seconds < 60) return { value: t("web.timestampFormat.justNow"), suffix: null };
   const minutes = Math.floor(seconds / 60);
-  if (minutes < 60) return { value: `${minutes}m`, suffix: "ago" };
+  if (minutes < 60) return { value: `${minutes}m`, suffix: t("web.timestampFormat.agoSuffix") };
   const hours = Math.floor(minutes / 60);
-  if (hours < 24) return { value: `${hours}h`, suffix: "ago" };
+  if (hours < 24) return { value: `${hours}h`, suffix: t("web.timestampFormat.agoSuffix") };
   const days = Math.floor(hours / 24);
-  return { value: `${days}d`, suffix: "ago" };
+  return { value: `${days}d`, suffix: t("web.timestampFormat.agoSuffix") };
 }
 
 export function formatRelativeTimeLabel(isoDate: string) {
@@ -261,17 +262,17 @@ export function getRelativeTimeState(isoDate: string | null): RelativeTimeState 
 }
 
 /**
- * Relative elapsed duration since an ISO instant, without an "ago" suffix.
- * Useful for labels like "Connected for 3m".
+ * Relative elapsed duration since an ISO instant, without the "前" wording
+ * callers add themselves. Useful for labels like "已连接 3m".
  */
 export function formatElapsedDurationLabel(isoDate: string, nowMs: number = Date.now()): string {
   const date = parseTimestampDate(isoDate);
   if (!date) return "";
   const diffMs = nowMs - date.getTime();
-  if (diffMs <= 0) return "just now";
+  if (diffMs <= 0) return t("web.timestampFormat.justNow");
 
   const seconds = Math.floor(diffMs / 1000);
-  if (seconds < 5) return "just now";
+  if (seconds < 5) return t("web.timestampFormat.justNow");
   if (seconds < 60) return `${seconds}s`;
 
   const minutes = Math.floor(seconds / 60);
@@ -291,16 +292,16 @@ export function formatRelativeTimeUntil(isoDate: string): RelativeTimeParts | nu
   const date = parseTimestampDate(isoDate);
   if (!date) return null;
   const diffMs = date.getTime() - Date.now();
-  if (diffMs <= 0) return { value: "Expired", suffix: null };
+  if (diffMs <= 0) return { value: t("web.timestampFormat.expired"), suffix: null };
   const seconds = Math.floor(diffMs / 1000);
-  if (seconds < 5) return { value: "Soon", suffix: null };
-  if (seconds < 60) return { value: `${seconds}s`, suffix: "left" };
+  if (seconds < 5) return { value: t("web.timestampFormat.soon"), suffix: null };
+  if (seconds < 60) return { value: `${seconds}s`, suffix: t("web.timestampFormat.leftSuffix") };
   const minutes = Math.floor(seconds / 60);
-  if (minutes < 60) return { value: `${minutes}m`, suffix: "left" };
+  if (minutes < 60) return { value: `${minutes}m`, suffix: t("web.timestampFormat.leftSuffix") };
   const hours = Math.floor(minutes / 60);
-  if (hours < 24) return { value: `${hours}h`, suffix: "left" };
+  if (hours < 24) return { value: `${hours}h`, suffix: t("web.timestampFormat.leftSuffix") };
   const days = Math.floor(hours / 24);
-  return { value: `${days}d`, suffix: "left" };
+  return { value: `${days}d`, suffix: t("web.timestampFormat.leftSuffix") };
 }
 
 export function formatRelativeTimeUntilLabel(isoDate: string): string {
@@ -310,23 +311,28 @@ export function formatRelativeTimeUntilLabel(isoDate: string): string {
 }
 
 /**
- * Countdown for a future instant (e.g. link expiry): "Expires in 4m 12s", with second precision under one hour.
+ * Countdown for a future instant (e.g. link expiry), with second precision
+ * under one hour: "将在 4m 12s 后过期".
  * Pass `nowMs` when a parent tick drives re-renders so the diff matches that snapshot.
  */
 export function formatExpiresInLabel(isoDate: string, nowMs: number = Date.now()): string {
   const date = parseTimestampDate(isoDate);
   if (!date) return "";
   const diffMs = date.getTime() - nowMs;
-  if (diffMs <= 0) return "Expired";
+  if (diffMs <= 0) return t("web.timestampFormat.expired");
 
   const totalSeconds = Math.floor(diffMs / 1000);
-  if (totalSeconds < 5) return "Expires in a moment";
-  if (totalSeconds < 60) return `Expires in ${totalSeconds}s`;
+  if (totalSeconds < 5) return t("web.timestampFormat.expiresInAMoment");
+  if (totalSeconds < 60) {
+    return t("web.timestampFormat.expiresInSeconds", { seconds: totalSeconds });
+  }
 
   if (totalSeconds < 3600) {
     const minutes = Math.floor(totalSeconds / 60);
     const seconds = totalSeconds % 60;
-    return seconds === 0 ? `Expires in ${minutes}m` : `Expires in ${minutes}m ${seconds}s`;
+    return seconds === 0
+      ? t("web.timestampFormat.expiresInMinutes", { minutes })
+      : t("web.timestampFormat.expiresInMinutesSeconds", { minutes, seconds });
   }
 
   if (totalSeconds < 86_400) {
@@ -337,12 +343,14 @@ export function formatExpiresInLabel(isoDate: string, nowMs: number = Date.now()
     const parts = [`${hours}h`];
     if (minutes > 0) parts.push(`${minutes}m`);
     if (seconds > 0) parts.push(`${seconds}s`);
-    return `Expires in ${parts.join(" ")}`;
+    return t("web.timestampFormat.expiresInDuration", { duration: parts.join(" ") });
   }
 
   const days = Math.floor(totalSeconds / 86_400);
   const remAfterDays = totalSeconds % 86_400;
-  if (remAfterDays === 0) return `Expires in ${days}d`;
+  if (remAfterDays === 0) {
+    return t("web.timestampFormat.expiresInDuration", { duration: `${days}d` });
+  }
   const hours = Math.floor(remAfterDays / 3600);
   const rem = remAfterDays % 3600;
   const minutes = Math.floor(rem / 60);
@@ -351,5 +359,7 @@ export function formatExpiresInLabel(isoDate: string, nowMs: number = Date.now()
   if (hours > 0) tail.push(`${hours}h`);
   if (minutes > 0) tail.push(`${minutes}m`);
   if (seconds > 0) tail.push(`${seconds}s`);
-  return tail.length > 0 ? `Expires in ${days}d ${tail.join(" ")}` : `Expires in ${days}d`;
+  return t("web.timestampFormat.expiresInDuration", {
+    duration: tail.length > 0 ? `${days}d ${tail.join(" ")}` : `${days}d`,
+  });
 }

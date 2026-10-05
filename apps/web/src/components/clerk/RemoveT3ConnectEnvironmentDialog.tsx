@@ -1,3 +1,4 @@
+import { t } from "@t3tools/shared/i18n";
 import { useState } from "react";
 
 import {
@@ -43,12 +44,14 @@ export function RemoveT3ConnectEnvironmentDialog({
       >
         <AlertDialogPopup>
           <AlertDialogHeader>
-            <AlertDialogTitle>Remove {shownLabel} from this device?</AlertDialogTitle>
+            <AlertDialogTitle>
+              {t("clerk.removeT3ConnectEnvironmentDialog.title", { label: shownLabel })}
+            </AlertDialogTitle>
             <AlertDialogDescription>
-              This forgets its pairing, credentials, and cached threads here.
+              {t("clerk.removeT3ConnectEnvironmentDialog.description")}
             </AlertDialogDescription>
             <AlertDialogDescription>
-              It stays on your T3 Connect account and keeps its host space. Deregister it in{" "}
+              {t("clerk.removeT3ConnectEnvironmentDialog.accountNoticePrefix")}{" "}
               {openAccountPage ? (
                 <InlineButton
                   onClick={() => {
@@ -56,18 +59,20 @@ export function RemoveT3ConnectEnvironmentDialog({
                     openAccountPage();
                   }}
                 >
-                  T3 Connect settings
+                  {t("clerk.removeT3ConnectEnvironmentDialog.t3ConnectSettings")}
                 </InlineButton>
               ) : (
-                "T3 Connect settings"
+                t("clerk.removeT3ConnectEnvironmentDialog.t3ConnectSettings")
               )}{" "}
-              to free it.
+              {t("clerk.removeT3ConnectEnvironmentDialog.accountNoticeSuffix")}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogClose render={<Button variant="outline" />}>Cancel</AlertDialogClose>
+            <AlertDialogClose render={<Button variant="outline" />}>
+              {t("action.cancel")}
+            </AlertDialogClose>
             <Button variant="destructive" onClick={onConfirm}>
-              Remove from this device
+              {t("clerk.removeT3ConnectEnvironmentDialog.removeFromDevice")}
             </Button>
           </AlertDialogFooter>
         </AlertDialogPopup>

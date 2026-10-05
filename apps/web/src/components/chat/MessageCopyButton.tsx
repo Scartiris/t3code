@@ -1,3 +1,4 @@
+import { t } from "@t3tools/shared/i18n";
 import { memo, useRef } from "react";
 import { Check, Copy } from "lucide";
 import { Button } from "../ui/button";
@@ -38,7 +39,7 @@ export const MessageCopyButton = memo(function MessageCopyButton({
       <TooltipTrigger
         render={
           <Button
-            aria-label="Copy message"
+            aria-label={t("chat.messageCopyButton.copyMessage")}
             disabled={isCopied}
             onClick={() => copyToClipboard(text)}
             ref={ref}
@@ -55,7 +56,7 @@ export const MessageCopyButton = memo(function MessageCopyButton({
         />
       </TooltipTrigger>
       <TooltipPopup>
-        <p>Copy message</p>
+        <p>{t("chat.messageCopyButton.copyMessage")}</p>
       </TooltipPopup>
     </Tooltip>
   );

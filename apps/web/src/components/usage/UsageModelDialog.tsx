@@ -1,3 +1,4 @@
+import { t } from "@t3tools/shared/i18n";
 import { formatPercent, formatTokens, formatUsd } from "@t3tools/shared/usageFormat";
 import { isModelCostUnknown, type ModelTotals } from "@t3tools/shared/usageMerge";
 import { useMemo } from "react";
@@ -67,10 +68,20 @@ export function UsageModelDialog({
   const hitRate = cacheHitRate(model);
   const perMillion = costPerMillionTokens(model);
   const stats = [
-    { label: "Cost", value: costUnknown ? "Unpriced" : formatUsd(model.costUsd) },
-    { label: "Tokens", value: formatTokens(model.totalTokens) },
-    perMillion === null ? null : { label: "Per 1M tokens", value: formatUsd(perMillion) },
-    hitRate === null ? null : { label: "Cache hit", value: formatPercent(hitRate) },
+    {
+      label: t("usage.usageModelDialog.cost"),
+      value: costUnknown ? t("usage.usageModelDialog.unpriced") : formatUsd(model.costUsd),
+    },
+    {
+      label: t("usage.usageModelDialog.tokens"),
+      value: formatTokens(model.totalTokens),
+    },
+    perMillion === null
+      ? null
+      : { label: t("usage.usageModelDialog.perMillionTokens"), value: formatUsd(perMillion) },
+    hitRate === null
+      ? null
+      : { label: t("usage.usageModelDialog.cacheHit"), value: formatPercent(hitRate) },
   ].filter((stat) => stat !== null);
 
   return (
@@ -92,7 +103,11 @@ export function UsageModelDialog({
           </div>
           <DialogDescription>
             {presentation.label}
-            {costUnknown ? "" : ` · ${formatPercent(model.costShare)} of cost`}
+            {costUnknown
+              ? ""
+              : ` · ${t("usage.usageModelDialog.costShare", {
+                  percent: formatPercent(model.costShare),
+                })}`}
           </DialogDescription>
         </DialogHeader>
         <DialogPanel>
@@ -122,19 +137,19 @@ export function UsageModelDialog({
             <div className="grid gap-x-10 gap-y-8 sm:grid-cols-2">
               {costUnknown ? null : (
                 <UsageShareBar
-                  label="Cost by type"
+                  label={t("usage.usageModelDialog.costByType")}
                   segments={costTypeSegments(usage.categoryCost)}
                   format={formatUsd}
                 />
               )}
               <UsageShareBar
-                label="Tokens by type"
+                label={t("usage.usageModelDialog.tokensByType")}
                 segments={tokenTypeSegments(model.tokens)}
                 format={formatTokens}
               />
               {usage.speedCost.fast + usage.speedCost.ultrafast > 0 ? (
                 <UsageShareBar
-                  label="Cost by speed"
+                  label={t("usage.usageModelDialog.costBySpeed")}
                   segments={speedCostSegments(usage.speedCost)}
                   format={formatUsd}
                   aside={<SpeedPremium premiumUsd={usage.speedCost.premium} />}
@@ -146,9 +161,11 @@ export function UsageModelDialog({
         {model.unpricedTokens > 0 ? (
           <DialogFooter variant="bare" className="items-center sm:justify-between">
             <span className="text-xs text-muted-foreground">
-              {formatTokens(model.unpricedTokens)} tokens have no known price
+              {t("usage.usageModelDialog.unpricedTokensNotice", {
+                tokens: formatTokens(model.unpricedTokens),
+              })}
             </span>
-            <Button onClick={onSetPrice}>Set price</Button>
+            <Button onClick={onSetPrice}>{t("usage.usageModelDialog.setPrice")}</Button>
           </DialogFooter>
         ) : null}
       </DialogPopup>
@@ -160,7 +177,8 @@ export function UsageModelDialog({
 export function SpeedPremium({ premiumUsd }: { readonly premiumUsd: number }) {
   return (
     <span className="text-xs text-muted-foreground">
-      Premium <span className="text-foreground tabular-nums">{formatUsd(premiumUsd)}</span>
+      {t("usage.usageModelDialog.premium")}{" "}
+      <span className="text-foreground tabular-nums">{formatUsd(premiumUsd)}</span>
     </span>
   );
 }

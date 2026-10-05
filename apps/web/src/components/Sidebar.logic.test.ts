@@ -1,4 +1,5 @@
 import { presentThreadShell } from "@t3tools/client-runtime/state/models";
+import { t } from "@t3tools/shared/i18n";
 import * as DateTime from "effect/DateTime";
 import { deriveActiveWorkStartedAt } from "../session-logic.ts";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vite-plus/test";
@@ -299,7 +300,7 @@ describe("buildBulkUnpinContextMenuItem", () => {
   it("counts only the pinned rows of a mixed selection", () => {
     expect(buildBulkUnpinContextMenuItem({ pinnedCount: 2 })).toEqual({
       id: "unpin",
-      label: "Unpin (2)",
+      label: t("components.sidebar.unpinCount", { count: 2 }),
     });
   });
 
@@ -317,7 +318,7 @@ describe("buildBulkTitleRegenerationContextMenuItem", () => {
       }),
     ).toEqual({
       id: "regenerate-title",
-      label: "Regenerate titles (3)",
+      label: t("components.sidebar.regenerateTitlesCount", { count: 3 }),
     });
   });
 
@@ -329,7 +330,7 @@ describe("buildBulkTitleRegenerationContextMenuItem", () => {
       }),
     ).toEqual({
       id: "regenerate-title",
-      label: "Regenerating… (2)",
+      label: t("components.sidebar.regeneratingTitlesCount", { count: 2 }),
       disabled: true,
     });
   });
@@ -348,13 +349,21 @@ describe("buildMultiSelectThreadContextMenuItems", () => {
   it("offers bulk archive with the selected count", () => {
     expect(
       buildMultiSelectThreadContextMenuItems({ count: 3, hasRunningThread: false }),
-    ).toContainEqual({ id: "archive", label: "Archive (3)", disabled: false });
+    ).toContainEqual({
+      id: "archive",
+      label: t("components.sidebar.archiveCount", { count: 3 }),
+      disabled: false,
+    });
   });
 
   it("disables bulk archive when a selected thread is running", () => {
     expect(
       buildMultiSelectThreadContextMenuItems({ count: 2, hasRunningThread: true }),
-    ).toContainEqual({ id: "archive", label: "Archive (2)", disabled: true });
+    ).toContainEqual({
+      id: "archive",
+      label: t("components.sidebar.archiveCount", { count: 2 }),
+      disabled: true,
+    });
   });
 });
 

@@ -5,6 +5,7 @@ import {
   type ServerSettings,
 } from "@t3tools/contracts";
 import { describe, expect, it, vi } from "vite-plus/test";
+import { t } from "@t3tools/shared/i18n";
 import { applyServerSettingsPatch } from "@t3tools/shared/serverSettings";
 import { resolveWorktreeCleanup } from "@t3tools/shared/projectSettings";
 
@@ -117,7 +118,7 @@ describe("scoped settings targets", () => {
       planScopedSettingsPatch(scope, environments, { enableProviderUpdateChecks: false }),
     ).toMatchObject({
       serverWrites: [],
-      unavailableReason: "Connect Offline to save this setting.",
+      unavailableReason: t("settings.scopedSettings.connectToSave", { scope: offline.label }),
     });
   });
 
@@ -361,12 +362,15 @@ describe("scoped settings writes", () => {
       planScopedSettingsPatch(project, environments, { enableProviderUpdateChecks: false }),
     ).toMatchObject({
       serverWrites: [],
-      unavailableReason: "This setting is environment-wide and cannot be overridden by a project.",
+      unavailableReason: t("settings.scopedSettings.environmentWideSetting"),
     });
     const legacy = environment("Server", { projectOverrides: false });
     expect(
       planScopedSettingsPatch(checkout, [laptop, legacy], { defaultAutoPull: true }),
-    ).toMatchObject({ serverWrites: [], unavailableReason: expect.stringContaining("update") });
+    ).toMatchObject({
+      serverWrites: [],
+      unavailableReason: t("settings.scopedSettings.connectCheckoutsToSave"),
+    });
   });
 
   it("clears overrides per member and removes an emptied entry", () => {

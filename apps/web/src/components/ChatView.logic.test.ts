@@ -25,6 +25,7 @@ import {
   type WorktreeSetupSnapshot,
 } from "@t3tools/contracts";
 import type { CodexArtifactTemplate } from "@t3tools/client-runtime/codex-artifact-templates";
+import { t } from "@t3tools/shared/i18n";
 import * as DateTime from "effect/DateTime";
 import * as Option from "effect/Option";
 import { afterEach, describe, expect, it, vi } from "vite-plus/test";
@@ -342,12 +343,12 @@ describe("deriveComposerSendState", () => {
 describe("buildExpiredTerminalContextToastCopy", () => {
   it("formats empty and omission guidance", () => {
     expect(buildExpiredTerminalContextToastCopy(1, "empty")).toEqual({
-      title: "Expired terminal context won't be sent",
-      description: "Remove it or re-add it to include terminal output.",
+      title: t("components.chatView.expiredTerminalContextWontBeSent", { count: 1 }),
+      description: t("components.chatView.removeOrReAddTerminalContext"),
     });
     expect(buildExpiredTerminalContextToastCopy(2, "omitted")).toEqual({
-      title: "Expired terminal contexts omitted from message",
-      description: "Re-add it if you want that terminal output included.",
+      title: t("components.chatView.expiredTerminalContextOmitted", { count: 2 }),
+      description: t("components.chatView.reAddTerminalContextToIncludeOutput"),
     });
   });
 });
@@ -412,9 +413,8 @@ describe("getStartedThreadModelChangeBlockReason", () => {
         },
       }),
     ).toEqual({
-      title: "Start a new chat to change models",
-      description:
-        "This provider does not allow switching models after a conversation has started.",
+      title: t("components.chatView.startNewChatToChangeModels"),
+      description: t("components.chatView.providerDoesNotAllowModelSwitch"),
     });
   });
 });
@@ -864,12 +864,7 @@ describe("agent browser close confirmation", () => {
       agentControlledBrowserCloseConfirmation([surfaces[0]!], {
         "tab-1": { controller: "agent" },
       }),
-    ).toBe(
-      [
-        "Close browser while the agent is using it?",
-        "The agent is actively controlling this browser. Closing it may interrupt the current browser action.",
-      ].join("\n"),
-    );
+    ).toBe(t("components.chatView.closeBrowserWhileAgentUsing"));
   });
 
   it("counts every agent-controlled browser in a bulk close", () => {
@@ -878,7 +873,7 @@ describe("agent browser close confirmation", () => {
         "tab-1": { controller: "agent" },
         "tab-2": { controller: "agent" },
       }),
-    ).toContain("Close 2 browsers");
+    ).toContain(t("components.chatView.closeBrowsersWhileAgentUsing", { count: 2 }));
   });
 });
 
@@ -1526,7 +1521,7 @@ describe("resolveComposerProviderSelection", () => {
     expect(selection.selectedProviderEntry?.instanceId).toBe(signedOutEntry.instanceId);
     expect(
       getAntigravitySendBlockReason(selection.selectedProviderEntry?.snapshot, "gemini-pro"),
-    ).toBe("Sign in to Antigravity in provider settings before sending.");
+    ).toBe(t("components.chatView.signInToAntigravityBeforeSending"));
   });
 
   it("blocks sends until the selected Antigravity profile is installed", () => {
@@ -1536,7 +1531,7 @@ describe("resolveComposerProviderSelection", () => {
     }).snapshot;
 
     expect(getAntigravitySendBlockReason(provider, "gemini-pro")).toBe(
-      "Install Antigravity in provider settings before sending.",
+      t("components.chatView.installAntigravityBeforeSending"),
     );
   });
 
@@ -1553,13 +1548,13 @@ describe("resolveComposerProviderSelection", () => {
       getAntigravitySendBlockReason({ ...provider, models: catalogModels }, "gemini-pro"),
     ).toBeNull();
     expect(getAntigravitySendBlockReason(provider, "")).toBe(
-      "Choose an Antigravity model before sending.",
+      t("components.chatView.chooseAntigravityModelBeforeSending"),
     );
   });
 
   it("blocks saved model sends until Antigravity loads its account catalog", () => {
     expect(getAntigravitySendBlockReason(entry("antigravity").snapshot, "gemini-pro")).toBe(
-      "Refresh Antigravity models in provider settings before sending.",
+      t("components.chatView.refreshAntigravityModelsBeforeSending"),
     );
   });
 
@@ -1567,7 +1562,7 @@ describe("resolveComposerProviderSelection", () => {
     const provider = entry("antigravity", "google_work", { models: catalogModels }).snapshot;
 
     expect(getAntigravitySendBlockReason(provider, "")).toBe(
-      "Choose an Antigravity model before sending.",
+      t("components.chatView.chooseAntigravityModelBeforeSending"),
     );
   });
 
@@ -1578,7 +1573,7 @@ describe("resolveComposerProviderSelection", () => {
     }).snapshot;
 
     expect(getAntigravitySendBlockReason(provider, "saved-model-not-in-current-catalog")).toBe(
-      "That Antigravity model is no longer available. Choose another model.",
+      t("components.chatView.antigravityModelUnavailable"),
     );
     expect(getAntigravitySendBlockReason(provider, "gemini-pro")).toBeNull();
   });
@@ -2145,7 +2140,7 @@ describe("waitForRevertedMessage", () => {
     vi.useFakeTimers();
     const { state, projection } = projectionAtom();
     const waiting = waitForRevertedMessage(threadRef, messageId, 1, requestId, async () => {}, 50);
-    const settled = expect(waiting).rejects.toThrow("Timed out waiting for the thread to rewind.");
+    const settled = expect(waiting).rejects.toThrow(t("components.chatView.rewindTimedOut"));
     appAtomRegistry.set(state, {
       data: Option.some({
         ...projection,

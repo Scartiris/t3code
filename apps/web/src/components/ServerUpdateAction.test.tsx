@@ -2,6 +2,7 @@ import { act, type ReactElement } from "react";
 import { create, type ReactTestRenderer } from "react-test-renderer";
 import { renderToStaticMarkup } from "react-dom/server";
 import type { EnvironmentId } from "@t3tools/contracts";
+import { t } from "@t3tools/shared/i18n";
 import * as Cause from "effect/Cause";
 import { AsyncResult } from "effect/unstable/reactivity";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vite-plus/test";
@@ -83,8 +84,8 @@ describe("ServerUpdateAction", () => {
     });
     expect(testState.toast).toHaveBeenCalledWith({
       type: "success",
-      title: "Test server updated",
-      description: "Reconnected on t3@0.0.31.",
+      title: t("components.serverUpdateAction.updated", { server: "Test server" }),
+      description: t("components.serverUpdateAction.reconnected", { version: "0.0.31" }),
     });
   });
 
@@ -129,7 +130,7 @@ describe("ServerUpdateAction", () => {
       />,
     );
 
-    expect(markup).toContain("Update the desktop app on that machine to update this server.");
+    expect(markup).toContain(t("components.serverUpdateAction.desktopManagedHint"));
     expect(markup).not.toContain("<button");
   });
 
@@ -157,8 +158,8 @@ describe("ServerUpdateAction", () => {
     });
     expect(testState.toast).toHaveBeenCalledWith({
       type: "success",
-      title: "Test server updated",
-      description: "Desktop app relaunched on 0.0.34.",
+      title: t("components.serverUpdateAction.updated", { server: "Test server" }),
+      description: t("components.serverUpdateAction.desktopRelaunched", { version: "0.0.34" }),
     });
   });
 
@@ -271,8 +272,8 @@ describe("ServerUpdatesAction", () => {
       { environmentId: "batch-b", input: { targetVersion: "0.0.31" } },
     ]);
     expect(testState.toast.mock.calls.map(([toast]) => toast.title)).toEqual([
-      "Laptop updated",
-      "Office updated",
+      t("components.serverUpdateAction.updated", { server: "Laptop" }),
+      t("components.serverUpdateAction.updated", { server: "Office" }),
     ]);
   });
 
@@ -288,11 +289,14 @@ describe("ServerUpdatesAction", () => {
     expect(testState.updateServer).toHaveBeenCalledTimes(2);
     expect(testState.toast).toHaveBeenCalledWith({
       type: "error",
-      title: "Laptop update failed",
+      title: t("components.serverUpdateAction.targetUpdateFailed", { server: "Laptop" }),
       description: "Download failed",
     });
     expect(testState.toast).toHaveBeenCalledWith(
-      expect.objectContaining({ type: "success", title: "Office updated" }),
+      expect.objectContaining({
+        type: "success",
+        title: t("components.serverUpdateAction.updated", { server: "Office" }),
+      }),
     );
     expect(button.props.disabled).toBe(false);
   });
@@ -362,7 +366,7 @@ describe("ServerUpdateProgress", () => {
       />,
     );
 
-    expect(markup).toContain("Restarting…");
+    expect(markup).toContain(t("components.serverUpdateAction.restarting"));
     // The wait state is monochrome and calm: no versions, no step rail, no
     // success/warning colors, one duty-cycled pulse on the dot.
     expect(markup).not.toContain("0.0.30");
@@ -385,7 +389,7 @@ describe("ServerUpdateProgress", () => {
       />,
     );
 
-    expect(markup).toContain("Downloading…");
+    expect(markup).toContain(t("components.serverUpdateAction.downloading"));
     expect(markup).not.toContain("Install");
   });
 

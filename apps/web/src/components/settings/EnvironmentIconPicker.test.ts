@@ -1,4 +1,5 @@
 import type { ServerConfig } from "@t3tools/contracts";
+import { t } from "@t3tools/shared/i18n";
 import { describe, expect, it } from "vite-plus/test";
 
 import { resolveEnvironmentIconPickerLock } from "./EnvironmentIconPicker";
@@ -10,9 +11,9 @@ const config = (environmentIcon: boolean | undefined) =>
 
 describe("resolveEnvironmentIconPickerLock", () => {
   it("locks until the environment is connected", () => {
-    expect(
-      resolveEnvironmentIconPickerLock({ serverConfig: null, operateAccess: "granted" }),
-    ).toMatch(/Connect/);
+    expect(resolveEnvironmentIconPickerLock({ serverConfig: null, operateAccess: "granted" })).toBe(
+      t("settings.environmentIconPicker.connectToChange"),
+    );
   });
 
   it("locks on servers that predate the setting, before looking at permissions", () => {
@@ -21,13 +22,13 @@ describe("resolveEnvironmentIconPickerLock", () => {
         serverConfig: config(undefined),
         operateAccess: "denied",
       }),
-    ).toMatch(/too old/);
+    ).toBe(t("settings.environmentIconPicker.serverTooOld"));
   });
 
   it("locks when the session cannot operate the environment", () => {
     expect(
       resolveEnvironmentIconPickerLock({ serverConfig: config(true), operateAccess: "denied" }),
-    ).toMatch(/cannot change/);
+    ).toBe(t("settings.environmentIconPicker.sessionCannotChange"));
   });
 
   it("stays open while access is still resolving so a slow session does not flicker", () => {

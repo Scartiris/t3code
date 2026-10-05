@@ -55,6 +55,7 @@ import { SnapShotSettings } from "./SnapShotSettings";
 import { SnapShotSetupDialog } from "./SnapShotSetupDialog";
 import { CaptureShortcutConfig } from "./CaptureShortcutConfig";
 import { SnapShotShortcutKeys } from "../desktop/SnapShotShortcutKeys";
+import { t } from "@t3tools/shared/i18n";
 
 let state: DesktopSnapShotState;
 function render() {
@@ -78,6 +79,14 @@ function button(tree: ReturnType<typeof render>, label: string) {
   if (!node) throw new Error(`Missing button: ${label}`);
   return node.props as { onClick: () => void };
 }
+/** The catalog copy the settings screen renders, read once so the lookups follow the wording. */
+const labels = {
+  changeShortcut: t("settings.snapShotSettings.changeShortcut"),
+  manageCapture: t("settings.snapShotSettings.manageCapture"),
+  save: t("action.save"),
+  enableSnapshots: t("settings.snapShotSettings.enableSnapshots"),
+  shortcutPermissions: t("settings.snapShotSettings.shortcutPermissions"),
+};
 async function finish(promise: Promise<unknown>) {
   await promise;
   await Promise.resolve();
@@ -122,7 +131,7 @@ it.each(["niri", "hyprland"] as const)(
     state = { ...state, linuxBackend: desktop };
     const tree = await mount();
     expect(wizard(tree)).toBeNull();
-    button(tree, "Change shortcut").onClick();
+    button(tree, labels.changeShortcut).onClick();
     await finish(bridge.getSnapShotState.mock.results[1]!.value);
     const opened = render();
     expect(visitElements(opened, (element) => element.type === CaptureShortcutConfig)).toBeNull();
@@ -139,7 +148,7 @@ it.each(["niri", "hyprland"] as const)(
 it("returns to Access if the Hyprland helper needs attention before changing keys", async () => {
   const tree = await mount();
   state = { ...state, hyprlandHelper: { status: "not-installed", message: "Install helper" } };
-  button(tree, "Change shortcut").onClick();
+  button(tree, labels.changeShortcut).onClick();
   await finish(bridge.getSnapShotState.mock.results[1]!.value);
   expect(wizard(render())?.props.initialStep).toBe("access");
   expect(bridge.previewSnapShotConfig).not.toHaveBeenCalled();
@@ -185,7 +194,7 @@ it.each(["direct", "gnome-extension", "kde"] as const)(
     await finish(bridge.checkSnapShotShortcut.mock.results[0]!.value);
     expect(recorder(render()).size).toBe("xs");
     expect(recorder(render())["aria-label"]).toBe("Record snapshot shortcut, currently Ctrl+Alt+Y");
-    button(render(), "Save").onClick();
+    button(render(), labels.save).onClick();
     await finish(settingsStore.update.mock.results[0]!.value);
     expect(settingsStore.update).toHaveBeenCalledWith({
       snapShotShortcut: expect.objectContaining({ key: "y", modKey: true, altKey: true }),
@@ -201,7 +210,7 @@ it("turns capture on directly on Windows without opening setup", async () => {
   const tree = await mount();
   const toggle = visitElements(
     tree,
-    (element) => element.props["aria-label"] === "Enable snapshots",
+    (element) => element.props["aria-label"] === labels.enableSnapshots,
   );
   if (!toggle) throw new Error("Missing capture toggle");
   (toggle.props.onCheckedChange as (checked: boolean) => void)(true);
@@ -209,7 +218,10 @@ it("turns capture on directly on Windows without opening setup", async () => {
   expect(settingsStore.update).toHaveBeenCalledWith({ snapShotEnabled: true });
   expect(wizard(renderWithEffects())).toBeNull();
   expect(
-    visitElements(renderWithEffects(), (element) => element.props.children === "Manage capture"),
+    visitElements(
+      renderWithEffects(),
+      (element) => element.props.children === labels.manageCapture,
+    ),
   ).toBeNull();
 });
 
@@ -222,7 +234,7 @@ it("keeps the approved desktop shortcut when recording is cancelled in setup", a
     shortcutLabel: "Press <Control><Alt>8",
   };
   const tree = await mount();
-  button(tree, "Manage capture").onClick();
+  button(tree, labels.manageCapture).onClick();
   await finish(bridge.getSnapShotState.mock.results[1]!.value);
   const shortcut = () => {
     const input = visitElements(
@@ -270,7 +282,7 @@ function usePortalShortcut(shortcutCanRetry: boolean) {
 it("keeps older portal shortcuts editable without offering unsupported permissions", async () => {
   usePortalShortcut(false);
   const tree = await mount();
-  expect(() => button(tree, "Shortcut permissions")).toThrow("Missing button");
+  expect(() => button(tree, labels.shortcutPermissions)).toThrow("Missing button");
   expect(bridge.setupSnapShot).not.toHaveBeenCalled();
   const recorder = visitElements(tree, (element) => "data-keybinding-capture" in element.props);
   (recorder!.props.onClick as () => void)();
@@ -284,17 +296,17 @@ it("keeps older portal shortcuts editable without offering unsupported permissio
 it("shows permission errors once in a toast and allows retrying", async () => {
   usePortalShortcut(true);
   bridge.setupSnapShot.mockRejectedValueOnce(new Error("The desktop service disconnected."));
-  button(await mount(), "Shortcut permissions").onClick();
+  button(await mount(), labels.shortcutPermissions).onClick();
   await finish(bridge.setupSnapShot.mock.results[0]!.value.catch(() => undefined));
   const tree = renderWithEffects();
   expect(toastManager.add).toHaveBeenCalledExactlyOnceWith({
     type: "error",
-    title: "Couldn't open shortcut permissions",
+    title: t("settings.snapShotSettings.couldNotOpenShortcutPermissions"),
     description: "The desktop service disconnected.",
   });
   expect(visitElements(tree, (element) => element.props.role === "alert")).toBeNull();
   expect(state.shortcutRegistered).toBe(true);
-  button(renderWithEffects(), "Shortcut permissions").onClick();
+  button(renderWithEffects(), labels.shortcutPermissions).onClick();
   await finish(bridge.setupSnapShot.mock.results[1]!.value);
   renderWithEffects();
   expect(bridge.setupSnapShot).toHaveBeenCalledTimes(2);
@@ -306,7 +318,7 @@ it("keeps a failed preference unchanged and reports the save error in a toast", 
   const flash = (tree: ReturnType<typeof render>) => {
     const control = visitElements(
       tree,
-      (element) => element.props["aria-label"] === "Flash captured window",
+      (element) => element.props["aria-label"] === t("settings.snapShotSettings.flashAria"),
     );
     if (!control) throw new Error("Missing flash control");
     return control.props as { onCheckedChange: (checked: boolean) => void; checked: boolean };
@@ -317,7 +329,7 @@ it("keeps a failed preference unchanged and reports the save error in a toast", 
   expect(flash(renderWithEffects()).checked).toBe(true);
   expect(toastManager.add).toHaveBeenCalledExactlyOnceWith({
     type: "error",
-    title: "Couldn't save capture settings",
+    title: t("settings.snapShotSettings.couldNotSaveCaptureSettings"),
     description: "The settings file is read-only.",
   });
   flash(renderWithEffects()).onCheckedChange(false);
@@ -328,7 +340,7 @@ it("keeps a failed preference unchanged and reports the save error in a toast", 
 
 it("keeps setup errors in the wizard and does not toast them after closing it", async () => {
   usePortalShortcut(true);
-  button(await mount(), "Manage capture").onClick();
+  button(await mount(), labels.manageCapture).onClick();
   await finish(bridge.getSnapShotState.mock.results[1]!.value);
   bridge.setupSnapShot.mockRejectedValueOnce(new Error("The desktop service disconnected."));
   const action = wizard(render())!.props.onAction as (action: "retry-shortcut") => Promise<void>;
@@ -365,7 +377,7 @@ it.each([false, true])(
     const tree = await mount();
     const toggle = visitElements(
       tree,
-      (element) => element.props["aria-label"] === "Enable snapshots",
+      (element) => element.props["aria-label"] === labels.enableSnapshots,
     );
     (toggle!.props.onCheckedChange as (checked: boolean) => void)(true);
     await finish(bridge.getSnapShotState.mock.results[1]!.value);
@@ -403,7 +415,7 @@ it("requires a successful macOS test capture before enabling and allows retry", 
   const tree = await mount();
   const toggle = visitElements(
     tree,
-    (element) => element.props["aria-label"] === "Enable snapshots",
+    (element) => element.props["aria-label"] === labels.enableSnapshots,
   );
   (toggle!.props.onCheckedChange as (checked: boolean) => void)(true);
   await finish(bridge.getSnapShotState.mock.results[1]!.value);

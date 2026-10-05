@@ -10,6 +10,7 @@ import type {
   PullRequestRef,
   PullRequestReviewerCandidate,
 } from "@t3tools/contracts";
+import { t } from "@t3tools/shared/i18n";
 import { CheckIcon, UserPlusIcon } from "lucide-react";
 import { useMemo, useState } from "react";
 
@@ -78,11 +79,11 @@ export function PullRequestReviewerPicker({
       toastManager.add({
         type: "error",
         title: candidate.isRequested
-          ? `Could not take back the review request to ${candidate.login}`
-          : `Could not ask ${candidate.login} for a review`,
+          ? t("pullRequest.pullRequestReviewerPicker.takeBackFailed", { login: candidate.login })
+          : t("pullRequest.pullRequestReviewerPicker.requestFailed", { login: candidate.login }),
         description: readableFailure(
           squashAtomCommandFailure(result),
-          "The host refused it. Check that you have write access on this repository, and that they still have access to it.",
+          t("pullRequest.pullRequestReviewerPicker.hostRefused"),
         ),
       });
       return;
@@ -90,30 +91,30 @@ export function PullRequestReviewerPicker({
     toastManager.add({
       type: "success",
       title: candidate.isRequested
-        ? `Review request to ${candidate.login} taken back`
-        : `Review requested from ${candidate.login}`,
+        ? t("pullRequest.pullRequestReviewerPicker.takenBack", { login: candidate.login })
+        : t("pullRequest.pullRequestReviewerPicker.requested", { login: candidate.login }),
     });
   };
 
   return (
     <PullRequestCandidatePicker
       icon={<UserPlusIcon className="size-3.5" />}
-      label="Request a review"
+      label={t("pullRequest.pullRequestReviewerPicker.requestReview")}
       allowed={allowed}
-      disabledReason="Asking someone to review needs write access on this repository"
+      disabledReason={t("pullRequest.pullRequestReviewerPicker.needsWriteAccess")}
       open={open}
       onOpenChange={setOpen}
       query={query}
       onQueryChange={setQuery}
-      searchLabel="Search people with access"
+      searchLabel={t("pullRequest.pullRequestReviewerPicker.searchPeople")}
       isPending={candidatesQuery.isPending && candidatesQuery.data === null}
       error={candidatesQuery.data === null ? candidatesQuery.error : null}
       candidates={candidates}
-      emptyLabel="Nobody else has access to this repository."
-      noMatchLabel="Nobody with access matches that."
-      errorLabel="The people with access could not be read."
+      emptyLabel={t("pullRequest.pullRequestReviewerPicker.noPeople")}
+      noMatchLabel={t("pullRequest.pullRequestReviewerPicker.noMatch")}
+      errorLabel={t("pullRequest.pullRequestReviewerPicker.readFailed")}
       truncated={candidatesQuery.data?.truncated === true}
-      truncatedLabel="This repository has more people with access than are listed here. Ask for the rest on the host."
+      truncatedLabel={t("pullRequest.pullRequestReviewerPicker.truncated")}
       candidateKey={(candidate) => `${candidate.kind}:${candidate.id}`}
       disabled={pending !== null}
       onSelect={(candidate) => void toggle(candidate)}
@@ -122,10 +123,15 @@ export function PullRequestReviewerPicker({
         <>
           <PullRequestActorLabel actor={candidate} className="flex-1" />
           {candidate.kind === "team" ? (
-            <span className="shrink-0 text-muted-foreground">team</span>
+            <span className="shrink-0 text-muted-foreground">
+              {t("pullRequest.pullRequestReviewerPicker.team")}
+            </span>
           ) : null}
           {candidate.isRequested ? (
-            <CheckIcon aria-label="Already asked" className="size-3.5 shrink-0" />
+            <CheckIcon
+              aria-label={t("pullRequest.pullRequestReviewerPicker.alreadyAsked")}
+              className="size-3.5 shrink-0"
+            />
           ) : null}
         </>
       )}

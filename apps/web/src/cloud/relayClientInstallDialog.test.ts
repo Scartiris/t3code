@@ -1,3 +1,4 @@
+import { t } from "@t3tools/shared/i18n";
 import { beforeEach, describe, expect, it } from "vite-plus/test";
 
 import {
@@ -89,7 +90,11 @@ describe("relay client install dialog coordinator", () => {
     });
     expect(error).not.toHaveProperty("cause");
     expect((error as Error).message).toBe(
-      "Cannot confirm relay client installation 2026.6.0; installation 2026.5.2 has dialog status installing.",
+      t("cloud.relayClientInstallDialog.confirmationConflict", {
+        requestedVersion: "2026.6.0",
+        activeVersion: "2026.5.2",
+        activeDialogStatus: "installing",
+      }),
     );
   });
 });

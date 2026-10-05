@@ -5,6 +5,7 @@
  * clipboard flavor carries the markdown; `text/html` carries a sanitized
  * copy of the rendered fragment for rich-paste targets.
  */
+import { t } from "@t3tools/shared/i18n";
 
 const SKIPPED_TAGS = new Set(["BUTTON", "INPUT", "SCRIPT", "STYLE", "TEMPLATE"]);
 const SKIPPED_CLASS_NAMES = ["select-none", "sr-only"];
@@ -161,7 +162,7 @@ function serializeBlockquote(quote: Element): string {
 function serializeDetails(details: Element): string {
   const summary =
     details.querySelector(":scope > [data-markdown-details-summary]")?.textContent?.trim() ??
-    "Details";
+    t("components.chatMarkdown.details");
   const contentNode = details.querySelector(":scope > * [data-markdown-details-content]");
   const content = contentNode ? serializeChildren(contentNode).trim() : "";
   const open = details.getAttribute("data-markdown-details-open") === "true" ? " open" : "";

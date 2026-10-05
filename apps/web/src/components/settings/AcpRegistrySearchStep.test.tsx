@@ -1,5 +1,6 @@
 import type { ReactElement } from "react";
 import { EnvironmentId, ProviderDriverKind, type AcpRegistrySearchAgent } from "@t3tools/contracts";
+import { t } from "@t3tools/shared/i18n";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vite-plus/test";
 
 import { visitElements } from "../../test/reactElementTree";
@@ -148,7 +149,7 @@ describe("AcpRegistrySearchStep", () => {
       input: { query: "" },
     });
 
-    const input = findByAriaLabel(initial, "Search ACP Registry");
+    const input = findByAriaLabel(initial, t("settings.acpRegistrySearchStep.searchAria"));
     expect(input.props.size).toBe("sm");
     (input.props.onChange as ((event: { currentTarget: { value: string } }) => void) | undefined)?.(
       { currentTarget: { value: "  Gemini  " } },
@@ -183,7 +184,11 @@ describe("AcpRegistrySearchStep", () => {
   it("renders deterministic loading, error, and empty states", () => {
     state.isPending = true;
     expect(
-      visitElements(render(), (element) => element.props.children === "Searching the registry..."),
+      visitElements(
+        render(),
+        (element) =>
+          element.props.children === t("settings.acpRegistrySearchStep.searchingRegistryVisible"),
+      ),
     ).not.toBeNull();
 
     state.isPending = false;
@@ -195,13 +200,16 @@ describe("AcpRegistrySearchStep", () => {
     state.error = null;
     state.result = { agents: [] };
     expect(
-      visitElements(render(), (element) => element.props.children === "No compatible agents found"),
+      visitElements(
+        render(),
+        (element) => element.props.children === t("settings.acpRegistrySearchStep.noAgentsTitle"),
+      ),
     ).not.toBeNull();
   });
 
   it("keeps same-query refreshes visible and announced while retaining results", () => {
     const first = render();
-    const input = findByAriaLabel(first, "Search ACP Registry");
+    const input = findByAriaLabel(first, t("settings.acpRegistrySearchStep.searchAria"));
     (input.props.onChange as ((event: { currentTarget: { value: string } }) => void) | undefined)?.(
       {
         currentTarget: { value: "Codex" },
@@ -234,10 +242,12 @@ describe("AcpRegistrySearchStep", () => {
         refreshingTree,
         (element) =>
           element.props.role === "status" &&
-          element.props.children === "Refreshing ACP Registry results.",
+          element.props.children === t("settings.acpRegistrySearchStep.refreshingResults"),
       ),
     ).not.toBeNull();
-    expect(findByAriaLabel(refreshingTree, "Add Gemini CLI")).not.toBeNull();
+    expect(
+      findByAriaLabel(refreshingTree, `${t("settings.acpRegistrySearchStep.add")} ${gemini.name}`),
+    ).not.toBeNull();
   });
 
   it("prepares a result before handing it back to the wizard", async () => {
@@ -249,7 +259,7 @@ describe("AcpRegistrySearchStep", () => {
     const onPrepared = vi.fn();
     const tree = render({ onPrepared });
 
-    const add = findByAriaLabel(tree, "Add Gemini CLI");
+    const add = findByAriaLabel(tree, `${t("settings.acpRegistrySearchStep.add")} ${gemini.name}`);
     (add.props.onClick as (() => void) | undefined)?.();
     await Promise.resolve();
     await Promise.resolve();
@@ -284,7 +294,7 @@ describe("AcpRegistrySearchStep", () => {
     state.result = { agents: [gemini] };
     const onPrepared = vi.fn();
     const tree = render({ onPrepared });
-    const add = findByAriaLabel(tree, "Add Gemini CLI");
+    const add = findByAriaLabel(tree, `${t("settings.acpRegistrySearchStep.add")} ${gemini.name}`);
 
     (add.props.onClick as (() => void) | undefined)?.();
     (add.props.onClick as (() => void) | undefined)?.();
@@ -309,7 +319,7 @@ describe("AcpRegistrySearchStep", () => {
     const onPrepared = vi.fn();
     const tree = render({ onPrepared });
 
-    const add = findByAriaLabel(tree, "Add Gemini CLI");
+    const add = findByAriaLabel(tree, `${t("settings.acpRegistrySearchStep.add")} ${gemini.name}`);
     (add.props.onClick as (() => void) | undefined)?.();
     for (const cleanup of lifecycle.cleanups) cleanup();
     resolvePrepare({ _tag: "Success", value: {} });
@@ -321,7 +331,10 @@ describe("AcpRegistrySearchStep", () => {
   it("renders existing registry configuration as already added", () => {
     state.result = { agents: [gemini] };
     const tree = render({ configured: true });
-    const added = findByAriaLabel(tree, "Already added Gemini CLI");
+    const added = findByAriaLabel(
+      tree,
+      `${t("settings.acpRegistrySearchStep.alreadyAdded")} ${gemini.name}`,
+    );
 
     expect(added.props.disabled).toBe(true);
   });

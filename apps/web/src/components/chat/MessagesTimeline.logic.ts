@@ -42,6 +42,7 @@ import {
   RunId,
 } from "@t3tools/contracts";
 import type { ThreadRunSummary } from "@t3tools/client-runtime/state/shell";
+import { t } from "@t3tools/shared/i18n";
 import {
   resolveT3McpToolDefinition,
   resolveT3McpToolPresentation,
@@ -77,14 +78,18 @@ function workEntryIsActiveTurnActivity(entry: WorkLogEntry): boolean {
 }
 
 function singleToolCallLabel(entry: WorkLogEntry): string {
-  if (entry.itemType === "reasoning") return entry.detail?.trim().replace(/\s+/g, " ") || "Thought";
+  if (entry.itemType === "reasoning") {
+    return entry.detail?.trim().replace(/\s+/g, " ") || t("chat.messagesTimeline.thought");
+  }
   const toolPresentation = resolveWorkEntryToolPresentation(entry, "completed");
   if (toolPresentation) return toolPresentation.displayName;
   const item = entry.structuredPayload;
   const title = item?.type === "dynamic_tool" ? dynamicToolTitle(item.toolName, item.input) : null;
   if (title) return title;
   // A lone web search keeps its heading; the query stays in its detail.
-  if (entry.itemType === "web_search") return entry.toolTitle ?? "Web search";
+  if (entry.itemType === "web_search") {
+    return entry.toolTitle ?? t("chat.messagesTimeline.webSearch");
+  }
   return workEntryDisplayLabel(entry, undefined);
 }
 
@@ -154,10 +159,13 @@ export function workEntryDisplayLabel(entry: WorkLogEntry, workspaceRoot: string
     const path = formatWorkspaceRelativePath(firstPath, workspaceRoot);
     return entry.changedFiles!.length === 1
       ? path
-      : `${path} +${entry.changedFiles!.length - 1} more`;
+      : t("chat.messagesTimeline.moreFiles", {
+          name: path,
+          count: entry.changedFiles!.length - 1,
+        });
   }
   if (action === "read" && !entry.viewedImagePath) {
-    return "Read file";
+    return t("chat.messagesTimeline.readFile");
   }
   const heading = normalizeCompactToolLabel(entry.toolTitle || entry.label);
   return `${heading.charAt(0).toUpperCase()}${heading.slice(1)}`;
@@ -201,7 +209,9 @@ export function liveWorkEntryLabel(
   if (entry.itemType === "reasoning") {
     return (
       entry.detail?.trim().replace(/\s+/g, " ") ||
-      (status === "inProgress" ? "Thinking" : "Thought")
+      (status === "inProgress"
+        ? t("chat.messagesTimeline.thinking")
+        : t("chat.messagesTimeline.thought"))
     );
   }
   const toolPresentation = resolveWorkEntryToolPresentation({
@@ -213,15 +223,15 @@ export function liveWorkEntryLabel(
   if (command) {
     const verb =
       status === "inProgress"
-        ? "Running"
+        ? t("chat.messagesTimeline.commandRunning")
         : status === "failed"
-          ? "Failed"
+          ? t("chat.messagesTimeline.commandFailed")
           : status === "declined"
-            ? "Declined"
+            ? t("chat.messagesTimeline.commandDeclined")
             : status === "stopped"
-              ? "Stopped"
-              : "Ran";
-    return `${verb} ${commandProgramName(command) ?? "command"}`;
+              ? t("chat.messagesTimeline.commandStopped")
+              : t("chat.messagesTimeline.commandRan");
+    return `${verb} ${commandProgramName(command) ?? t("chat.messagesTimeline.command")}`;
   }
   return workEntryDisplayLabel(entry, workspaceRoot);
 }
@@ -1021,11 +1031,11 @@ function deriveTurnFolds(input: {
     const duration = elapsedMs !== null ? formatDuration(elapsedMs) : null;
     const label = isLatestInterruptedTurn
       ? duration
-        ? `You stopped after ${duration}`
-        : "You stopped this response"
+        ? t("chat.messagesTimeline.stoppedAfter", { duration })
+        : t("chat.messagesTimeline.stoppedThisResponse")
       : duration
-        ? `Worked for ${duration}`
-        : "Worked";
+        ? t("chat.messagesTimeline.workedFor", { duration })
+        : t("chat.messagesTimeline.worked");
 
     foldsByAnchorEntryId.set(group.anchorEntryId, {
       runId,
@@ -1420,7 +1430,7 @@ export function deriveMessagesTimelineRows(input: {
         createdAt: supersededFold.createdAt,
         runId: supersededFold.runId,
         attemptId: supersededFold.attemptId,
-        label: "Superseded attempt",
+        label: t("chat.messagesTimeline.supersededAttempt"),
         expanded: input.expandedAttemptIds?.has(supersededFold.attemptId) ?? false,
       });
     }

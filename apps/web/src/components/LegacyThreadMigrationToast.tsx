@@ -1,3 +1,4 @@
+import { t } from "@t3tools/shared/i18n";
 import { useAtomValue } from "@effect/atom-react";
 import { useEffect, useRef } from "react";
 
@@ -17,10 +18,10 @@ export function LegacyThreadMigrationToast() {
       }
       toastIdRef.current = toastManager.add({
         type: "loading",
-        title: "Restoring your threads…",
-        description: `Migrating ${migration.totalThreadCount.toLocaleString()} ${
-          migration.totalThreadCount === 1 ? "thread" : "threads"
-        } from the previous version. You can keep working while this finishes.`,
+        title: t("components.legacyThreadMigrationToast.title"),
+        description: t("components.legacyThreadMigrationToast.description", {
+          count: migration.totalThreadCount.toLocaleString(),
+        }),
         timeout: 0,
       });
       return;

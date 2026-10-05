@@ -1,5 +1,6 @@
 import { ProviderInstanceIcon } from "../chat/ProviderInstanceIcon";
 import type { UsageProviderKind } from "@t3tools/contracts";
+import { t } from "@t3tools/shared/i18n";
 import { useCallback, useLayoutEffect, useMemo, useRef, useState } from "react";
 
 import type { DailyTotals, HourlyTotals } from "@t3tools/shared/usageMerge";
@@ -345,7 +346,18 @@ export function UsageProviderChart({
             viewBox={`0 0 ${VIEW_WIDTH} ${VIEW_HEIGHT}`}
             preserveAspectRatio="none"
             role="img"
-            aria-label={`${resolution === "hour" ? "Hourly" : "Daily"} ${metric === "tokens" ? "processed tokens" : "cost"} by provider`}
+            aria-label={t("usage.usageProviderChart.chartAria", {
+              period: t(
+                resolution === "hour"
+                  ? "usage.usageProviderChart.hourly"
+                  : "usage.usageProviderChart.daily",
+              ),
+              subject: t(
+                metric === "tokens"
+                  ? "usage.usageProviderChart.processedTokens"
+                  : "usage.usageProviderChart.cost",
+              ),
+            })}
           >
             {ticks.map((tick) => {
               const y = toY(tick);
@@ -429,7 +441,7 @@ export function UsageProviderChart({
                 );
               })}
               <div className="mt-1 flex items-center justify-between gap-3 border-t border-border pt-1">
-                <span className="text-muted-foreground">Total</span>
+                <span className="text-muted-foreground">{t("usage.usageProviderChart.total")}</span>
                 <span className="text-foreground tabular-nums">
                   {format(hoveredColumn?.total ?? 0)}
                 </span>

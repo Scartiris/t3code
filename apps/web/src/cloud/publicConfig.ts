@@ -1,3 +1,4 @@
+import { t } from "@t3tools/shared/i18n";
 import { relayClerkTokenOptions } from "@t3tools/shared/relayAuth";
 import { normalizeSecureRelayUrl } from "@t3tools/shared/relayUrl";
 import * as Schema from "effect/Schema";
@@ -9,7 +10,7 @@ export class CloudPublicConfigMissingError extends Schema.TaggedError<CloudPubli
   },
 ) {
   override get message(): string {
-    return `${this.key} is not configured.`;
+    return t("cloud.publicConfig.keyNotConfigured", { key: this.key });
   }
 }
 
