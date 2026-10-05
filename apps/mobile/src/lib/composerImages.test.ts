@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from "vite-plus/test";
 import { PROVIDER_SEND_TURN_MAX_ATTACHMENTS } from "@t3tools/contracts";
+import { t } from "@t3tools/shared/i18n";
 
 const files = new Map<string, { base64: string; deleted: boolean; text?: string }>();
 
@@ -106,7 +107,13 @@ describe("composer clipboard paste", () => {
     clipboard.hasImageAsync.mockResolvedValue(true);
     expect(
       await pasteComposerClipboard({ existingCount: PROVIDER_SEND_TURN_MAX_ATTACHMENTS }),
-    ).toEqual({ images: [], text: null, error: expect.stringContaining("up to") });
+    ).toEqual({
+      images: [],
+      text: null,
+      error: t("threads.composerImages.maxImagesPerMessage", {
+        count: PROVIDER_SEND_TURN_MAX_ATTACHMENTS,
+      }),
+    });
     expect(clipboard.getStringAsync).not.toHaveBeenCalled();
   });
 
@@ -123,7 +130,7 @@ describe("composer clipboard paste", () => {
     expect(await pasteComposerClipboard({ existingCount: 0 })).toEqual({
       images: [],
       text: null,
-      error: "Clipboard is empty.",
+      error: t("threads.composerImages.clipboardEmpty"),
     });
   });
 });

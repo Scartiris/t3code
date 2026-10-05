@@ -1,3 +1,5 @@
+import { t } from "@t3tools/shared/i18n";
+
 /**
  * The shape of an expo-updates log entry we care about. Mirrors
  * `UpdatesLogEntry` structurally so the model needs no native module at test
@@ -73,7 +75,9 @@ export function formatStartupCrashReport(
   app: { readonly version: string; readonly build: string },
 ): string {
   const header = `T3 Code ${app.version} (${app.build})`;
-  if (records.length === 0) return `${header}\nNo startup crashes recorded.`;
+  if (records.length === 0) {
+    return `${header}\n${t("diagnostics.crashLogModel.noStartupCrashesRecorded")}`;
+  }
   return [
     header,
     ...records.map(

@@ -11,6 +11,7 @@ import {
   type EnvironmentThreadSearchMatch,
 } from "@t3tools/client-runtime/state/thread-search";
 import { type EnvironmentId, type SidebarProjectGroupingMode } from "@t3tools/contracts";
+import { t } from "@t3tools/shared/i18n";
 import { useAtomValue } from "@effect/atom-react";
 import { useFocusEffect } from "@react-navigation/native";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
@@ -155,16 +156,16 @@ function deriveEmptyState(props: {
   const { catalogState } = props;
   if (catalogState.isLoadingConnections) {
     return {
-      title: "Loading environments",
-      detail: "Checking saved environments on this device.",
+      title: t("home.homeScreen.loadingEnvironments"),
+      detail: t("home.homeScreen.loadingEnvironmentsDetail"),
       loading: true,
     };
   }
 
   if (!catalogState.hasConnections) {
     return {
-      title: "No environments connected",
-      detail: "Add an environment to load projects and start coding sessions.",
+      title: t("home.homeScreen.noEnvironments"),
+      detail: t("home.homeScreen.noEnvironmentsDetail"),
       loading: false,
     };
   }
@@ -179,11 +180,9 @@ function deriveEmptyState(props: {
     return {
       title:
         catalogState.connectionState === "unsupported"
-          ? "Client not supported"
-          : "Environment unavailable",
-      detail:
-        catalogState.connectionError ??
-        "The saved environment is offline. Check the URL or start the environment, then retry.",
+          ? t("home.homeScreen.clientNotSupported")
+          : t("home.homeScreen.environmentUnavailable"),
+      detail: catalogState.connectionError ?? t("home.homeScreen.environmentOfflineDetail"),
       loading: false,
     };
   }
@@ -194,23 +193,23 @@ function deriveEmptyState(props: {
     catalogState.connectionError === null
   ) {
     return {
-      title: "Connecting to environment",
-      detail: "Loading projects and threads from the saved environment.",
+      title: t("home.homeScreen.connectingToEnvironment"),
+      detail: t("home.homeScreen.connectingDetail"),
       loading: true,
     };
   }
 
   if (props.projectCount === 0 && catalogState.hasLoadedShellSnapshot) {
     return {
-      title: "No projects found",
-      detail: "The connected environment did not report any projects.",
+      title: t("home.homeScreen.noProjectsFound"),
+      detail: t("home.homeScreen.noProjectsDetail"),
       loading: false,
     };
   }
 
   return {
-    title: "No threads yet",
-    detail: "Create a task to start a new coding runtime in one of your connected projects.",
+    title: t("sidebar.noThreads"),
+    detail: t("home.homeScreen.noThreadsDetail"),
     loading: false,
   };
 }
@@ -857,7 +856,7 @@ export function HomeScreen(props: HomeScreenProps) {
     props.selectedEnvironmentId === null
       ? null
       : (props.savedConnectionsById[props.selectedEnvironmentId]?.environmentLabel ??
-        "this environment");
+        t("home.homeScreen.thisEnvironment"));
   // Connection state surfaces in the header title slot
   // (WorkspaceConnectionTitle) — nothing renders inside the list, so
   // reconnects never shift the rows.
@@ -883,12 +882,16 @@ export function HomeScreen(props: HomeScreenProps) {
             <EmptyState
               title={emptyState.title}
               detail={emptyState.detail}
-              actionLabel={!props.catalogState.hasReadyEnvironment ? "Add environment" : undefined}
+              actionLabel={
+                !props.catalogState.hasReadyEnvironment
+                  ? t("home.homeScreen.addEnvironment")
+                  : undefined
+              }
               onAction={!props.catalogState.hasReadyEnvironment ? props.onAddConnection : undefined}
               action={
                 Platform.OS === "android" && !props.catalogState.hasReadyEnvironment ? (
                   <MaterialFloatingActionButton
-                    label="Add environment"
+                    label={t("home.homeScreen.addEnvironment")}
                     icon="plus"
                     variant="extended"
                     tone="primary"
@@ -920,26 +923,28 @@ export function HomeScreen(props: HomeScreenProps) {
   const v2ListEmpty =
     hasSearchQuery && threadSearch.isPending ? undefined : hasSearchQuery ? (
       <EmptyState
-        title="No results"
-        detail={`No threads matching "${props.searchQuery}".`}
+        title={t("home.homeScreen.noResults")}
+        detail={t("home.homeScreen.noResultsDetail", { query: props.searchQuery })}
         variant={Platform.OS === "android" ? "plain" : undefined}
       />
     ) : v2ScopedProjectGroup !== null ? (
       <EmptyState
-        title={`No threads in ${v2ScopedProjectGroup.title}`}
-        detail="Choose another project or create a new task."
+        title={t("sidebar.noThreadsInProject", { project: v2ScopedProjectGroup.title })}
+        detail={t("home.homeScreen.chooseAnotherProject")}
         variant={Platform.OS === "android" ? "plain" : undefined}
       />
     ) : selectedEnvironmentLabel ? (
       <EmptyState
-        title={`No threads in ${selectedEnvironmentLabel}`}
-        detail="Choose another environment or create a new task."
+        title={t("home.homeScreen.noThreadsInEnvironment", {
+          environment: selectedEnvironmentLabel,
+        })}
+        detail={t("home.homeScreen.chooseAnotherEnvironment")}
         variant={Platform.OS === "android" ? "plain" : undefined}
       />
     ) : (
       <EmptyState
-        title="No threads yet"
-        detail="Create a task to start a new coding session."
+        title={t("sidebar.noThreads")}
+        detail={t("home.homeScreen.noThreadsYetDetail")}
         variant={Platform.OS === "android" ? "plain" : undefined}
       />
     );

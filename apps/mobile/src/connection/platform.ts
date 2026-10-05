@@ -11,6 +11,7 @@ import {
 } from "@t3tools/client-runtime/connection";
 import { managedRelayAccountChanges, managedRelaySessionAtom } from "@t3tools/client-runtime/relay";
 import { AuthStandardClientScopes } from "@t3tools/contracts";
+import { t } from "@t3tools/shared/i18n";
 import * as Context from "effect/Context";
 import * as Effect from "effect/Effect";
 import * as Layer from "effect/Layer";
@@ -122,7 +123,7 @@ const capabilitiesLayer = Layer.effectContext(
           if (session === null) {
             return yield* new ConnectionBlockedError({
               reason: "authentication",
-              detail: "Sign in to T3 Connect to connect this environment.",
+              detail: t("connection.platform.signInToConnect"),
             });
           }
           const token = yield* session.readClerkToken().pipe(
@@ -137,7 +138,7 @@ const capabilitiesLayer = Layer.effectContext(
           if (token === null) {
             return yield* new ConnectionBlockedError({
               reason: "authentication",
-              detail: "The T3 Connect session is unavailable.",
+              detail: t("connection.platform.connectSessionUnavailable"),
             });
           }
           return token;
@@ -158,7 +159,9 @@ const capabilitiesLayer = Layer.effectContext(
               (cause) =>
                 new ConnectionTransientError({
                   reason: "remote-unavailable",
-                  detail: `Could not load the mobile device identity: ${String(cause)}`,
+                  detail: t("connection.platform.deviceIdentityLoadFailed", {
+                    cause: String(cause),
+                  }),
                 }),
             ),
             Effect.map(Option.some),
@@ -179,14 +182,14 @@ const capabilitiesLayer = Layer.effectContext(
             Effect.fail(
               new ConnectionBlockedError({
                 reason: "unsupported",
-                detail: "SSH environments are only available in the desktop app.",
+                detail: t("connection.platform.sshDesktopOnly"),
               }),
             ),
           prepare: () =>
             Effect.fail(
               new ConnectionBlockedError({
                 reason: "unsupported",
-                detail: "SSH environments are only available in the desktop app.",
+                detail: t("connection.platform.sshDesktopOnly"),
               }),
             ),
           disconnect: () => Effect.void,

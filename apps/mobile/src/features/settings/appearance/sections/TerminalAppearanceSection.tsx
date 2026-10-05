@@ -1,5 +1,7 @@
 import { useCallback } from "react";
 
+import { t } from "@t3tools/shared/i18n";
+
 import {
   MAX_TERMINAL_FONT_SIZE,
   MIN_TERMINAL_FONT_SIZE,
@@ -26,13 +28,13 @@ export function TerminalAppearanceSection() {
   );
 
   return (
-    <SettingsSection title="Terminal">
+    <SettingsSection title={t("settings.terminalAppearanceSection.title")}>
       <TerminalAppearancePreview fontSize={appearance.terminalFontSize} />
       <AppearancePreviewSeparator />
       <SettingsSwitchRow
         disabled={!isReady}
         icon="terminal"
-        label="Custom font size"
+        label={t("settings.terminalAppearanceSection.customFontSize")}
         onValueChange={handleToggleCustom}
         value={custom}
       />
@@ -40,7 +42,7 @@ export function TerminalAppearanceSection() {
         <FontSizeSliderRow
           disabled={!isReady}
           icon="textformat.size"
-          label="Font size"
+          label={t("settings.terminalAppearanceSection.fontSize")}
           max={MAX_TERMINAL_FONT_SIZE}
           min={MIN_TERMINAL_FONT_SIZE}
           onChange={setTerminalFontSize}

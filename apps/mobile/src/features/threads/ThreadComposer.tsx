@@ -1,5 +1,6 @@
 import type { ComposerTextPaste } from "../../native/T3ComposerEditor.types";
 import { useAppearancePreferences } from "../settings/appearance/AppearancePreferencesProvider";
+import { t } from "@t3tools/shared/i18n";
 import type { EnvironmentThreadShell } from "@t3tools/client-runtime/state/shell";
 import { useAtomValue } from "@effect/atom-react";
 import { clampFileAttachmentUploadBytes } from "@t3tools/client-runtime/state/attachments";
@@ -247,15 +248,15 @@ const COMPOSER_ATTACHMENT_ENTERING =
 const AnimatedGlassSurface = Animated.createAnimatedComponent(GlassSurface);
 
 const FOLLOW_UP_ACTION_LABEL = {
-  queue: "Queue",
-  steer: "Steer now",
-  restart: "Restart turn",
+  queue: t("threads.threadComposer.queueAction"),
+  steer: t("threads.threadComposer.steerNow"),
+  restart: t("threads.threadComposer.restartTurn"),
 } as const;
 
 const FOLLOW_UP_ACTION_SUBTITLE = {
-  queue: "Run after the current turn",
-  steer: "Interrupt what the agent is doing",
-  restart: "Start the turn over with this message",
+  queue: t("threads.threadComposer.queueActionSubtitle"),
+  steer: t("threads.threadComposer.steerNowSubtitle"),
+  restart: t("threads.threadComposer.restartTurnSubtitle"),
 } as const;
 
 /**
@@ -287,7 +288,7 @@ function SendActionButton(props: {
   );
   return (
     <ControlPillMenu
-      accessibilityLabel="Choose how to send this message"
+      accessibilityLabel={t("threads.threadComposer.chooseHowToSend")}
       shouldOpenOnLongPress
       actions={actions.map((action) => ({
         id: action,
@@ -474,7 +475,10 @@ export const ThreadComposer = memo(function ThreadComposer(props: ThreadComposer
     );
     onShowUsageLimits(report);
     if (!report) {
-      Alert.alert("Usage limits unavailable", "This provider does not currently report limits.");
+      Alert.alert(
+        t("threads.threadComposer.usageLimitsUnavailableTitle"),
+        t("threads.threadComposer.usageLimitsUnavailableBody"),
+      );
     }
     return report !== null;
   }, [currentModelSelection.instanceId, onShowUsageLimits, props.serverConfig]);
@@ -528,9 +532,11 @@ export const ThreadComposer = memo(function ThreadComposer(props: ThreadComposer
   });
   const contextImports = useAtomValue(composerContextImportsAtom);
   const sendBlockedReason =
-    (queuedEdit?.saving === true ? "Saving…" : null) ??
+    (queuedEdit?.saving === true ? t("threads.threadComposer.saving") : null) ??
     props.sendBlockedReason ??
-    (pendingPastedTextAttachmentCount > 0 ? "Attaching pasted text" : null) ??
+    (pendingPastedTextAttachmentCount > 0
+      ? t("threads.threadComposer.attachingPastedText")
+      : null) ??
     attachmentBlockReason;
   const canSend =
     hasContent &&
@@ -799,7 +805,9 @@ export const ThreadComposer = memo(function ThreadComposer(props: ThreadComposer
         ) : null}
         {modelUnavailable ? (
           <Pressable accessibilityRole="button" className="px-3 py-2" onPress={openSettings}>
-            <Text className="text-xs text-foreground">Model unavailable. Open model settings.</Text>
+            <Text className="text-xs text-foreground">
+              {t("threads.threadComposer.modelUnavailable")}
+            </Text>
           </Pressable>
         ) : null}
 
@@ -964,11 +972,11 @@ export const ThreadComposer = memo(function ThreadComposer(props: ThreadComposer
                     } else {
                       Alert.alert(
                         wouldExceedInputLimit
-                          ? "Pasted text is too large for this message"
-                          : "Could not attach pasted text",
+                          ? t("threads.threadComposer.pastedTextTooLargeTitle")
+                          : t("threads.threadComposer.pasteAttachFailedTitle"),
                         wouldExceedInputLimit
-                          ? "Remove some text or an attachment, then paste again."
-                          : "Remove an attachment or use a smaller paste, then try again.",
+                          ? t("threads.threadComposer.pastedTextTooLargeBody")
+                          : t("threads.threadComposer.pasteAttachFailedBody"),
                       );
                     }
                     return;
@@ -1047,7 +1055,7 @@ export const ThreadComposer = memo(function ThreadComposer(props: ThreadComposer
                 />
                 {showStopAction ? (
                   <ComposerActionButton
-                    accessibilityLabel="Stop agent"
+                    accessibilityLabel={t("threads.threadComposer.stopAgent")}
                     icon="stop.fill"
                     variant="danger"
                     onPress={props.onStopThread}
@@ -1114,7 +1122,7 @@ export const ThreadComposer = memo(function ThreadComposer(props: ThreadComposer
                     />
                     <View className="min-w-0 shrink">
                       <ComposerInlineControl
-                        accessibilityLabel="Model and reasoning settings"
+                        accessibilityLabel={t("threads.threadComposer.modelSettings")}
                         emphasized
                         renderIcon={(size) => (
                           <ProviderIcon
@@ -1141,7 +1149,7 @@ export const ThreadComposer = memo(function ThreadComposer(props: ThreadComposer
                   />
                   {showStopAction ? (
                     <ComposerActionButton
-                      accessibilityLabel="Stop agent"
+                      accessibilityLabel={t("threads.threadComposer.stopAgent")}
                       icon="stop.fill"
                       variant="danger"
                       onPress={props.onStopThread}

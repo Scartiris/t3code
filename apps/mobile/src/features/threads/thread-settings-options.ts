@@ -1,4 +1,5 @@
 import type { ProviderOptionDescriptor, RuntimeMode } from "@t3tools/contracts";
+import { t } from "@t3tools/shared/i18n";
 
 /**
  * Desktop-oriented effort keywords that don't belong in the phone picker.
@@ -16,23 +17,23 @@ export const RUNTIME_MODE_CHOICES: ReadonlyArray<{
 }> = [
   {
     mode: "approval-required",
-    label: "Supervised",
-    description: "Ask before commands and file changes.",
+    label: t("threads.threadSettingsOptions.approvalRequiredLabel"),
+    description: t("threads.threadSettingsOptions.approvalRequiredDescription"),
   },
   {
     mode: "auto-accept-edits",
-    label: "Auto-accept edits",
-    description: "Auto-approve edits, ask before other actions.",
+    label: t("threads.threadSettingsOptions.autoAcceptEditsLabel"),
+    description: t("threads.threadSettingsOptions.autoAcceptEditsDescription"),
   },
   {
     mode: "auto",
-    label: "Auto",
-    description: "Supported providers approve routine actions; others still ask.",
+    label: t("threads.threadSettingsOptions.autoLabel"),
+    description: t("threads.threadSettingsOptions.autoDescription"),
   },
   {
     mode: "full-access",
-    label: "Full access",
-    description: "Allow commands and edits without prompts.",
+    label: t("threads.threadSettingsOptions.fullAccessLabel"),
+    description: t("threads.threadSettingsOptions.fullAccessDescription"),
   },
 ];
 

@@ -12,6 +12,7 @@ import {
   dedupeRemoteBranchesWithLocalMatches,
   sanitizeFeatureBranchName,
 } from "@t3tools/shared/git";
+import { t } from "@t3tools/shared/i18n";
 import * as Cause from "effect/Cause";
 import { AsyncResult } from "effect/unstable/reactivity";
 
@@ -99,13 +100,16 @@ export function useSelectedThreadGitActions() {
             target,
             {
               operation: "refresh_status",
-              label: "Refreshing source control status",
+              label: t("state.useSelectedThreadGitActions.refreshingSourceControlStatus"),
             },
             execute,
           );
       if (AsyncResult.isFailure(result)) {
         const error = Cause.squash(result.cause);
-        const message = error instanceof Error ? error.message : "Failed to refresh git status.";
+        const message =
+          error instanceof Error
+            ? error.message
+            : t("state.useSelectedThreadGitActions.refreshGitStatusFailed");
         setPendingConnectionError(message);
         return null;
       }
@@ -154,9 +158,16 @@ export function useSelectedThreadGitActions() {
           : await vcsActionManager.track(appAtomRegistry, target, { operation, label }, run);
       if (AsyncResult.isFailure(result)) {
         const error = Cause.squash(result.cause);
-        const message = error instanceof Error ? error.message : "Git action failed.";
+        const message =
+          error instanceof Error
+            ? error.message
+            : t("state.useSelectedThreadGitActions.gitActionFailedMessage");
         setPendingConnectionError(message);
-        showGitActionResult({ type: "error", title: "Git action failed", description: message });
+        showGitActionResult({
+          type: "error",
+          title: t("state.useSelectedThreadGitActions.gitActionFailedTitle"),
+          description: message,
+        });
         return null;
       }
       return result.value;
@@ -197,7 +208,7 @@ export function useSelectedThreadGitActions() {
     async (branch: string) => {
       await runSelectedThreadGitMutation(
         "switch_ref",
-        "Switching branch",
+        t("state.useSelectedThreadGitActions.switchingBranch"),
         async ({ thread, cwd }) => {
           const result = await switchRef({
             environmentId: thread.environmentId,
@@ -230,7 +241,7 @@ export function useSelectedThreadGitActions() {
     async (branch: string) => {
       await runSelectedThreadGitMutation(
         "create_ref",
-        "Creating branch",
+        t("state.useSelectedThreadGitActions.creatingBranch"),
         async ({ thread, cwd }) => {
           const result = await createRef({
             environmentId: thread.environmentId,
@@ -263,7 +274,7 @@ export function useSelectedThreadGitActions() {
     async (nextWorktree: { readonly baseBranch: string; readonly newBranch: string }) => {
       await runSelectedThreadGitMutation(
         "create_worktree",
-        "Creating worktree",
+        t("state.useSelectedThreadGitActions.creatingWorktree"),
         async ({ thread, project }) => {
           const result = await createWorktree({
             environmentId: thread.environmentId,
@@ -295,7 +306,7 @@ export function useSelectedThreadGitActions() {
   const onPullSelectedThreadBranch = useCallback(async () => {
     await runSelectedThreadGitMutation(
       "pull",
-      "Pulling latest changes",
+      t("state.useSelectedThreadGitActions.pullingLatestChanges"),
       async ({ thread, cwd }) => {
         const result = await pull({
           environmentId: thread.environmentId,
@@ -309,8 +320,10 @@ export function useSelectedThreadGitActions() {
           type: "success",
           title:
             result.value.status === "skipped_up_to_date"
-              ? "Already up to date"
-              : `Pulled latest on ${result.value.refName}`,
+              ? t("components.gitActionsControl.alreadyUpToDate")
+              : t("state.useSelectedThreadGitActions.pulledLatestOn", {
+                  refName: result.value.refName,
+                }),
         });
         return result;
       },

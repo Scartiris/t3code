@@ -1,5 +1,6 @@
 import { type KnownTerminalSession } from "@t3tools/client-runtime/state/terminal";
 import { DEFAULT_TERMINAL_ID, type ProjectScript } from "@t3tools/contracts";
+import { t } from "@t3tools/shared/i18n";
 import { nextTerminalId, resolveTerminalSessionLabel } from "@t3tools/shared/terminalLabels";
 import * as Arr from "effect/Array";
 import * as Order from "effect/Order";
@@ -47,19 +48,21 @@ export function getTerminalStatusLabel(input: {
   readonly hasRunningSubprocess?: boolean;
 }): string {
   if (input.status === "running") {
-    return input.hasRunningSubprocess ? "Task running" : "Ready";
+    return input.hasRunningSubprocess
+      ? t("terminal.terminalMenu.taskRunning")
+      : t("terminal.terminalMenu.ready");
   }
   if (input.status === "starting") {
-    return "Starting";
+    return t("terminal.terminalMenu.starting");
   }
   if (input.status === "exited") {
-    return "Exited";
+    return t("terminal.terminalMenu.exited");
   }
   if (input.status === "error") {
-    return "Error";
+    return t("terminal.terminalMenu.error");
   }
 
-  return "Not started";
+  return t("terminal.terminalMenu.notStarted");
 }
 
 /**
@@ -155,7 +158,9 @@ export function resolveProjectScriptTerminalId(input: {
 }
 
 export function projectScriptMenuLabel(script: ProjectScript): string {
-  return script.runOnWorktreeCreate ? `${script.name} (setup)` : script.name;
+  return script.runOnWorktreeCreate
+    ? t("components.projectScriptsControl.setupSuffix", { name: script.name })
+    : script.name;
 }
 
 export function projectScriptMenuIcon(icon: ProjectScript["icon"]) {

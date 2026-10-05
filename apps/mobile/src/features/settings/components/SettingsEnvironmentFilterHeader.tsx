@@ -1,6 +1,7 @@
 import { useNavigation } from "@react-navigation/native";
 import type { NativeStackHeaderItem } from "@react-navigation/native-stack";
 import { resolveEnvironmentMachineKind } from "@t3tools/contracts";
+import { t } from "@t3tools/shared/i18n";
 import { Platform, Pressable } from "react-native";
 
 import { ControlPillMenu } from "../../../components/ControlPill";
@@ -54,23 +55,27 @@ export function SettingsEnvironmentFilterHeader(props: {
       options={{
         unstable_headerRightItems: () => [
           withNativeGlassHeaderItem({
-            accessibilityLabel: "Filter settings environments and projects",
+            accessibilityLabel: t("components.settingsEnvironmentFilterHeader.filterA11y"),
             icon: { name: filterIcon, type: "sfSymbol" },
             label: "",
             type: "menu",
             menu: {
-              title: "Settings scope",
+              title: t("components.settingsEnvironmentFilterHeader.scopeTitle"),
               items: [
                 {
                   type: "submenu",
                   label:
                     selectedIds === null
-                      ? "All environments"
-                      : `${selectedTargets.length} ${selectedTargets.length === 1 ? "environment" : "environments"}`,
+                      ? t("components.settingsEnvironmentFilterHeader.allEnvironments")
+                      : t("components.settingsEnvironmentFilterHeader.selectedEnvironments", {
+                          count: selectedTargets.length,
+                        }),
                   items: [
                     {
                       type: "action",
-                      label: "All connected environments",
+                      label: t(
+                        "components.settingsEnvironmentFilterHeader.allConnectedEnvironments",
+                      ),
                       state: selectedIds === null ? "on" : undefined,
                       onPress: selectAll,
                     },
@@ -97,11 +102,13 @@ export function SettingsEnvironmentFilterHeader(props: {
                   label:
                     selectableProjectGroups.find((group) => group.key === selectedProjectKey)
                       ?.label ??
-                    (selectedProjectKey === null ? "All projects" : "Unavailable project"),
+                    (selectedProjectKey === null
+                      ? t("sidebar.allProjects")
+                      : t("components.settingsEnvironmentFilterHeader.unavailableProject")),
                   items: [
                     {
                       type: "action",
-                      label: "All projects",
+                      label: t("sidebar.allProjects"),
                       state: selectedProjectKey === null ? "on" : undefined,
                       onPress: () => selectProject(null),
                     },
@@ -120,7 +127,7 @@ export function SettingsEnvironmentFilterHeader(props: {
           ...(closeSettings
             ? [
                 withNativeGlassHeaderItem({
-                  accessibilityLabel: "Close settings",
+                  accessibilityLabel: t("components.settingsEnvironmentFilterHeader.closeA11y"),
                   icon: { name: "xmark", type: "sfSymbol" },
                   identifier: "settings-close",
                   label: "",
@@ -154,17 +161,19 @@ export function AndroidSettingsEnvironmentFilter() {
     <ControlPillMenu
       accessible
       accessibilityRole="button"
-      accessibilityLabel="Filter settings environments and projects"
-      title="Settings scope"
+      accessibilityLabel={t("components.settingsEnvironmentFilterHeader.filterA11y")}
+      title={t("components.settingsEnvironmentFilterHeader.scopeTitle")}
       actions={[
         {
           id: "all",
-          title: "All connected environments",
+          title: t("components.settingsEnvironmentFilterHeader.allConnectedEnvironments"),
           state: selectedIds === null ? ("on" as const) : ("off" as const),
         },
         ...availableTargets.map((entry) => ({
           id: `environment:${entry.environmentId}`,
-          title: `Environment · ${entry.label}`,
+          title: t("components.settingsEnvironmentFilterHeader.environmentOption", {
+            label: entry.label,
+          }),
           image: ENVIRONMENT_MACHINE_SYMBOLS[resolveEnvironmentMachineKind(entry.serverConfig)],
           subtitle: entry.displayUrl ?? undefined,
           state:
@@ -174,12 +183,14 @@ export function AndroidSettingsEnvironmentFilter() {
         })),
         {
           id: "project:all",
-          title: "All projects",
+          title: t("sidebar.allProjects"),
           state: selectedProjectKey === null ? ("on" as const) : ("off" as const),
         },
         ...selectableProjectGroups.map((group) => ({
           id: `project:${group.key}`,
-          title: `Project · ${group.label}`,
+          title: t("components.settingsEnvironmentFilterHeader.projectOption", {
+            label: group.label,
+          }),
           state: selectedProjectKey === group.key ? ("on" as const) : ("off" as const),
         })),
       ]}
@@ -201,7 +212,7 @@ export function AndroidSettingsEnvironmentFilter() {
     >
       <Pressable
         accessibilityRole="button"
-        accessibilityLabel="Filter settings environments and projects"
+        accessibilityLabel={t("components.settingsEnvironmentFilterHeader.filterA11y")}
         className="size-11 items-center justify-center rounded-full"
       >
         <SymbolView name={filterIcon} size={22} tintColorClassName="accent-icon" />

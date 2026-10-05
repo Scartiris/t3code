@@ -7,6 +7,7 @@ import { Alert } from "react-native";
 import type { EnvironmentId } from "@t3tools/contracts";
 import { encodeComposerContextFragment } from "@t3tools/shared/composerContextClipboard";
 import { collectComposerContextReferences } from "@t3tools/shared/composerContextReferences";
+import { t } from "@t3tools/shared/i18n";
 import { ComposerEditor as NativeComposerEditor } from "../native/T3ComposerEditor";
 import type { ComposerEditorProps as NativeComposerEditorProps } from "../native/T3ComposerEditor";
 import {
@@ -108,21 +109,21 @@ export function ComposerEditor({
       }
       if (!insertComposerDraftContext(draftKey, result, insertion)) {
         Alert.alert(
-          "Could not paste context",
-          "Remove some attachments or context items from the draft, then paste again.",
+          t("components.composerEditor.pasteContextFailedTitle"),
+          t("components.composerEditor.pasteContextFailedBody"),
         );
         return;
       }
       if (result.failures.length > 0)
         Alert.alert(
-          "Some attachments could not be copied",
-          "Reconnect to the source environment and copy them again. References without their files are marked unavailable.",
+          t("components.composerEditor.attachmentsCopyFailedTitle"),
+          t("components.composerEditor.attachmentsCopyFailedBody"),
         );
     } catch (error) {
       if (!controller.signal.aborted)
         Alert.alert(
-          "Could not paste context",
-          error instanceof Error ? error.message : "Try copying again.",
+          t("components.composerEditor.pasteContextFailedTitle"),
+          error instanceof Error ? error.message : t("components.composerEditor.tryCopyingAgain"),
         );
     } finally {
       setComposerContextImporting(draftKey, false);
@@ -203,12 +204,17 @@ export function ComposerEditor({
         }}
       />
       {importing ? (
-        <Text className="py-2 text-xs text-foreground-muted">Copying context…</Text>
+        <Text className="py-2 text-xs text-foreground-muted">
+          {t("components.composerEditor.copyingContext")}
+        </Text>
       ) : null}
       {selected && (selectedReference || selectedSkill) ? (
         <ComposerContextSheet
           label={
-            selectedReference?.label ?? selectedSkill?.displayName ?? selectedSkill?.name ?? "Skill"
+            selectedReference?.label ??
+            selectedSkill?.displayName ??
+            selectedSkill?.name ??
+            t("components.composerEditor.skill")
           }
           record={
             record ??

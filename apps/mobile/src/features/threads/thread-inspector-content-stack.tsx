@@ -1,6 +1,7 @@
 import { useEffect, useState, type ComponentType, type ReactNode } from "react";
 import { View } from "react-native";
 
+import { t } from "@t3tools/shared/i18n";
 import { RenderErrorBoundary, RenderFailureView } from "../../components/RenderErrorBoundary";
 
 export type ThreadInspectorMode = "route" | "git" | "files";
@@ -33,7 +34,10 @@ function InspectorContentPane(props: {
       <RenderErrorBoundary
         resetKeys={props.resetKeys}
         renderFallback={(fallback) => (
-          <RenderFailureView {...fallback} title="The inspector couldn't be displayed" />
+          <RenderFailureView
+            {...fallback}
+            title={t("threads.threadInspectorContentStack.renderFailedTitle")}
+          />
         )}
       >
         {props.children}

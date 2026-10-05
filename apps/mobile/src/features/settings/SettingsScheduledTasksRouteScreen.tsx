@@ -12,6 +12,7 @@ import {
   squashAtomCommandFailure,
   type AtomCommandResult,
 } from "@t3tools/client-runtime/state/runtime";
+import { t } from "@t3tools/shared/i18n";
 import {
   useCallback,
   useEffect,
@@ -76,19 +77,24 @@ type ScheduledTaskRoutes = {
 };
 
 const DAYS = [
-  { index: 1, label: "Mon" },
-  { index: 2, label: "Tue" },
-  { index: 3, label: "Wed" },
-  { index: 4, label: "Thu" },
-  { index: 5, label: "Fri" },
-  { index: 6, label: "Sat" },
-  { index: 0, label: "Sun" },
+  { index: 1, label: t("settings.settingsScheduledTasksRouteScreen.dayMon") },
+  { index: 2, label: t("settings.settingsScheduledTasksRouteScreen.dayTue") },
+  { index: 3, label: t("settings.settingsScheduledTasksRouteScreen.dayWed") },
+  { index: 4, label: t("settings.settingsScheduledTasksRouteScreen.dayThu") },
+  { index: 5, label: t("settings.settingsScheduledTasksRouteScreen.dayFri") },
+  { index: 6, label: t("settings.settingsScheduledTasksRouteScreen.daySat") },
+  { index: 0, label: t("settings.settingsScheduledTasksRouteScreen.daySun") },
 ] as const;
 
 function describeSchedule(task: ScheduledTask): string {
   if (task.schedule.type === "interval") return formatScheduledTaskInterval(task.schedule.everyMs);
-  const days = task.schedule.weekdays?.length ? repeatLabel(task.schedule.weekdays) : "Every day";
-  return `${days} at ${formatTime(task.schedule.timeOfDay)}`;
+  const days = task.schedule.weekdays?.length
+    ? repeatLabel(task.schedule.weekdays)
+    : t("settings.settingsScheduledTasksRouteScreen.everyDay");
+  return t("settings.settingsScheduledTasksRouteScreen.scheduleAtTime", {
+    days,
+    time: formatTime(task.schedule.timeOfDay),
+  });
 }
 
 function formatTime(value: string): string {
@@ -113,12 +119,13 @@ function timePickerValue(value: string): Date {
 
 function repeatLabel(weekdays: ReadonlyArray<number>): string {
   const days = new Set(weekdays);
-  if (days.size === 7) return "Every day";
-  if (days.size === 5 && [1, 2, 3, 4, 5].every((day) => days.has(day))) return "Weekdays";
+  if (days.size === 7) return t("settings.settingsScheduledTasksRouteScreen.everyDay");
+  if (days.size === 5 && [1, 2, 3, 4, 5].every((day) => days.has(day)))
+    return t("settings.settingsScheduledTasksRouteScreen.weekdays");
   return (
     DAYS.filter((day) => days.has(day.index))
       .map((day) => day.label)
-      .join(", ") || "Choose days"
+      .join(", ") || t("settings.settingsScheduledTasksRouteScreen.chooseDays")
   );
 }
 
@@ -283,7 +290,7 @@ export function SettingsScheduledTasksRouteScreen() {
           withNativeGlassHeaderItem({
             type: "button",
             label: "",
-            accessibilityLabel: "New task",
+            accessibilityLabel: t("settings.settingsScheduledTasksRouteScreen.newTask"),
             icon: { type: "sfSymbol", name: "plus" } as const,
             disabled: visibleEnvironments.length === 0,
             onPress: newTask,
@@ -291,13 +298,13 @@ export function SettingsScheduledTasksRouteScreen() {
         ]}
       />
       <SettingsScreen
-        title="Scheduled Tasks"
+        title={t("settings.settingsScheduledTasksRouteScreen.title")}
         trailing={
           <View className="flex-row items-center">
             <AndroidSettingsEnvironmentFilter />
             <Pressable
               accessibilityRole="button"
-              accessibilityLabel="New task"
+              accessibilityLabel={t("settings.settingsScheduledTasksRouteScreen.newTask")}
               accessibilityState={{ disabled: visibleEnvironments.length === 0 }}
               disabled={visibleEnvironments.length === 0}
               onPress={newTask}
@@ -345,8 +352,8 @@ export function SettingsScheduledTasksRouteScreen() {
           ) : (
             <Text className="px-2 text-base text-foreground-muted">
               {availableTargets.length === 0
-                ? "Connect an environment to view and create scheduled tasks."
-                : "No environments match these filters. Change the filter above."}
+                ? t("settings.settingsScheduledTasksRouteScreen.connectEnvironmentToView")
+                : t("settings.settingsScheduledTasksRouteScreen.noEnvironmentsMatchFilters")}
             </Text>
           )}
         </ScrollView>
@@ -364,11 +371,19 @@ export function SettingsScheduledTaskNewRouteScreen() {
     initialized.current = true;
     resetEditor();
   }, [availableTargets.length, resetEditor]);
-  return <SettingsScheduledTaskEditorScreen title="New scheduled task" />;
+  return (
+    <SettingsScheduledTaskEditorScreen
+      title={t("settings.settingsScheduledTasksRouteScreen.newScheduledTaskTitle")}
+    />
+  );
 }
 
 export function SettingsScheduledTaskEditRouteScreen() {
-  return <SettingsScheduledTaskEditorScreen title="Edit scheduled task" />;
+  return (
+    <SettingsScheduledTaskEditorScreen
+      title={t("settings.settingsScheduledTasksRouteScreen.editScheduledTaskTitle")}
+    />
+  );
 }
 
 function SettingsScheduledTaskEditorScreen({ title }: { readonly title: string }) {
@@ -411,18 +426,21 @@ function SettingsScheduledTaskEditorScreen({ title }: { readonly title: string }
   const preventRemove = !saved && (hasChanges || saving || voiceInput.isBusy);
   usePreventRemove(preventRemove, ({ data }) => {
     if (saving) {
-      Alert.alert("Saving task", "Wait for the task to finish saving before leaving.");
+      Alert.alert(
+        t("settings.settingsScheduledTasksRouteScreen.savingTaskTitle"),
+        t("settings.settingsScheduledTasksRouteScreen.savingTaskBody"),
+      );
       return;
     }
     Alert.alert(
-      "Discard changes?",
+      t("settings.settingsScheduledTasksRouteScreen.discardChangesTitle"),
       voiceInput.isBusy
-        ? "Your dictation and unsaved changes will be lost."
-        : "Your unsaved changes will be lost.",
+        ? t("settings.settingsScheduledTasksRouteScreen.discardDictationBody")
+        : t("settings.settingsScheduledTasksRouteScreen.discardChangesBody"),
       [
-        { text: "Keep editing", style: "cancel" },
+        { text: t("settings.settingsScheduledTasksRouteScreen.keepEditing"), style: "cancel" },
         {
-          text: "Discard changes",
+          text: t("settings.settingsScheduledTasksRouteScreen.discardChangesAction"),
           style: "destructive",
           onPress: () => navigation.dispatch(data.action),
         },
@@ -450,7 +468,7 @@ function SettingsScheduledTaskEditorScreen({ title }: { readonly title: string }
               withNativeGlassHeaderItem({
                 type: "button",
                 label: "",
-                accessibilityLabel: "Back",
+                accessibilityLabel: t("sidebar.back"),
                 icon: { type: "sfSymbol", name: "chevron.backward" },
                 onPress: () => navigation.goBack(),
               }),
@@ -512,8 +530,8 @@ function SettingsScheduledTaskEditorScreen({ title }: { readonly title: string }
         ) : (
           <Text className="px-2 text-base text-foreground-muted">
             {availableTargets.length === 0
-              ? "Connect an environment to create a scheduled task."
-              : "No environments match the current filters. Change the filters to create a task."}
+              ? t("settings.settingsScheduledTasksRouteScreen.connectEnvironmentToCreate")
+              : t("settings.settingsScheduledTasksRouteScreen.noEnvironmentsMatchCurrentFilters")}
           </Text>
         )}
       </ScrollView>
@@ -592,13 +610,16 @@ function TaskForm({
       (draft.workspace === "existing_worktree" && !draft.checkoutPath.trim())
     ) {
       Alert.alert(
-        "Incomplete task",
-        "Add a name, prompt, project, model, valid schedule, and checkout path if needed.",
+        t("settings.settingsScheduledTasksRouteScreen.incompleteTaskTitle"),
+        t("settings.settingsScheduledTasksRouteScreen.incompleteTaskBody"),
       );
       return;
     }
     if (!projects.some((project) => project.id === draft.projectId)) {
-      Alert.alert("Project unavailable", "Choose a project in this environment.");
+      Alert.alert(
+        t("settings.settingsScheduledTasksRouteScreen.projectUnavailableTitle"),
+        t("settings.settingsScheduledTasksRouteScreen.projectUnavailableBody"),
+      );
       return;
     }
     const input: ScheduledTaskUpsertInput = {
@@ -631,7 +652,7 @@ function TaskForm({
     setSaving(false);
     if (result._tag === "Failure") {
       submissionPending.current = false;
-      failure("Could not save task", result);
+      failure(t("settings.settingsScheduledTasksRouteScreen.couldNotSaveTask"), result);
       return;
     }
     onSaved();
@@ -645,17 +666,19 @@ function TaskForm({
       importantForAccessibility={saving ? "no-hide-descendants" : "auto"}
     >
       {taskMissing ? (
-        <Text className="px-1 text-base text-danger-foreground">This task no longer exists.</Text>
+        <Text className="px-1 text-base text-danger-foreground">
+          {t("settings.settingsScheduledTasksRouteScreen.taskNoLongerExists")}
+        </Text>
       ) : null}
 
       {environmentUnavailable ? (
         <Text className="px-1 text-base text-danger-foreground">
-          This environment is disconnected. Reconnect before saving.
+          {t("settings.settingsScheduledTasksRouteScreen.environmentDisconnected")}
         </Text>
       ) : null}
       <SettingsSection>
         <SelectRow
-          label="Runs on"
+          label={t("topbar.runOn")}
           value={environmentLabel}
           valueIcon={
             <EnvironmentMachineSymbol
@@ -681,23 +704,25 @@ function TaskForm({
           }}
         />
       </SettingsSection>
-      <SettingsSection title="Task">
+      <SettingsSection title={t("settings.settingsScheduledTasksRouteScreen.sectionTask")}>
         <FormField
-          label="Name"
+          label={t("settings.settingsScheduledTasksRouteScreen.nameLabel")}
           disabled={saving}
           value={draft.title}
-          placeholder="Check for issues"
+          placeholder={t("settings.settingsScheduledTasksRouteScreen.namePlaceholder")}
           onChange={(title) => setDraft({ ...draft, title })}
         />
         {promptField}
       </SettingsSection>
 
-      <SettingsSection title="Context">
+      <SettingsSection title={t("settings.settingsScheduledTasksRouteScreen.sectionContext")}>
         <SelectRow
-          label="Project"
+          label={t("settings.settingsScheduledTasksRouteScreen.projectLabel")}
           value={
             projects.find((project) => project.id === draft.projectId)?.title ??
-            (projects.length ? "Choose project" : "No projects available")
+            (projects.length
+              ? t("draft.chooseProject")
+              : t("settings.settingsScheduledTasksRouteScreen.noProjectsAvailable"))
           }
           actions={projects.map((project) => ({
             id: project.id,
@@ -717,7 +742,7 @@ function TaskForm({
           }}
         />
         <PickerRow
-          label="Model"
+          label={t("settings.settingsScheduledTasksRouteScreen.modelLabel")}
           borderTop
           value={
             modelOptions.find(
@@ -726,37 +751,39 @@ function TaskForm({
                 option.selection.model === draft.modelSelection?.model,
             )?.label ??
             draft.modelSelection?.model ??
-            (modelOptions.length ? "Choose model" : "No models available")
+            (modelOptions.length
+              ? t("settings.settingsScheduledTasksRouteScreen.chooseModel")
+              : t("settings.settingsScheduledTasksRouteScreen.noModelsAvailable"))
           }
           onPress={() => navigation.navigate("SettingsScheduledTaskModel")}
           disabled={saving || dictationPending || environmentUnavailable}
         />
       </SettingsSection>
 
-      <SettingsSection title="Workspace">
+      <SettingsSection title={t("settings.settingsScheduledTasksRouteScreen.sectionWorkspace")}>
         <SelectRow
-          label="Run in"
+          label={t("settings.settingsScheduledTasksRouteScreen.runIn")}
           value={
             draft.workspace === "worktree"
-              ? "New worktree"
+              ? t("workspace.newWorktree")
               : draft.workspace === "root"
-                ? "Project checkout"
-                : "Specific checkout"
+                ? t("settings.settingsScheduledTasksRouteScreen.projectCheckout")
+                : t("settings.settingsScheduledTasksRouteScreen.specificCheckout")
           }
           actions={[
             {
               id: "worktree",
-              title: "New worktree",
+              title: t("workspace.newWorktree"),
               state: draft.workspace === "worktree" ? "on" : undefined,
             },
             {
               id: "root",
-              title: "Project checkout",
+              title: t("settings.settingsScheduledTasksRouteScreen.projectCheckout"),
               state: draft.workspace === "root" ? "on" : undefined,
             },
             {
               id: "existing_worktree",
-              title: "Specific checkout",
+              title: t("settings.settingsScheduledTasksRouteScreen.specificCheckout"),
               state: draft.workspace === "existing_worktree" ? "on" : undefined,
             },
           ]}
@@ -767,7 +794,7 @@ function TaskForm({
         />
         {draft.workspace === "worktree" ? (
           <PickerRow
-            label="Base branch"
+            label={t("settings.settingsScheduledTasksRouteScreen.baseBranch")}
             value={resolveNewTaskBranchLabel({
               branchName: draft.baseRef,
               startFromOrigin: draft.startFromOrigin,
@@ -780,7 +807,7 @@ function TaskForm({
         ) : null}
         {draft.workspace === "existing_worktree" ? (
           <FormField
-            label="Checkout path"
+            label={t("settings.settingsScheduledTasksRouteScreen.checkoutPath")}
             disabled={saving}
             value={draft.checkoutPath}
             borderTop
@@ -789,12 +816,18 @@ function TaskForm({
         ) : null}
       </SettingsSection>
 
-      <SettingsSection title="Schedule">
+      <SettingsSection title={t("settings.settingsScheduledTasksRouteScreen.sectionSchedule")}>
         <View className="px-4 py-3">
           <SegmentedControl
             options={[
-              { value: "fixed_time", label: "At a time" },
-              { value: "interval", label: "Every interval" },
+              {
+                value: "fixed_time",
+                label: t("settings.settingsScheduledTasksRouteScreen.atATime"),
+              },
+              {
+                value: "interval",
+                label: t("settings.settingsScheduledTasksRouteScreen.everyInterval"),
+              },
             ]}
             selected={draft.schedule.mode}
             onSelect={(mode) => {
@@ -807,11 +840,18 @@ function TaskForm({
           <>
             <Pressable
               accessibilityRole="button"
-              accessibilityLabel={`Time, ${formatTime(draft.schedule.timeOfDay)}`}
+              accessibilityLabel={t(
+                "settings.settingsScheduledTasksRouteScreen.timeAccessibility",
+                {
+                  time: formatTime(draft.schedule.timeOfDay),
+                },
+              )}
               onPress={() => setTimePickerOpen((open) => !open)}
               className="min-h-14 flex-row items-center gap-3 border-t border-border-subtle px-4 py-3 active:opacity-70"
             >
-              <Text className="text-lg text-foreground">Time</Text>
+              <Text className="text-lg text-foreground">
+                {t("settings.settingsScheduledTasksRouteScreen.timeLabel")}
+              </Text>
               <Text className="min-w-0 flex-1 text-right text-base text-foreground-muted">
                 {formatTime(draft.schedule.timeOfDay)}
               </Text>
@@ -835,19 +875,23 @@ function TaskForm({
               />
             ) : null}
             <SelectRow
-              label="Repeat"
+              label={t("settings.settingsScheduledTasksRouteScreen.repeat")}
               value={repeatLabel(draft.schedule.weekdays)}
               borderTop
               actions={[
                 {
                   id: "every_day",
-                  title: "Every day",
+                  title: t("settings.settingsScheduledTasksRouteScreen.everyDay"),
                   state: draft.schedule.weekdays.length === 7 ? "on" : undefined,
                 },
                 {
                   id: "weekdays",
-                  title: "Weekdays",
-                  state: repeatLabel(draft.schedule.weekdays) === "Weekdays" ? "on" : undefined,
+                  title: t("settings.settingsScheduledTasksRouteScreen.weekdays"),
+                  state:
+                    repeatLabel(draft.schedule.weekdays) ===
+                    t("settings.settingsScheduledTasksRouteScreen.weekdays")
+                      ? "on"
+                      : undefined,
                 },
                 ...DAYS.map((day) => ({
                   id: String(day.index),
@@ -876,7 +920,7 @@ function TaskForm({
         ) : (
           <>
             <FormField
-              label="Minutes between runs"
+              label={t("settings.settingsScheduledTasksRouteScreen.minutesBetweenRuns")}
               value={draft.schedule.intervalMinutes}
               keyboardType="decimal-pad"
               disabled={saving}
@@ -887,20 +931,23 @@ function TaskForm({
             />
             {Number(draft.schedule.intervalMinutes) < 1 ? (
               <Text className="px-4 pb-3 text-sm text-danger-foreground">
-                Intervals must be at least 1 minute. Update this interval before saving.
+                {t("settings.settingsScheduledTasksRouteScreen.intervalMinError")}
               </Text>
             ) : draft.task?.schedule.type === "interval" && draft.task.schedule.everyMs < 60_000 ? (
               <Text className="px-4 pb-3 text-sm text-foreground-muted">
-                This task previously ran more than once per minute. Saving requires an interval of
-                at least 1 minute.
+                {t("settings.settingsScheduledTasksRouteScreen.intervalLegacyError")}
               </Text>
             ) : null}
           </>
         )}
         <View className="min-h-14 flex-row items-center gap-3 border-t border-border-subtle px-4 py-3">
-          <Text className="min-w-0 flex-1 text-lg text-foreground">Enabled</Text>
+          <Text className="min-w-0 flex-1 text-lg text-foreground">
+            {t("settings.settingsScheduledTasksRouteScreen.enabledLabel")}
+          </Text>
           <ThemedSwitch
-            accessibilityLabel="Task enabled"
+            accessibilityLabel={t(
+              "settings.settingsScheduledTasksRouteScreen.taskEnabledAccessibility",
+            )}
             value={draft.enabled}
             onValueChange={(enabled) => setDraft({ ...draft, enabled })}
           />
@@ -908,7 +955,7 @@ function TaskForm({
       </SettingsSection>
       {draft.schedule.mode === "fixed_time" ? (
         <Text className="px-2 text-sm text-foreground-muted">
-          Time uses the environment's time zone, which may differ from your phone's.
+          {t("settings.settingsScheduledTasksRouteScreen.timeZoneHint")}
         </Text>
       ) : null}
       <Pressable
@@ -921,7 +968,11 @@ function TaskForm({
         className="min-h-12 items-center justify-center rounded-[14px] bg-primary px-4 disabled:opacity-50"
       >
         <Text className="text-base font-t3-medium text-primary-foreground">
-          {saving ? "Saving…" : draft.task ? "Save changes" : "Create task"}
+          {saving
+            ? t("settings.settingsScheduledTasksRouteScreen.saving")
+            : draft.task
+              ? t("settings.settingsScheduledTasksRouteScreen.saveChanges")
+              : t("settings.settingsScheduledTasksRouteScreen.createTask")}
         </Text>
       </Pressable>
     </View>
@@ -971,7 +1022,18 @@ function EnvironmentTasks({
         : action === "toggle"
           ? await setEnabled({ environmentId, input: { id: task.id, enabled: !task.enabled } })
           : await remove({ environmentId, input: { id: task.id } });
-    failure(`Could not ${action === "toggle" ? "update" : action} task`, result);
+    failure(
+      t("settings.settingsScheduledTasksRouteScreen.couldNotTaskAction", {
+        action: t(
+          action === "toggle"
+            ? "settings.settingsScheduledTasksRouteScreen.actionUpdate"
+            : action === "run"
+              ? "settings.settingsScheduledTasksRouteScreen.actionRun"
+              : "settings.settingsScheduledTasksRouteScreen.actionDelete",
+        ),
+      }),
+      result,
+    );
   };
 
   return (
@@ -990,10 +1052,14 @@ function EnvironmentTasks({
       {tasks.error ? (
         <Text className="p-4 text-base text-danger-foreground">{tasks.error}</Text>
       ) : !tasks.data ? (
-        <Text className="p-4 text-base text-foreground-muted">Loading tasks…</Text>
+        <Text className="p-4 text-base text-foreground-muted">
+          {t("settings.settingsScheduledTasksRouteScreen.loadingTasks")}
+        </Text>
       ) : visibleTasks?.length === 0 ? (
         <Text className="p-4 text-base text-foreground-muted">
-          {projectIds === null ? "No scheduled tasks yet." : "No tasks in this project."}
+          {projectIds === null
+            ? t("settings.settingsScheduledTasksRouteScreen.noTasksYet")
+            : t("settings.settingsScheduledTasksRouteScreen.noTasksInProject")}
         </Text>
       ) : (
         visibleTasks?.map((task, index) => (
@@ -1007,7 +1073,10 @@ function EnvironmentTasks({
           >
             <Pressable
               accessibilityRole="button"
-              accessibilityLabel={`Edit ${task.title}`}
+              accessibilityLabel={t(
+                "settings.settingsScheduledTasksRouteScreen.editTaskAccessibility",
+                { title: task.title },
+              )}
               onPress={() => {
                 onEdit(task);
               }}
@@ -1019,37 +1088,52 @@ function EnvironmentTasks({
               <Text className="text-sm text-foreground-muted" numberOfLines={2}>
                 {describeSchedule(task)}
                 {!task.enabled
-                  ? " · Paused"
+                  ? ` · ${t("settings.settingsScheduledTasksRouteScreen.paused")}`
                   : task.nextRunAt
                     ? ` · ${formatNextScheduledTaskRun(task.nextRunAt, now)}`
                     : ""}
               </Text>
               {task.lastRunError ? (
                 <Text className="text-sm text-danger-foreground" numberOfLines={2}>
-                  Last run failed: {task.lastRunError}
+                  {t("settings.settingsScheduledTasksRouteScreen.lastRunFailed", {
+                    error: task.lastRunError,
+                  })}
                 </Text>
               ) : null}
             </Pressable>
             <ControlPillMenu
               actions={[
-                { id: "edit", title: "Edit" },
-                { id: "toggle", title: task.enabled ? "Pause" : "Resume" },
-                { id: "run", title: "Run now" },
-                { id: "delete", title: "Delete", attributes: { destructive: true } },
+                { id: "edit", title: t("settings.settingsScheduledTasksRouteScreen.edit") },
+                {
+                  id: "toggle",
+                  title: task.enabled
+                    ? t("settings.settingsScheduledTasksRouteScreen.pause")
+                    : t("settings.settingsScheduledTasksRouteScreen.resume"),
+                },
+                { id: "run", title: t("settings.settingsScheduledTasksRouteScreen.runNow") },
+                {
+                  id: "delete",
+                  title: t("settings.settingsScheduledTasksRouteScreen.delete"),
+                  attributes: { destructive: true },
+                },
               ]}
               onPressAction={({ nativeEvent }) => {
                 const action = nativeEvent.event;
                 if (action === "edit") {
                   onEdit(task);
                 } else if (action === "delete") {
-                  Alert.alert("Delete task?", task.title, [
-                    { text: "Cancel", style: "cancel" },
-                    {
-                      text: "Delete",
-                      style: "destructive",
-                      onPress: () => void act(task, "delete"),
-                    },
-                  ]);
+                  Alert.alert(
+                    t("settings.settingsScheduledTasksRouteScreen.deleteTaskTitle"),
+                    task.title,
+                    [
+                      { text: t("action.cancel"), style: "cancel" },
+                      {
+                        text: t("settings.settingsScheduledTasksRouteScreen.delete"),
+                        style: "destructive",
+                        onPress: () => void act(task, "delete"),
+                      },
+                    ],
+                  );
                 } else if (action === "toggle" || action === "run") {
                   void act(task, action);
                 }
@@ -1057,7 +1141,10 @@ function EnvironmentTasks({
             >
               <Pressable
                 accessibilityRole="button"
-                accessibilityLabel={`Actions for ${task.title}`}
+                accessibilityLabel={t(
+                  "settings.settingsScheduledTasksRouteScreen.taskActionsAccessibility",
+                  { title: task.title },
+                )}
                 className="h-11 w-11 items-center justify-center"
               >
                 <SymbolView

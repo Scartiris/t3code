@@ -1,3 +1,4 @@
+import { t } from "@t3tools/shared/i18n";
 import {
   collectLimitAccounts,
   collectLimitPools,
@@ -66,7 +67,7 @@ function subscriptionUsageProps(
         if (!pool)
           return {
             name,
-            detail: "No limits available",
+            detail: t("widgets.subscriptionUsageSnapshot.noLimitsAvailable"),
             windows: [],
             expiresAt: 0,
             totalWindows: 0,
@@ -94,10 +95,12 @@ function subscriptionUsageProps(
         return {
           name,
           detail: !fresh
-            ? "Open T3 to refresh"
+            ? t("widgets.subscriptionUsageSnapshot.openT3ToRefresh")
             : pool.accounts.length > 1
-              ? `${pool.accounts.length} accounts · pooled`
-              : "Subscription remaining",
+              ? t("widgets.subscriptionUsageSnapshot.accountsPooled", {
+                  count: pool.accounts.length,
+                })
+              : t("widgets.subscriptionUsageSnapshot.subscriptionRemaining"),
           expiresAt: fresh ? expiresAt : 0,
           totalWindows: fresh ? pool.windows.length : 0,
           windows: fresh
@@ -106,13 +109,15 @@ function subscriptionUsageProps(
                 label: window.label,
                 remaining: Math.round(window.remainingPercent),
                 reset: window.resets[0]
-                  ? `Next reset ${new Date(window.resets[0].at).toLocaleString(undefined, {
-                      month: "short",
-                      day: "numeric",
-                      hour: "numeric",
-                      minute: "2-digit",
-                    })}`
-                  : "Reset time unavailable",
+                  ? t("widgets.subscriptionUsageSnapshot.nextReset", {
+                      time: new Date(window.resets[0].at).toLocaleString(undefined, {
+                        month: "short",
+                        day: "numeric",
+                        hour: "numeric",
+                        minute: "2-digit",
+                      }),
+                    })
+                  : t("widgets.subscriptionUsageSnapshot.resetTimeUnavailable"),
               }))
             : [],
         };
@@ -161,7 +166,12 @@ export function subscriptionUsageTimeline(snapshot: SubscriptionUsageSnapshot, n
       ...snapshot,
       providers: snapshot.providers.map((provider) =>
         provider.windows.length > 0 && provider.expiresAt <= date
-          ? { ...provider, detail: "Open T3 to refresh", windows: [], totalWindows: 0 }
+          ? {
+              ...provider,
+              detail: t("widgets.subscriptionUsageSnapshot.openT3ToRefresh"),
+              windows: [],
+              totalWindows: 0,
+            }
           : provider,
       ),
     },

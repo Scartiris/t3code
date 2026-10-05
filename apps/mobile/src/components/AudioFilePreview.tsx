@@ -1,6 +1,8 @@
 import { useAudioPlayer, useAudioPlayerStatus } from "expo-audio";
 import { useState } from "react";
 import { Pressable, View } from "react-native";
+
+import { t } from "@t3tools/shared/i18n";
 import { AppText as Text } from "./AppText";
 
 function timestamp(seconds: number) {
@@ -29,12 +31,12 @@ export function AudioFilePreview(props: { uri: string; onRetry: () => void }) {
       <View className="flex-row items-center gap-4">
         <Pressable
           accessibilityRole="button"
-          accessibilityLabel="Back 15 seconds"
+          accessibilityLabel={t("components.audioFilePreview.back15Seconds")}
           disabled={!status.isLoaded}
           onPress={() => seek(Math.max(0, status.currentTime - 15))}
           className="p-4"
         >
-          <Text className="text-foreground">−15s</Text>
+          <Text className="text-foreground">{t("components.audioFilePreview.back15Short")}</Text>
         </Pressable>
         <Pressable
           accessibilityRole="button"
@@ -47,26 +49,30 @@ export function AudioFilePreview(props: { uri: string; onRetry: () => void }) {
           className="rounded-xl bg-subtle px-6 py-4"
         >
           <Text className="text-foreground">
-            {!status.isLoaded ? "Loading…" : status.playing ? "Pause" : "Play"}
+            {!status.isLoaded
+              ? t("components.audioFilePreview.loading")
+              : status.playing
+                ? t("components.audioFilePreview.pause")
+                : t("components.audioFilePreview.play")}
           </Text>
         </Pressable>
         <Pressable
           accessibilityRole="button"
-          accessibilityLabel="Forward 15 seconds"
+          accessibilityLabel={t("components.audioFilePreview.forward15Seconds")}
           disabled={!status.isLoaded}
           onPress={() => seek(Math.min(status.duration, status.currentTime + 15))}
           className="p-4"
         >
-          <Text className="text-foreground">+15s</Text>
+          <Text className="text-foreground">{t("components.audioFilePreview.forward15Short")}</Text>
         </Pressable>
       </View>
       {status.error || seekError ? (
         <View className="items-center gap-3">
           <Text className="text-center text-foreground">
-            This audio could not be played. Try again or save it to open in another app.
+            {t("components.audioFilePreview.playbackFailed")}
           </Text>
           <Pressable accessibilityRole="button" onPress={props.onRetry} className="p-3">
-            <Text className="text-foreground">Try again</Text>
+            <Text className="text-foreground">{t("components.audioFilePreview.tryAgain")}</Text>
           </Pressable>
         </View>
       ) : null}

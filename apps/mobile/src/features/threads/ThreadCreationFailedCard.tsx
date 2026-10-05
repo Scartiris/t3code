@@ -1,6 +1,7 @@
 import { RequestActionButton } from "./RequestActionButton";
 import { View } from "react-native";
 
+import { t } from "@t3tools/shared/i18n";
 import { AppText as Text } from "../../components/AppText";
 
 /**
@@ -15,16 +16,19 @@ export function ThreadCreationFailedCard(props: {
   return (
     <View className="gap-2.5 rounded-[20px] border border-border-subtle bg-card-alt p-4">
       <Text className="font-t3-bold text-2xs uppercase tracking-[1.1px] text-danger-foreground">
-        Could not start task
+        {t("threads.threadCreationFailedCard.couldNotStartTask")}
       </Text>
       <Text className="font-sans text-sm leading-normal text-foreground-secondary">
         {props.reason}
       </Text>
       <Text className="font-sans text-xs leading-normal text-foreground-secondary">
-        Your prompt was kept in the project draft.
+        {t("threads.threadCreationFailedCard.promptKept")}
       </Text>
       <View className="flex-row">
-        <RequestActionButton label="Edit task" onPress={props.onEditTask} />
+        <RequestActionButton
+          label={t("threads.threadCreationFailedCard.editTask")}
+          onPress={props.onEditTask}
+        />
       </View>
     </View>
   );

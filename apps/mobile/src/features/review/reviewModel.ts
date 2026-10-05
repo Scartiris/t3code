@@ -3,6 +3,7 @@ import type { ChangeTypes, FileDiffMetadata } from "@pierre/diffs/types";
 import type { ThreadCheckpointSummary } from "@t3tools/client-runtime/state/thread-checkpoints";
 import type { ReviewDiffPreviewSource } from "@t3tools/contracts";
 import { unquoteGitPatchPath } from "@t3tools/shared/gitPatchPath";
+import { t } from "@t3tools/shared/i18n";
 import * as Arr from "effect/Array";
 import { pipe } from "effect/Function";
 import * as Order from "effect/Order";
@@ -10,8 +11,8 @@ import * as Order from "effect/Order";
 export type ReviewSectionKind = "turn" | "working-tree" | "branch-range";
 
 const CHANGES_SECTION_ID = "git:branch-range";
-const CHANGES_TITLE = "Changes";
-const UNCOMMITTED_SUBTITLE = "Staged, unstaged, and untracked files";
+const CHANGES_TITLE = t("review.reviewSheet.sectionChanges");
+const UNCOMMITTED_SUBTITLE = t("review.reviewModel.uncommittedSubtitle");
 
 export interface ReviewSectionItem {
   readonly id: string;
@@ -96,15 +97,15 @@ export type ReviewParsedDiff =
     };
 
 function checkpointTitle(checkpoint: ThreadCheckpointSummary): string {
-  return `Turn ${checkpoint.checkpointTurnCount}`;
+  return t("components.diffPanel.turnLabel", { turnCount: checkpoint.checkpointTurnCount });
 }
 
 function checkpointSubtitle(checkpoint: ThreadCheckpointSummary): string {
   const fileCount = checkpoint.files.length;
   if (checkpoint.status !== "ready") {
-    return `Diff ${checkpoint.status}`;
+    return t("review.reviewModel.diffStatus", { status: checkpoint.status });
   }
-  return `${fileCount} file${fileCount === 1 ? "" : "s"} changed`;
+  return t("git.gitOverviewSheet.filesChanged", { count: fileCount });
 }
 
 function compareCheckpointTurnCountDescending(
@@ -129,7 +130,7 @@ function gitSubtitle(section: ReviewDiffPreviewSource): string | null {
   if (section.baseRef) {
     return `${section.baseRef} ... ${section.headRef ?? "HEAD"}`;
   }
-  return "Base branch unavailable";
+  return t("review.reviewModel.baseBranchUnavailable");
 }
 
 function stripTrailingNewline(value: string): string {
@@ -252,8 +253,8 @@ export function getReviewFilePreviewState(file: ReviewRenderableFile): ReviewFil
     return {
       kind: "suppressed",
       reason: "non-text",
-      title: "Non-text file",
-      message: "Diff preview is not available for this file format.",
+      title: t("review.reviewModel.nonTextFile"),
+      message: t("review.reviewModel.nonTextFileDetail"),
       actionLabel: null,
     };
   }
@@ -264,9 +265,9 @@ export function getReviewFilePreviewState(file: ReviewRenderableFile): ReviewFil
     return {
       kind: "suppressed",
       reason: "large",
-      title: "Large diff",
-      message: "Large diffs are not rendered by default.",
-      actionLabel: "Load diff",
+      title: t("review.reviewModel.largeDiff"),
+      message: t("review.reviewModel.largeDiffDetail"),
+      actionLabel: t("review.reviewModel.loadDiff"),
     };
   }
 
@@ -484,9 +485,7 @@ export function buildReviewParsedDiff(
     return { kind: "empty" };
   }
 
-  const notice = truncated
-    ? "Diff output hit the server size cap. Showing the available excerpt."
-    : null;
+  const notice = truncated ? t("review.reviewModel.diffSizeCapNotice") : null;
 
   try {
     const parsedPatches = runDiffParserSilently(() =>
@@ -503,8 +502,8 @@ export function buildReviewParsedDiff(
         kind: "raw",
         text,
         reason: truncated
-          ? "Diff was truncated before it could be parsed completely. Showing the raw excerpt."
-          : "Unsupported diff format. Showing raw patch.",
+          ? t("review.reviewModel.diffTruncatedRawReason")
+          : t("review.reviewModel.unsupportedDiffFormat"),
         notice,
       };
     }
@@ -522,8 +521,8 @@ export function buildReviewParsedDiff(
       kind: "raw",
       text,
       reason: truncated
-        ? "Diff was truncated before it could be parsed completely. Showing the raw excerpt."
-        : "Failed to parse patch. Showing raw patch.",
+        ? t("review.reviewModel.diffTruncatedRawReason")
+        : t("review.reviewModel.patchParseFailed"),
       notice,
     };
   }
@@ -535,7 +534,9 @@ export function applyReviewDiffMetadata(
 ): ReviewParsedDiff {
   if (previewDiff.kind === "empty") return previewDiff;
   const notice = selectedSection?.truncated
-    ? `This preview exceeds the size limit. Changes shown are incomplete.${selectedSection.files ? " Counts include all changes." : ""}`
+    ? `${t("components.diffPanel.previewTooLarge")}${
+        selectedSection.files ? t("components.diffPanel.totalsIncludeAllChanges") : ""
+      }`
     : previewDiff.notice;
   if (previewDiff.kind !== "files" || !selectedSection?.files) return { ...previewDiff, notice };
   const totals = selectedSection.files.reduce(

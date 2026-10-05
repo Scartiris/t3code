@@ -2,6 +2,7 @@ import { useAtomValue } from "@effect/atom-react";
 import { scopeThreadRef } from "@t3tools/client-runtime/environment";
 import { resolveHandoffEndpoints } from "@t3tools/client-runtime/handoff";
 import { resolveProviderInstanceDisplayName } from "@t3tools/client-runtime/state/provider-instance-display";
+import { t } from "@t3tools/shared/i18n";
 import type {
   EnvironmentId,
   OrchestrationV2ProjectedTurnItem,
@@ -50,7 +51,7 @@ export function ThreadHandoffRow(props: {
   const color = item.status === "failed" ? "#e11d48" : props.iconColor;
   return (
     <ThreadContextDivider
-      label="Context handoff"
+      label={t("threads.threadHandoffRow.contextHandoff")}
       icon="arrow.left.arrow.right"
       iconColor={color}
       failed={item.status === "failed"}
@@ -91,7 +92,7 @@ function HandoffEndpoint(props: {
     <Pressable
       accessibilityRole="button"
       accessibilityLabel={label}
-      accessibilityHint="Show provider account"
+      accessibilityHint={t("threads.threadHandoffRow.showProviderAccount")}
       className="min-h-6 max-w-full flex-row items-center justify-center gap-1"
       hitSlop={{ top: 8, bottom: 8 }}
       onPress={() =>

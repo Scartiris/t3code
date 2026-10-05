@@ -1,3 +1,4 @@
+import { t } from "@t3tools/shared/i18n";
 import type { EnvironmentId, ThreadId } from "@t3tools/contracts";
 import { useNavigation, type StaticScreenProps } from "@react-navigation/native";
 import { nativeHeaderScrollEdgeEffects } from "../../native/StackHeader";
@@ -99,14 +100,17 @@ function ReviewHeader(
       onBack={props.onReturnToThread}
       hideBottomBorder
       options={{ headerTintColor: props.iconColor, headerTitle: props.title }}
-      backInSplitView={{ accessibilityLabel: "Back to chat", icon: "chevron.left" }}
+      backInSplitView={{
+        accessibilityLabel: t("review.reviewSheet.backToChat"),
+        icon: "chevron.left",
+      }}
       actions={
         props.showChangedFilesToggle
           ? [
               {
                 accessibilityLabel: panes.auxiliaryPaneVisible
-                  ? "Hide changed files"
-                  : "Show changed files",
+                  ? t("review.reviewSheet.hideChangedFiles")
+                  : t("review.reviewSheet.showChangedFiles"),
                 icon: "sidebar.right",
                 selected: panes.auxiliaryPaneVisible,
                 onPress: toggleAuxiliaryPane,
@@ -119,23 +123,32 @@ function ReviewHeader(
         ...(props.showSectionToolbar
           ? [
               {
-                title: "Select diff",
+                title: t("review.reviewSheet.selectDiff"),
                 icon: presentation.menuIcon,
                 items: [
                   {
                     id: "sections",
                     inline: true,
                     items: [
-                      sectionAction(props.sectionMenu.branchChanges, "Changes"),
-                      sectionAction(props.sectionMenu.workingTree, "Uncommitted"),
-                      sectionAction(props.sectionMenu.latestTurn, "Latest turn"),
+                      sectionAction(
+                        props.sectionMenu.branchChanges,
+                        t("review.reviewSheet.sectionChanges"),
+                      ),
+                      sectionAction(
+                        props.sectionMenu.workingTree,
+                        t("review.reviewSheet.sectionUncommitted"),
+                      ),
+                      sectionAction(
+                        props.sectionMenu.latestTurn,
+                        t("review.reviewSheet.sectionLatestTurn"),
+                      ),
                     ],
                   },
                   ...(props.sectionMenu.turns.length > 0
                     ? [
                         {
                           id: "turns",
-                          title: "Turn",
+                          title: t("review.reviewSheet.sectionTurn"),
                           items: props.sectionMenu.turns.map((section) => ({
                             id: `section:${section.id}`,
                             title: section.title,
@@ -167,7 +180,9 @@ const ReviewNotice = memo(function ReviewNotice(props: { readonly notice: string
         Platform.OS === "android" ? "m-2 rounded-[20px]" : "border-b border-warning-border",
       )}
     >
-      <Text className="text-xs font-t3-bold uppercase text-warning-foreground">Partial diff</Text>
+      <Text className="text-xs font-t3-bold uppercase text-warning-foreground">
+        {t("review.reviewSheet.partialDiff")}
+      </Text>
       <Text className="text-xs leading-normal text-warning-foreground">{props.notice}</Text>
     </View>
   );
@@ -401,8 +416,8 @@ function ReviewFileNavigator({
               hideBackButton
               hideShadow={false}
               navigationItemStyle="editor"
-              subtitle={`${files.length} ${files.length === 1 ? "file" : "files"}`}
-              title="Changed files"
+              subtitle={t("review.reviewSheet.fileCount", { count: files.length })}
+              title={t("review.reviewSheet.changedFiles")}
               titleColor={foregroundColor}
               titleFontSize={17}
               titleFontWeight="700"
@@ -422,16 +437,18 @@ function ReviewFileNavigator({
     >
       {Platform.OS === "android" ? (
         <AndroidScreenHeader
-          title="Changed files"
-          subtitle={`${files.length} ${files.length === 1 ? "file" : "files"}`}
+          title={t("review.reviewSheet.changedFiles")}
+          subtitle={t("review.reviewSheet.fileCount", { count: files.length })}
           hideBottomBorder
         />
       ) : (
         <View className="border-b border-border" style={{ paddingTop: headerInset }}>
           <View className="px-4 py-3">
-            <Text className="text-sm font-t3-bold text-foreground">Changed files</Text>
+            <Text className="text-sm font-t3-bold text-foreground">
+              {t("review.reviewSheet.changedFiles")}
+            </Text>
             <Text className="text-xs text-foreground-muted">
-              {files.length} {files.length === 1 ? "file" : "files"}
+              {t("review.reviewSheet.fileCount", { count: files.length })}
             </Text>
           </View>
         </View>
@@ -688,7 +705,9 @@ export function ReviewSheet(props: ReviewSheetProps) {
             Platform.OS === "android" ? "m-2 rounded-[20px]" : "border-b border-border",
           )}
         >
-          <Text className="text-sm font-t3-bold text-foreground">Review unavailable</Text>
+          <Text className="text-sm font-t3-bold text-foreground">
+            {t("review.reviewSheet.reviewUnavailable")}
+          </Text>
           <Text className="text-xs leading-normal text-foreground-muted">{error}</Text>
         </View>,
       );
@@ -708,12 +727,12 @@ export function ReviewSheet(props: ReviewSheetProps) {
     headerDiffSummary.additions,
     headerDiffSummary.deletions,
     pendingReviewCommentCount > 0
-      ? `${pendingReviewCommentCount} comment${pendingReviewCommentCount === 1 ? "" : "s"}`
+      ? t("review.reviewSheet.commentCount", { count: pendingReviewCommentCount })
       : null,
   ]
     .filter(Boolean)
     .join(" · ");
-  const headerTitleText = selectedSection?.title ?? "Review changes";
+  const headerTitleText = selectedSection?.title ?? t("review.reviewSheet.reviewChanges");
 
   return (
     <>
@@ -739,7 +758,10 @@ export function ReviewSheet(props: ReviewSheetProps) {
           {showConnectionNotice ? (
             <View className="flex-1" style={{ paddingTop: topContentInset }}>
               <EnvironmentConnectionNotice
-                environmentLabel={environment.presentation?.entry.target.label ?? "Environment"}
+                environmentLabel={
+                  environment.presentation?.entry.target.label ??
+                  t("review.reviewSheet.environment")
+                }
                 connection={
                   environment.presentation?.connection ?? {
                     phase: "available",
@@ -747,7 +769,7 @@ export function ReviewSheet(props: ReviewSheetProps) {
                     traceId: null,
                   }
                 }
-                resourceName="review"
+                resourceName={t("review.reviewSheet.resourceName")}
                 onRetry={handleRetryEnvironment}
               />
             </View>
@@ -832,14 +854,16 @@ export function ReviewSheet(props: ReviewSheetProps) {
                       : "border-b border-border bg-card px-4 py-5"
                   }
                 >
-                  <Text className="text-sm font-t3-bold text-foreground">No review diffs</Text>
+                  <Text className="text-sm font-t3-bold text-foreground">
+                    {t("review.reviewSheet.noReviewDiffs")}
+                  </Text>
                   <Text
                     className={cn(
                       "text-xs leading-normal text-foreground-muted",
                       Platform.OS === "android" && "mt-2 text-center",
                     )}
                   >
-                    This thread has no ready turn diffs and the worktree diff is empty.
+                    {t("review.reviewSheet.noReviewDiffsDetail")}
                   </Text>
                 </View>
               ) : selectedSection.isLoading && selectedSection.diff === null ? (
@@ -850,7 +874,9 @@ export function ReviewSheet(props: ReviewSheetProps) {
                   )}
                 >
                   <ActivityIndicator size="small" />
-                  <Text className="text-xs text-foreground-muted">Loading diff…</Text>
+                  <Text className="text-xs text-foreground-muted">
+                    {t("review.reviewSheet.loadingDiff")}
+                  </Text>
                 </View>
               ) : parsedDiff.kind === "empty" ? (
                 <View
@@ -860,14 +886,16 @@ export function ReviewSheet(props: ReviewSheetProps) {
                       : "border-b border-border bg-card px-4 py-5"
                   }
                 >
-                  <Text className="text-sm font-t3-bold text-foreground">No changes</Text>
+                  <Text className="text-sm font-t3-bold text-foreground">
+                    {t("review.reviewSheet.noChanges")}
+                  </Text>
                   <Text
                     className={cn(
                       "text-xs leading-normal text-foreground-muted",
                       Platform.OS === "android" && "mt-2 text-center",
                     )}
                   >
-                    {selectedSection.subtitle ?? "This diff is empty."}
+                    {selectedSection.subtitle ?? t("review.reviewSheet.emptyDiff")}
                   </Text>
                 </View>
               ) : parsedDiff.kind === "raw" ? (
@@ -896,7 +924,7 @@ export function ReviewSheet(props: ReviewSheetProps) {
                   )}
                 >
                   <Text className="text-xs leading-normal text-foreground-muted">
-                    Native diff view unavailable. Showing the raw patch.
+                    {t("review.reviewSheet.nativeDiffUnavailable")}
                   </Text>
                   <ScrollView horizontal showsHorizontalScrollIndicator={false} bounces={false}>
                     <Text selectable className="font-mono text-xs leading-relaxed text-foreground">

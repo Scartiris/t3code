@@ -2,6 +2,7 @@ import { MaterialListRow } from "../../components/MaterialListRow";
 import type { EnvironmentProject } from "@t3tools/client-runtime/state/shell";
 import type { VcsRef } from "@t3tools/client-runtime/state/vcs";
 import { type EnvironmentId, resolveEnvironmentMachineKind } from "@t3tools/contracts";
+import { t } from "@t3tools/shared/i18n";
 import { LegendList } from "@legendapp/list/react-native";
 import {
   isAtomCommandInterrupted,
@@ -221,10 +222,10 @@ export function NewTaskEnvironmentPickerRouteScreen() {
         if (!isAtomCommandInterrupted(result)) {
           const error = squashAtomCommandFailure(result);
           Alert.alert(
-            "Could not switch machine",
+            t("threads.newTaskContextPickerScreens.switchMachineFailedTitle"),
             error instanceof Error
               ? error.message
-              : "The folder for threads without a project could not be created.",
+              : t("threads.newTaskContextPickerScreens.switchMachineFailedBody"),
           );
         }
         return;
@@ -241,12 +242,12 @@ export function NewTaskEnvironmentPickerRouteScreen() {
       <NativeStackScreenOptions
         options={{
           headerShown: Platform.OS !== "android",
-          title: "Environment",
+          title: t("threads.newTaskContextPickerScreens.environmentTitle"),
         }}
       />
       {Platform.OS === "android" ? (
         <AndroidScreenHeader
-          title="Environment"
+          title={t("threads.newTaskContextPickerScreens.environmentTitle")}
           hideBottomBorder
           onBack={() => navigation.goBack()}
         />
@@ -347,8 +348,10 @@ export function NewTaskBranchPickerRouteScreen() {
           if (mountedRef.current && navigation.isFocused() && !isAtomCommandInterrupted(result)) {
             const error = squashAtomCommandFailure(result);
             Alert.alert(
-              "Could not switch branch",
-              error instanceof Error ? error.message : "The branch could not be checked out.",
+              t("threads.newTaskContextPickerScreens.switchBranchFailedTitle"),
+              error instanceof Error
+                ? error.message
+                : t("threads.newTaskContextPickerScreens.switchBranchFailedBody"),
             );
           }
           return;
@@ -384,7 +387,11 @@ export function NewTaskBranchPickerRouteScreen() {
 
   return (
     <BranchPickerScreen
-      title={flow.workspaceMode === "worktree" ? "Base branch" : "Branch"}
+      title={
+        flow.workspaceMode === "worktree"
+          ? t("threads.newTaskContextPickerScreens.baseBranchTitle")
+          : t("threads.newTaskContextPickerScreens.branchTitle")
+      }
       project={flow.selectedProject}
       branches={flow.filteredBranches}
       selectedBranchName={
@@ -487,7 +494,7 @@ export function BranchPickerScreen(props: {
     >
       <ToggleRow
         onValueChange={props.worktree.onChangeStartFromOrigin}
-        title="Start from origin"
+        title={t("git.startFromOrigin")}
         value={props.worktree.startFromOrigin}
       />
     </View>
@@ -514,12 +521,12 @@ export function BranchPickerScreen(props: {
           {props.loading ? <ActivityIndicator /> : null}
           <Text className="text-center text-sm text-foreground-muted">
             {props.loading
-              ? "Loading branches…"
+              ? t("threads.newTaskContextPickerScreens.loadingBranches")
               : props.error
                 ? props.error
                 : props.query
-                  ? "No matching branches"
-                  : "No branches available"}
+                  ? t("threads.newTaskContextPickerScreens.noMatchingBranches")
+                  : t("threads.newTaskContextPickerScreens.noBranchesAvailable")}
           </Text>
           {!props.loading && props.error ? (
             <Pressable
@@ -527,7 +534,9 @@ export function BranchPickerScreen(props: {
               className="rounded-full bg-card px-4 py-2 active:opacity-70"
               onPress={props.onRefresh}
             >
-              <Text className="text-sm font-t3-medium text-foreground">Try again</Text>
+              <Text className="text-sm font-t3-medium text-foreground">
+                {t("threads.newTaskContextPickerScreens.tryAgain")}
+              </Text>
             </Pressable>
           ) : null}
         </View>
@@ -574,13 +583,13 @@ export function BranchPickerScreen(props: {
           <TextInput
             autoCapitalize="none"
             autoCorrect={false}
-            accessibilityLabel="Find a branch"
+            accessibilityLabel={t("threads.newTaskContextPickerScreens.findBranch")}
             className="h-12 rounded-full border border-input-border bg-input px-4 font-sans text-base text-foreground"
             selectionColorClassName="accent-focus/32"
             cursorColorClassName="accent-focus"
             selectionHandleColorClassName="accent-focus"
             onChangeText={props.onQueryChange}
-            placeholder="Find a branch"
+            placeholder={t("threads.newTaskContextPickerScreens.findBranch")}
             placeholderTextColorClassName="accent-placeholder"
             value={props.query}
           />
@@ -600,7 +609,7 @@ export function BranchPickerScreen(props: {
             ? () => [
                 createNativeMailSearchToolbarItem({
                   onSearchTextChange: props.onQueryChange,
-                  placeholder: "Find a branch",
+                  placeholder: t("threads.newTaskContextPickerScreens.findBranch"),
                   searchTextChangeId: "new-task-branch-search-text",
                   showsSearchDismissButton: true,
                 }),
@@ -613,7 +622,7 @@ export function BranchPickerScreen(props: {
                 autoCapitalize: "none",
                 hideNavigationBar: false,
                 obscureBackground: false,
-                placeholder: "Find a branch",
+                placeholder: t("threads.newTaskContextPickerScreens.findBranch"),
                 onChangeText: (event) => {
                   props.onQueryChange(event.nativeEvent.text);
                 },

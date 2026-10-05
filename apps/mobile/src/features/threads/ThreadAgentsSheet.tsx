@@ -7,6 +7,7 @@ import {
   type ThreadId,
 } from "@t3tools/contracts";
 import { deriveSubagentElapsedMs, formatDuration } from "@t3tools/shared/orchestrationTiming";
+import { t } from "@t3tools/shared/i18n";
 import { StackActions, useNavigation, type StaticScreenProps } from "@react-navigation/native";
 import * as DateTime from "effect/DateTime";
 import * as Haptics from "expo-haptics";
@@ -62,7 +63,7 @@ export function ThreadAgentsSheet({ route }: StaticScreenProps<AgentsTarget>) {
     >
       {subagents.length === 0 ? (
         <Text className="pt-6 text-center text-sm text-foreground-muted">
-          No agents in this turn.
+          {t("threads.threadAgentsSheet.noAgents")}
         </Text>
       ) : (
         subagents.map((subagent) => (
@@ -98,7 +99,7 @@ export function ThreadAgentsSheet({ route }: StaticScreenProps<AgentsTarget>) {
               color={theme["--color-foreground"]}
               hideBackButton
               hideShadow={false}
-              title="Agents"
+              title={t("threads.threadAgentsSheet.title")}
               titleColor={theme["--color-foreground"]}
               titleFontSize={18}
               titleFontWeight="800"
@@ -112,7 +113,10 @@ export function ThreadAgentsSheet({ route }: StaticScreenProps<AgentsTarget>) {
 
   return (
     <View collapsable={false} className="flex-1 bg-sheet">
-      <AndroidSheetHeader title="Agents" onBack={() => navigation.goBack()} />
+      <AndroidSheetHeader
+        title={t("threads.threadAgentsSheet.title")}
+        onBack={() => navigation.goBack()}
+      />
       {content}
     </View>
   );
@@ -139,10 +143,7 @@ function AgentRow(props: {
 
   if (childThreadId === null) {
     return (
-      <View
-        accessible
-        accessibilityHint="Provider-managed agent. Its work appears in the transcript."
-      >
+      <View accessible accessibilityHint={t("threads.threadAgentsSheet.providerManagedHint")}>
         {row}
       </View>
     );
@@ -151,7 +152,7 @@ function AgentRow(props: {
   return (
     <Pressable
       accessibilityRole="link"
-      accessibilityHint="Opens this agent's thread"
+      accessibilityHint={t("threads.threadAgentsSheet.openAgentHint")}
       onPress={() => props.onOpen(childThreadId)}
       className="active:opacity-70"
     >

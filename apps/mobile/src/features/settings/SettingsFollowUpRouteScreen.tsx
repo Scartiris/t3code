@@ -1,5 +1,6 @@
 import { useAtomSet, useAtomValue } from "@effect/atom-react";
 import { useNavigation } from "@react-navigation/native";
+import { t } from "@t3tools/shared/i18n";
 import { AsyncResult } from "effect/unstable/reactivity";
 import { Platform, ScrollView, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -19,13 +20,13 @@ const FOLLOW_UP_OPTIONS: ReadonlyArray<{
 }> = [
   {
     behavior: "queue",
-    label: "Queue",
-    description: "Your message waits and runs after the current turn finishes.",
+    label: t("settings.settingsFollowUpRouteScreen.queue"),
+    description: t("settings.settingsFollowUpRouteScreen.queueDescription"),
   },
   {
     behavior: "steer",
-    label: "Steer",
-    description: "Your message reaches the agent right away, changing what it is working on.",
+    label: t("settings.settingsFollowUpRouteScreen.steer"),
+    description: t("settings.settingsFollowUpRouteScreen.steerDescription"),
   },
 ];
 
@@ -44,7 +45,10 @@ export function SettingsFollowUpRouteScreen() {
       {Platform.OS === "android" ? (
         <>
           <NativeStackScreenOptions options={{ headerShown: false }} />
-          <AndroidScreenHeader title="Follow-ups" onBack={() => navigation.goBack()} />
+          <AndroidScreenHeader
+            title={t("settings.settingsFollowUpRouteScreen.title")}
+            onBack={() => navigation.goBack()}
+          />
         </>
       ) : null}
       <ScrollView
@@ -54,7 +58,7 @@ export function SettingsFollowUpRouteScreen() {
         contentContainerClassName="gap-3 px-5 pt-4"
         contentContainerStyle={{ paddingBottom: Math.max(insets.bottom, 18) + 18 }}
       >
-        <SettingsSection title="While the agent is running">
+        <SettingsSection title={t("settings.settingsFollowUpRouteScreen.whileRunning")}>
           {FOLLOW_UP_OPTIONS.map((option, index) => (
             <SettingsChoiceRow
               key={option.behavior}
@@ -68,8 +72,7 @@ export function SettingsFollowUpRouteScreen() {
           ))}
         </SettingsSection>
         <Text className="px-2 text-sm text-foreground-muted">
-          Long-press the send button to use the other option for a single message. With a hardware
-          keyboard, hold Command while sending.
+          {t("settings.settingsFollowUpRouteScreen.longPressHint")}
         </Text>
       </ScrollView>
     </View>

@@ -1,3 +1,5 @@
+import { t } from "@t3tools/shared/i18n";
+
 import {
   BASE_FONT_SIZE_STEP,
   MAX_BASE_FONT_SIZE,
@@ -15,13 +17,13 @@ export function TextAppearanceSection() {
   const { isReady, appearance, setBaseFontSize } = useAppearancePreferences();
 
   return (
-    <SettingsSection title="Text">
+    <SettingsSection title={t("settings.textAppearanceSection.title")}>
       <TextAppearancePreview fontSize={appearance.baseFontSize} />
       <AppearancePreviewSeparator />
       <FontSizeSliderRow
         disabled={!isReady}
         icon="textformat.size"
-        label="Text size"
+        label={t("settings.textAppearanceSection.textSize")}
         max={MAX_BASE_FONT_SIZE}
         min={MIN_BASE_FONT_SIZE}
         onChange={setBaseFontSize}

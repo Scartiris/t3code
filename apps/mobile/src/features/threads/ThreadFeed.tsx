@@ -29,6 +29,7 @@ import {
   collectComposerContextReferences,
   replaceComposerContextReferences,
 } from "@t3tools/shared/composerContextReferences";
+import { t } from "@t3tools/shared/i18n";
 import { ComposerContextSheet } from "../../components/ComposerContextSheet";
 import { writeComposerContextClipboard } from "../../lib/composerContextClipboard";
 import {
@@ -331,7 +332,7 @@ function AssistantForkButton(props: {
   return (
     <Pressable
       accessibilityRole="button"
-      accessibilityLabel="Fork from this response"
+      accessibilityLabel={t("threads.threadFeed.forkAccessibilityLabel")}
       disabled={busy}
       onPress={() => {
         const targetThreadId = ThreadId.make(uuidv4());
@@ -343,7 +344,7 @@ function AssistantForkButton(props: {
             sourceThreadId: props.projectedItem.sourceThreadId,
             targetThreadId,
             runId,
-            title: `${props.sourceTitle} fork`,
+            title: `${props.sourceTitle} ${t("threads.threadFeed.forkTitleSuffix")}`,
             creationSource: "mobile",
           },
         })
@@ -352,8 +353,8 @@ function AssistantForkButton(props: {
             const targetThreadReady = await waitForThreadShell(props.environmentId, targetThreadId);
             if (!targetThreadReady) {
               Alert.alert(
-                "Fork created",
-                "Its thread data did not reach this client. Reconnect and try opening it from the thread list.",
+                t("threads.threadFeed.forkCreatedTitle"),
+                t("threads.threadFeed.forkCreatedBody"),
               );
               return;
             }
@@ -414,7 +415,7 @@ function MessageAttachmentImage(props: {
     <PresentationSource identifier={sourceIdentifier}>
       <Pressable
         accessibilityRole="imagebutton"
-        accessibilityLabel={`Open ${props.name}`}
+        accessibilityLabel={t("threads.threadFeed.openAttachmentLabel", { name: props.name })}
         onPress={() =>
           // The viewer mints its own URL from the resource so the image survives a refresh.
           props.onPressPreview({
@@ -482,7 +483,8 @@ function MessageAttachmentFile(props: {
   const isPdf = isPdfFile(attachment);
   const fileTypeLabel = isPdf
     ? "PDF"
-    : (attachment.name.match(/\.([a-z0-9]{1,8})$/i)?.[1]?.toUpperCase() ?? "File");
+    : (attachment.name.match(/\.([a-z0-9]{1,8})$/i)?.[1]?.toUpperCase() ??
+      t("threads.threadFeed.fileTypeFallback"));
   const sizeLabel = formatAttachmentSize(attachment.sizeBytes);
   const thumbnailUrl = useAssetUrl(
     props.environmentId,
@@ -535,7 +537,7 @@ function MessageAttachmentFile(props: {
         }
         const url = resolveAssetUrl(httpBaseUrl, result.value.relativeUrl);
         if (url === null) {
-          throw new Error("The attachment could not be opened.");
+          throw new Error(t("threads.threadFeed.attachmentOpenFailedDetail"));
         }
         await downloadAndShareAttachment({
           url,
@@ -546,8 +548,8 @@ function MessageAttachmentFile(props: {
       } catch (error) {
         if (!controller.signal.aborted) {
           Alert.alert(
-            "Could not open attachment",
-            error instanceof Error ? error.message : "The attachment is unavailable.",
+            t("threads.threadFeed.openAttachmentFailedTitle"),
+            error instanceof Error ? error.message : t("threads.threadFeed.attachmentUnavailable"),
           );
         }
       } finally {
@@ -587,7 +589,9 @@ function MessageAttachmentFile(props: {
       >
         <Pressable
           accessibilityRole="button"
-          accessibilityLabel={`Open ${attachment.name}`}
+          accessibilityLabel={t("threads.threadFeed.openAttachmentLabel", {
+            name: attachment.name,
+          })}
           accessibilityValue={{ text: `${fileTypeLabel}, ${sizeLabel}` }}
           accessibilityState={{ disabled: opening || httpBaseUrl === null, busy: opening }}
           disabled={opening || httpBaseUrl === null}
@@ -862,11 +866,15 @@ function ArtifactTemplateCard(props: {
       {props.onUse ? (
         <Pressable
           accessibilityRole="button"
-          accessibilityLabel={`Use ${props.template.displayName} template`}
+          accessibilityLabel={t("threads.threadFeed.useTemplateLabel", {
+            name: props.template.displayName,
+          })}
           className="min-h-9 justify-center rounded-lg border border-border bg-subtle px-3 active:opacity-65"
           onPress={() => props.onUse?.(props.template)}
         >
-          <Text className="font-t3-bold text-xs text-foreground">Use template</Text>
+          <Text className="font-t3-bold text-xs text-foreground">
+            {t("threads.threadFeed.useTemplate")}
+          </Text>
         </Pressable>
       ) : null}
     </View>
@@ -973,7 +981,7 @@ function MarkdownCodeBlock(props: {
           {languageLabel}
         </NativeText>
         <CopyTextButton
-          accessibilityLabel="Copy code"
+          accessibilityLabel={t("threads.threadFeed.copyCode")}
           text={content}
           tintColor={props.copyTintColor}
           buttonSize={32}
@@ -1459,13 +1467,13 @@ function AgentMessageAttribution(props: {
   const senderThreadId = props.senderThreadId;
   const label = (
     <Text className="mb-1 pr-1 font-t3-medium text-2xs text-foreground-muted opacity-60">
-      Sent by another agent
+      {t("threads.threadFeed.sentByAnotherAgent")}
     </Text>
   );
   return senderThreadId ? (
     <Pressable
       accessibilityRole="button"
-      accessibilityLabel="Open sending thread"
+      accessibilityLabel={t("threads.threadFeed.openSendingThread")}
       hitSlop={4}
       onPress={() =>
         navigation.navigate("Thread", {
@@ -1653,7 +1661,7 @@ function renderFeedEntry(
         >
           {presentation.isAutomation ? (
             <Text className="mb-1 pr-1 font-t3-medium text-2xs text-foreground-muted opacity-60">
-              Sent by automation
+              {t("threads.threadFeed.sentByAutomation")}
             </Text>
           ) : message.createdBy === "agent" ? (
             <AgentMessageAttribution
@@ -1770,7 +1778,9 @@ function renderFeedEntry(
               </View>
             ) : null}
             <Text className="font-t3-medium text-xs tabular-nums text-foreground-secondary">
-              {entry.pendingMessage && !entry.acknowledged ? "Pending" : timestampLabel}
+              {entry.pendingMessage && !entry.acknowledged
+                ? t("threads.threadFeed.pending")
+                : timestampLabel}
             </Text>
             {props.onEditPendingMessage !== null &&
             entry.pendingMessage &&
@@ -1779,7 +1789,7 @@ function renderFeedEntry(
             entry.pendingMessage.messageId !== props.dispatchingMessageId ? (
               <Pressable
                 accessibilityRole="button"
-                accessibilityLabel="Edit pending message"
+                accessibilityLabel={t("threads.threadFeed.editPendingMessage")}
                 hitSlop={8}
                 className="size-7 items-center justify-center"
                 onPress={() => {
@@ -1793,7 +1803,7 @@ function renderFeedEntry(
             ) : null}
             {presentation.text.trim().length > 0 ? (
               <CopyTextButton
-                accessibilityLabel="Copy message"
+                accessibilityLabel={t("threads.threadFeed.copyMessage")}
                 text={presentation.text}
                 onCopy={
                   message.context
@@ -1882,7 +1892,7 @@ function renderFeedEntry(
               />
             ) : null}
             <CopyTextButton
-              accessibilityLabel="Copy message"
+              accessibilityLabel={t("threads.threadFeed.copyMessage")}
               text={renderedText}
               tintColor={iconSubtleColor}
               buttonSize={28}
@@ -1938,7 +1948,9 @@ function UserMessageContent(props: UserMessageContentProps) {
   const { selectedThread } = useThreadSelection();
   const text = replaceComposerContextReferences(props.text, (ref) => {
     const available = props.context?.records.some((record) => record.contextId === ref.contextId);
-    return `[${ref.label}${available ? "" : " (unavailable)"}](t3-context://v1/${ref.kind}/${ref.contextId})`;
+    return `[${ref.label}${
+      available ? "" : t("threads.threadFeed.contextReferenceUnavailable")
+    }](t3-context://v1/${ref.kind}/${ref.contextId})`;
   });
   const onLinkPress = (href: string) => {
     const reference = parseComposerContextHref(href);
@@ -1970,7 +1982,10 @@ function UserMessageContent(props: UserMessageContentProps) {
       });
       return;
     }
-    setSelected({ contextId: reference.contextId, label: record?.label ?? "Context unavailable" });
+    setSelected({
+      contextId: reference.contextId,
+      label: record?.label ?? t("threads.threadFeed.contextUnavailable"),
+    });
   };
   return (
     <>
@@ -3137,8 +3152,8 @@ export const ThreadFeed = memo(function ThreadFeed(props: ThreadFeedProps) {
         props.contentPresentation.kind === "ready" ? (
           <View pointerEvents="none" style={StyleSheet.absoluteFill}>
             <ThreadFeedPlaceholder
-              title="No conversation yet"
-              detail="Ask the agent to inspect the repo, run a command, or continue the active thread."
+              title={t("threads.threadFeed.emptyTitle")}
+              detail={t("threads.threadFeed.emptyDetail")}
               topInset={topContentInset}
               bottomInset={bottomContentInset}
               horizontalPadding={horizontalPadding}
@@ -3164,7 +3179,7 @@ function ThreadFeedLoadEarlierControl(props: ThreadFeedHistoryControls) {
       {props.hasMoreHistory ? (
         <Pressable
           accessibilityRole="button"
-          accessibilityLabel="Load earlier activity"
+          accessibilityLabel={t("threads.threadFeed.loadEarlierActivity")}
           disabled={props.loading}
           onPress={props.onLoadEarlier}
           className="min-h-9 flex-row items-center justify-center gap-2 rounded-full border border-border/60 bg-surface/80 px-4 py-2 disabled:opacity-50"
@@ -3175,7 +3190,9 @@ function ThreadFeedLoadEarlierControl(props: ThreadFeedHistoryControls) {
             <SymbolView name="chevron.up" size={12} tintColor={accentColor} type="monochrome" />
           )}
           <Text className="text-sm font-medium text-foreground">
-            {props.loading ? "Loading earlier activity…" : "Load earlier activity"}
+            {props.loading
+              ? t("threads.threadFeed.loadingEarlierActivity")
+              : t("threads.threadFeed.loadEarlierActivity")}
           </Text>
         </Pressable>
       ) : null}

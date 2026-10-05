@@ -2,6 +2,7 @@ import { useAtomValue } from "@effect/atom-react";
 import type { StaticScreenProps } from "@react-navigation/native";
 import type { EnvironmentId, ServerProvider } from "@t3tools/contracts";
 import { squashAtomCommandFailure } from "@t3tools/client-runtime/state/runtime";
+import { t } from "@t3tools/shared/i18n";
 import { AsyncResult } from "effect/unstable/reactivity";
 import { useEffect, useRef, useState } from "react";
 import { Alert, View } from "react-native";
@@ -88,7 +89,9 @@ function EnvironmentDetail({ environmentId }: { readonly environmentId: Environm
       await action();
     } catch (cause) {
       setError(
-        cause instanceof Error ? cause.message : "The action could not be completed. Try again.",
+        cause instanceof Error
+          ? cause.message
+          : t("settings.settingsEnvironmentDetailRouteScreen.actionFailed"),
       );
     } finally {
       pendingRef.current = false;
@@ -101,12 +104,22 @@ function EnvironmentDetail({ environmentId }: { readonly environmentId: Environm
     if (disabled || !targetVersion || !capabilities || !supportsEnvironmentUpdate(capabilities))
       return;
     Alert.alert(
-      `Update ${environment?.environmentLabel ?? "environment"}?`,
-      `Install T3 Code ${targetVersion}. ${capabilities.serverSelfUpdate === "desktop-managed" ? "The desktop app will close and relaunch." : "The server will restart and reconnect."} Running threads may be interrupted.`,
+      t("settings.settingsEnvironmentDetailRouteScreen.updateEnvironmentTitle", {
+        environment:
+          environment?.environmentLabel ??
+          t("settings.settingsEnvironmentDetailRouteScreen.environmentFallback"),
+      }),
+      t("settings.settingsEnvironmentDetailRouteScreen.updateEnvironmentBody", {
+        targetVersion,
+        note:
+          capabilities.serverSelfUpdate === "desktop-managed"
+            ? t("settings.settingsEnvironmentDetailRouteScreen.desktopWillRelaunch")
+            : t("settings.settingsEnvironmentDetailRouteScreen.serverWillRestart"),
+      }),
       [
-        { text: "Cancel", style: "cancel" },
+        { text: t("action.cancel"), style: "cancel" },
         {
-          text: "Update",
+          text: t("settings.settingsEnvironmentDetailRouteScreen.update"),
           onPress: () =>
             void run("server", async () => {
               const result = await updateServer({
@@ -121,7 +134,11 @@ function EnvironmentDetail({ environmentId }: { readonly environmentId: Environm
               });
               if (AsyncResult.isFailure(result)) throw squashAtomCommandFailure(result);
               setRelease(null);
-              setNotice(`Updated to ${result.value.targetVersion}.`);
+              setNotice(
+                t("settings.settingsEnvironmentDetailRouteScreen.updatedTo", {
+                  targetVersion: result.value.targetVersion,
+                }),
+              );
             }),
         },
       ],
@@ -143,7 +160,12 @@ function EnvironmentDetail({ environmentId }: { readonly environmentId: Environm
   }
 
   return (
-    <SettingsScreen title={environment?.environmentLabel ?? "Environment"}>
+    <SettingsScreen
+      title={
+        environment?.environmentLabel ??
+        t("settings.settingsEnvironmentDetailRouteScreen.defaultTitle")
+      }
+    >
       <ScreenScrollView
         contentInsetAdjustmentBehavior="automatic"
         className="flex-1"
@@ -152,11 +174,11 @@ function EnvironmentDetail({ environmentId }: { readonly environmentId: Environm
       >
         {!environment ? (
           <Text className="text-base text-foreground-muted">
-            This environment is no longer saved on this device.
+            {t("settings.settingsEnvironmentDetailRouteScreen.environmentNotSaved")}
           </Text>
         ) : (
           <>
-            <SettingsSection title="Connection">
+            <SettingsSection title={t("settings.section.connections")}>
               <ConnectionEnvironmentRow
                 environment={environment}
                 expanded={connectionExpanded}
@@ -169,15 +191,15 @@ function EnvironmentDetail({ environmentId }: { readonly environmentId: Environm
             </SettingsSection>
             {!connected ? (
               <Text className="px-2 text-sm text-foreground-muted">
-                Connect this environment to manage it.
+                {t("settings.settingsEnvironmentDetailRouteScreen.connectToManage")}
               </Text>
             ) : !allowed ? (
               <Text className="px-2 text-sm text-foreground-muted">
                 {AsyncResult.isFailure(sessionResult)
-                  ? "Could not verify your permissions. Reconnect to try again."
+                  ? t("settings.settingsEnvironmentDetailRouteScreen.permissionsUnverified")
                   : session === null
-                    ? "Checking permissions…"
-                    : "This connection does not have permission to manage the environment."}
+                    ? t("settings.settingsEnvironmentDetailRouteScreen.checkingPermissions")
+                    : t("settings.settingsEnvironmentDetailRouteScreen.missingPermission")}
               </Text>
             ) : null}
             {error ? (
@@ -188,14 +210,16 @@ function EnvironmentDetail({ environmentId }: { readonly environmentId: Environm
             {notice ? <Text className="px-2 text-sm text-foreground-muted">{notice}</Text> : null}
             {config ? (
               <>
-                <SettingsSection title="T3 Code">
+                <SettingsSection title={t("app.name")}>
                   <View className="gap-1 p-4">
-                    <Text className="text-base text-foreground">Version {version}</Text>
+                    <Text className="text-base text-foreground">
+                      {t("settings.settingsEnvironmentDetailRouteScreen.version", { version })}
+                    </Text>
                     {running ? (
                       <Text className="text-sm text-foreground-muted">
                         {updateState.stage === "resuming"
-                          ? "Restarting and reconnecting…"
-                          : "Downloading update…"}
+                          ? t("settings.settingsEnvironmentDetailRouteScreen.restarting")
+                          : t("settings.settingsEnvironmentDetailRouteScreen.downloading")}
                       </Text>
                     ) : updateState.status === "failed" ? (
                       <Text selectable className="text-sm text-danger-foreground">
@@ -205,21 +229,23 @@ function EnvironmentDetail({ environmentId }: { readonly environmentId: Environm
                     {checkedRelease ? (
                       <Text className="text-sm text-foreground-muted">
                         {checkedRelease.targetVersion
-                          ? `Version ${checkedRelease.targetVersion} is available.`
-                          : "You are up to date."}
+                          ? t("settings.settingsEnvironmentDetailRouteScreen.versionAvailable", {
+                              targetVersion: checkedRelease.targetVersion,
+                            })
+                          : t("settings.settingsEnvironmentDetailRouteScreen.upToDate")}
                       </Text>
                     ) : null}
                     {!supportsEnvironmentUpdate(config.environment.capabilities) ? (
                       <Text className="text-sm text-foreground-muted">
                         {capabilities?.serverSelfUpdate === "desktop-managed"
-                          ? "Update the desktop app on this machine."
-                          : "Update and restart T3 Code on this machine."}
+                          ? t("settings.settingsEnvironmentDetailRouteScreen.updateDesktopApp")
+                          : t("settings.settingsEnvironmentDetailRouteScreen.updateOnMachine")}
                       </Text>
                     ) : null}
                   </View>
                   <SettingsActionRow
                     icon="arrow.clockwise"
-                    label="Check for updates"
+                    label={t("settings.settingsEnvironmentDetailRouteScreen.checkForUpdates")}
                     disabled={disabled}
                     loading={pending === "check"}
                     onPress={() => {
@@ -248,17 +274,19 @@ function EnvironmentDetail({ environmentId }: { readonly environmentId: Environm
                   supportsEnvironmentUpdate(config.environment.capabilities) ? (
                     <SettingsActionRow
                       icon="arrow.up.circle"
-                      label={`Update to ${checkedRelease.targetVersion}`}
+                      label={t("settings.settingsEnvironmentDetailRouteScreen.updateTo", {
+                        targetVersion: checkedRelease.targetVersion,
+                      })}
                       disabled={disabled}
                       loading={pending === "server" || running}
                       onPress={requestServerUpdate}
                     />
                   ) : null}
                 </SettingsSection>
-                <SettingsSection title="Providers">
+                <SettingsSection title={t("settings.section.providers")}>
                   <SettingsActionRow
                     icon="arrow.clockwise"
-                    label="Refresh providers"
+                    label={t("settings.settingsEnvironmentDetailRouteScreen.refreshProviders")}
                     disabled={disabled}
                     loading={pending === "refresh"}
                     onPress={() => {
@@ -266,7 +294,11 @@ function EnvironmentDetail({ environmentId }: { readonly environmentId: Environm
                       void run("refresh", async () => {
                         const result = await refreshProviders({ environmentId, input: {} });
                         if (AsyncResult.isFailure(result)) throw squashAtomCommandFailure(result);
-                        setNotice("Provider status refreshed.");
+                        setNotice(
+                          t(
+                            "settings.settingsEnvironmentDetailRouteScreen.providerStatusRefreshed",
+                          ),
+                        );
                       });
                     }}
                   />
@@ -283,10 +315,13 @@ function EnvironmentDetail({ environmentId }: { readonly environmentId: Environm
                           </View>
                           <Text className="text-sm text-foreground-muted">
                             {provider.installed
-                              ? (provider.version ?? "Version unknown")
-                              : "Not installed"}
+                              ? (provider.version ??
+                                t("settings.settingsEnvironmentDetailRouteScreen.versionUnknown"))
+                              : t("settings.settingsEnvironmentDetailRouteScreen.notInstalled")}
                             {provider.versionAdvisory?.latestVersion
-                              ? ` · Latest ${provider.versionAdvisory.latestVersion}`
+                              ? t("settings.settingsEnvironmentDetailRouteScreen.latestVersion", {
+                                  latestVersion: provider.versionAdvisory.latestVersion,
+                                })
                               : ""}
                           </Text>
                           {provider.updateState && provider.updateState.status !== "idle" ? (
@@ -299,7 +334,9 @@ function EnvironmentDetail({ environmentId }: { readonly environmentId: Environm
                               }
                             >
                               {provider.updateState.message ??
-                                `Update ${provider.updateState.status}`}
+                                t("settings.settingsEnvironmentDetailRouteScreen.updateStatus", {
+                                  status: provider.updateState.status,
+                                })}
                             </Text>
                           ) : null}
                           {provider.compatibilityAdvisory?.message ? (
@@ -315,14 +352,19 @@ function EnvironmentDetail({ environmentId }: { readonly environmentId: Environm
                           {provider.versionAdvisory?.status === "behind_latest" &&
                           !provider.versionAdvisory.canUpdate ? (
                             <Text className="text-sm text-foreground-muted">
-                              Update this provider on the environment's machine.
+                              {t(
+                                "settings.settingsEnvironmentDetailRouteScreen.updateProviderOnMachine",
+                              )}
                             </Text>
                           ) : null}
                         </View>
                         {canUpdateEnvironmentProvider(provider) ? (
                           <SettingsActionRow
                             icon="arrow.up.circle"
-                            label={`Update ${provider.displayName ?? provider.driver}`}
+                            label={t(
+                              "settings.settingsEnvironmentDetailRouteScreen.updateProvider",
+                              { provider: provider.displayName ?? provider.driver },
+                            )}
                             disabled={disabled}
                             loading={pending === provider.instanceId}
                             onPress={() => requestProviderUpdate(provider)}

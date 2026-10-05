@@ -5,6 +5,7 @@ import {
   type ThreadId,
 } from "@t3tools/contracts";
 import { formatComposerContextReference } from "@t3tools/shared/composerContextReferences";
+import { t } from "@t3tools/shared/i18n";
 import { useState } from "react";
 import { Alert, Modal, Platform, Pressable, ScrollView, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -35,9 +36,15 @@ export function TerminalContextSheet(props: {
       version: 1 as const,
       kind: "terminal" as const,
       contextId: ComposerContextId.make(uuidv4()),
-      label: `${props.terminalLabel} · visible lines ${range.start + 1}–${range.end + 1}`,
+      label: t("terminal.terminalContextSheet.recordLabel", {
+        terminalLabel: props.terminalLabel,
+        start: range.start + 1,
+        end: range.end + 1,
+      }),
       terminalId: props.terminalId,
-      terminalLabel: `${props.terminalLabel} (visible output)`,
+      terminalLabel: t("terminal.terminalContextSheet.recordTerminalLabel", {
+        terminalLabel: props.terminalLabel,
+      }),
       lineStart: range.start + 1,
       lineEnd: range.end + 1,
       text: selectedText,
@@ -48,7 +55,10 @@ export function TerminalContextSheet(props: {
         context: { version: 1, records: [record] },
       })
     ) {
-      Alert.alert("Too many context items", "Remove some context from the draft and try again.");
+      Alert.alert(
+        t("terminal.terminalContextSheet.tooManyTitle"),
+        t("terminal.terminalContextSheet.tooManyBody"),
+      );
       return;
     }
     props.onAttach();
@@ -64,20 +74,25 @@ export function TerminalContextSheet(props: {
         }
       >
         <View className="flex-row items-center justify-between p-4">
-          <Text className="text-lg text-foreground">Visible terminal output</Text>
+          <Text className="text-lg text-foreground">
+            {t("terminal.terminalContextSheet.title")}
+          </Text>
           <Pressable accessibilityRole="button" onPress={props.onClose} className="p-3">
-            <Text className="text-foreground">Cancel</Text>
+            <Text className="text-foreground">{t("action.cancel")}</Text>
           </Pressable>
         </View>
         <Text className="px-4 pb-3 text-foreground-muted">
-          Tap the first and last line to select a range.
+          {t("terminal.terminalContextSheet.rangeHint")}
         </Text>
         <ScrollView className="flex-1" contentContainerStyle={{ padding: 16 }}>
           {lines.map((line, index) => (
             <Pressable
               key={index}
               accessibilityRole="button"
-              accessibilityLabel={`Line ${index + 1}: ${line}`}
+              accessibilityLabel={t("terminal.terminalContextSheet.lineAria", {
+                number: index + 1,
+                text: line,
+              })}
               accessibilityState={{ selected: index >= range.start && index <= range.end }}
               onPress={() => {
                 if (anchor === null) {
@@ -101,7 +116,7 @@ export function TerminalContextSheet(props: {
         </ScrollView>
         {tooLarge ? (
           <Text className="px-4 text-foreground-muted">
-            Select fewer lines to fit the context limit.
+            {t("terminal.terminalContextSheet.tooLargeHint")}
           </Text>
         ) : null}
         <Pressable
@@ -110,7 +125,9 @@ export function TerminalContextSheet(props: {
           onPress={attach}
           className="m-4 mb-10 rounded-xl bg-subtle p-4"
         >
-          <Text className="text-center text-foreground">Attach selected output</Text>
+          <Text className="text-center text-foreground">
+            {t("terminal.terminalContextSheet.attach")}
+          </Text>
         </Pressable>
       </View>
     </Modal>

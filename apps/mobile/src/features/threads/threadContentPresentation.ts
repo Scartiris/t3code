@@ -1,4 +1,5 @@
 import { type EnvironmentConnectionPhase } from "@t3tools/client-runtime/connection";
+import { t } from "@t3tools/shared/i18n";
 
 export type ThreadContentPresentation =
   | { readonly kind: "ready" }
@@ -21,14 +22,14 @@ export function projectThreadContentPresentation(input: {
   if (input.detailDeleted) {
     return {
       kind: "unavailable",
-      title: "Thread unavailable",
-      detail: "This thread was deleted or is no longer available.",
+      title: t("threads.threadRouteScreen.threadUnavailable"),
+      detail: t("threads.threadContentPresentation.threadDeleted"),
     };
   }
   if (input.detailError !== null) {
     return {
       kind: "unavailable",
-      title: "Could not load conversation",
+      title: t("threads.threadContentPresentation.couldNotLoadConversation"),
       detail: input.detailError,
     };
   }
@@ -43,7 +44,7 @@ export function projectThreadContentPresentation(input: {
   }
   return {
     kind: "unavailable",
-    title: "Messages not cached",
-    detail: "Reconnect this environment to load the conversation.",
+    title: t("threads.threadContentPresentation.messagesNotCached"),
+    detail: t("threads.threadContentPresentation.reconnectToLoadConversation"),
   };
 }

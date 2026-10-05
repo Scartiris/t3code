@@ -2,6 +2,7 @@ import {
   codexFeedbackNotice,
   type CodexFeedbackSubmission,
 } from "@t3tools/client-runtime/state/threads";
+import { t } from "@t3tools/shared/i18n";
 import { Pressable, View } from "react-native";
 
 import { AppText as Text } from "../../components/AppText";
@@ -26,7 +27,7 @@ export function ComposerFeedback({
           </Text>
           {submission.status !== "uploading" ? (
             <Pressable
-              accessibilityLabel="Dismiss feedback notice"
+              accessibilityLabel={t("threads.composerFeedback.dismissNotice")}
               accessibilityRole="button"
               hitSlop={12}
               onPress={onDismiss}
@@ -54,7 +55,7 @@ export function ComposerFeedback({
             }
             className="self-start py-1 active:opacity-60"
           >
-            <Text className="text-sm text-foreground">Copy ID</Text>
+            <Text className="text-sm text-foreground">{t("threads.composerFeedback.copyId")}</Text>
           </Pressable>
         ) : null}
       </View>

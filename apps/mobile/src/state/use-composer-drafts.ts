@@ -19,6 +19,7 @@ import {
   type ProviderOptionSelection,
   type RuntimeMode,
 } from "@t3tools/contracts";
+import { t } from "@t3tools/shared/i18n";
 import * as Schema from "effect/Schema";
 import { useEffect } from "react";
 import { Atom } from "effect/unstable/reactivity";
@@ -320,7 +321,11 @@ export class ComposerDraftPersistenceError extends Schema.TaggedError<ComposerDr
   },
 ) {
   override get message(): string {
-    return `Composer draft persistence operation ${this.operation} failed for ${this.directory}/${this.fileName}.`;
+    return t("state.useComposerDrafts.persistenceFailed", {
+      operation: this.operation,
+      directory: this.directory,
+      fileName: this.fileName,
+    });
   }
 }
 

@@ -1,3 +1,4 @@
+import { t } from "@t3tools/shared/i18n";
 import * as Schema from "effect/Schema";
 
 import { decodeIncomingShareDraft, type IncomingShareDraft } from "./incoming-share-model";
@@ -13,7 +14,10 @@ export class IncomingShareStorageError extends Schema.TaggedError<IncomingShareS
   },
 ) {
   override get message(): string {
-    return `Incoming share storage operation ${this.operation} failed for ${this.shareId ?? "unknown"}.`;
+    return t("sharing.incomingShareStorage.operationFailed", {
+      operation: this.operation,
+      shareId: this.shareId ?? t("sharing.incomingShareStorage.unknownShareId"),
+    });
   }
 }
 

@@ -5,6 +5,7 @@ import {
   UsageLimitSourceId,
   type ServerProvider,
 } from "@t3tools/contracts";
+import { t } from "@t3tools/shared/i18n";
 import { describe, expect, it, vi } from "vite-plus/test";
 import {
   buildSubscriptionUsageSnapshot,
@@ -120,7 +121,13 @@ describe("subscription widget snapshots", () => {
     );
     expect(snapshot.checkedAt).toBe(0);
     expect(snapshot.providers).toEqual([
-      { name: "Codex", detail: "No limits available", windows: [], expiresAt: 0, totalWindows: 0 },
+      {
+        name: "Codex",
+        detail: t("widgets.subscriptionUsageSnapshot.noLimitsAvailable"),
+        windows: [],
+        expiresAt: 0,
+        totalWindows: 0,
+      },
     ]);
   });
   it("uses upstream deduplication for a native account also present in a proxy hub", () => {
@@ -152,7 +159,7 @@ describe("subscription widget snapshots", () => {
       ],
     ]);
     expect(buildSubscriptionUsageSnapshot(input, deepLink).providers[0]?.detail).toBe(
-      "Subscription remaining",
+      t("widgets.subscriptionUsageSnapshot.subscriptionRemaining"),
     );
     input.get(EnvironmentId.make("env"))!.serverConfig.providers = [];
     const snapshot = buildSubscriptionUsageSnapshot(input, deepLink);
@@ -219,7 +226,9 @@ describe("subscription widget snapshots", () => {
       deepLink,
     );
     expect(snapshot.providers[0]?.expiresAt).toBe(now + 15 * 60_000);
-    expect(snapshot.providers[0]?.windows[0]?.reset).toBe("Reset time unavailable");
+    expect(snapshot.providers[0]?.windows[0]?.reset).toBe(
+      t("widgets.subscriptionUsageSnapshot.resetTimeUnavailable"),
+    );
   });
   it("schedules a reset boundary without inventing a zero quota", () => {
     const snapshot = buildSubscriptionUsageSnapshot(presentations(), deepLink);
@@ -278,7 +287,9 @@ describe("subscription widget snapshots", () => {
       },
     });
     const snapshot = buildSubscriptionUsageSnapshot(input, deepLink);
-    expect(snapshot.providers[0]?.detail).toBe("Subscription remaining");
+    expect(snapshot.providers[0]?.detail).toBe(
+      t("widgets.subscriptionUsageSnapshot.subscriptionRemaining"),
+    );
     expect(snapshot.providers[0]?.windows[0]?.remaining).toBe(20);
   });
 });

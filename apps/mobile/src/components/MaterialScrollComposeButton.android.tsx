@@ -7,6 +7,7 @@ import {
   onSizeChanged,
   size,
 } from "@expo/ui/jetpack-compose/modifiers";
+import { t } from "@t3tools/shared/i18n";
 import { useCallback, useState } from "react";
 import { Pressable, View, type StyleProp, type ViewStyle } from "react-native";
 import { useAndroidControlSizing } from "./useAndroidControlSizing";
@@ -78,7 +79,7 @@ export function MaterialScrollComposeButton(props: {
                     fontWeight: "500",
                   }}
                 >
-                  New thread
+                  {t("components.materialScrollComposeButtonAndroid.newThread")}
                 </Text>
               </ExtendedFloatingActionButton.Text>
             </ExtendedFloatingActionButton>
@@ -89,7 +90,7 @@ export function MaterialScrollComposeButton(props: {
       <Pressable
         onPress={props.onPress}
         accessibilityRole="button"
-        accessibilityLabel="New thread"
+        accessibilityLabel={t("components.materialScrollComposeButtonAndroid.newThread")}
         android_ripple={{ foreground: true }}
         style={{
           position: "absolute",

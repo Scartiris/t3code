@@ -2,6 +2,7 @@ import { useEffect, useEffectEvent } from "react";
 import { Alert, Modal, Pressable, View } from "react-native";
 import ImageViewing from "react-native-image-viewing";
 
+import { t } from "@t3tools/shared/i18n";
 import { openAttachmentInViewer } from "../lib/attachmentDownload";
 import type { ResolvedFilePreviewSource } from "./FilePreviewModal.types";
 import { MediaImagePreview } from "./MediaImagePreview";
@@ -18,8 +19,8 @@ function DocumentPreview(props: {
     if (props.onOpenError) props.onOpenError(error);
     else
       Alert.alert(
-        "Could not open document",
-        "A compatible viewer must be installed. Check your connection and try again.",
+        t("components.filePreview.openFailedTitle"),
+        t("components.filePreview.openFailedBody"),
       );
   });
   useEffect(() => {
@@ -27,7 +28,7 @@ function DocumentPreview(props: {
     const input = {
       uri,
       attachment: {
-        name: name ?? "Document",
+        name: name ?? t("components.filePreview.document"),
         mimeType:
           props.source.mimeType ??
           (props.source.kind === "pdf" ? "application/pdf" : "application/octet-stream"),
@@ -48,16 +49,18 @@ function DocumentPreview(props: {
     <Modal transparent animationType="fade" onRequestClose={props.onRequestClose}>
       <View className="flex-1 items-center justify-center bg-backdrop p-6">
         <View className="w-full max-w-sm gap-4 rounded-2xl bg-sheet-solid p-6">
-          <Text className="font-t3-semibold text-foreground">Opening document…</Text>
+          <Text className="font-t3-semibold text-foreground">
+            {t("components.filePreview.openingDocument")}
+          </Text>
           <Text className="text-foreground-muted" numberOfLines={2}>
-            {name ?? "Document"}
+            {name ?? t("components.filePreview.document")}
           </Text>
           <Pressable
             accessibilityRole="button"
             onPress={props.onRequestClose}
             className="self-end p-3"
           >
-            <Text className="text-foreground">Cancel</Text>
+            <Text className="text-foreground">{t("action.cancel")}</Text>
           </Pressable>
         </View>
       </View>

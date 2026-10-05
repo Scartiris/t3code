@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vite-plus/test";
+import { t } from "@t3tools/shared/i18n";
 
 import { formatStartupCrashReport, parseStartupCrashRecords } from "./crash-log-model";
 
@@ -68,7 +69,7 @@ describe("formatStartupCrashReport", () => {
 
   it("says so when nothing was recorded", () => {
     expect(formatStartupCrashReport([], { version: "1.1.1", build: "56" })).toBe(
-      "T3 Code 1.1.1 (56)\nNo startup crashes recorded.",
+      `T3 Code 1.1.1 (56)\n${t("diagnostics.crashLogModel.noStartupCrashesRecorded")}`,
     );
   });
 });

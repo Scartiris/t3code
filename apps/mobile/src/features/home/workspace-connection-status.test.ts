@@ -1,3 +1,4 @@
+import { t } from "@t3tools/shared/i18n";
 import { describe, expect, it } from "vite-plus/test";
 
 import type { WorkspaceState } from "../../state/workspaceModel";
@@ -29,7 +30,7 @@ describe("workspace connection status", () => {
     const state = workspaceState({ networkStatus: "offline", hasReadyEnvironment: false });
 
     expect(workspaceConnectionStatusPresentation(state)).toEqual({
-      label: "You are offline",
+      label: t("connection.environmentConnectionNotice.offline"),
       showsProgress: false,
     });
   });
@@ -53,7 +54,9 @@ describe("workspace connection status", () => {
     });
 
     expect(workspaceConnectionStatusPresentation(state)).toEqual({
-      label: "Reconnecting to Julius’s Mac mini",
+      label: t("connection.environmentConnectionNotice.reconnecting", {
+        environmentLabel: "Julius’s Mac mini",
+      }),
       showsProgress: true,
     });
   });
@@ -75,7 +78,7 @@ describe("workspace connection status", () => {
     const state = workspaceState({ hasPendingShellSnapshot: true });
 
     expect(workspaceConnectionStatusPresentation(state)).toEqual({
-      label: "Syncing threads...",
+      label: t("home.workspaceConnectionStatus.syncingThreads"),
       showsProgress: true,
     });
   });
@@ -87,7 +90,7 @@ describe("workspace connection status", () => {
     });
 
     expect(workspaceConnectionStatusPresentation(state)).toEqual({
-      label: "Loading threads...",
+      label: t("threads.threadNavigationSidebar.loadingThreads"),
       showsProgress: true,
     });
   });

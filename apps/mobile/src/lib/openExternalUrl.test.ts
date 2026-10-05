@@ -1,4 +1,5 @@
 import { Linking } from "react-native";
+import { t } from "@t3tools/shared/i18n";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vite-plus/test";
 
 import { tryOpenExternalUrl } from "./openExternalUrl";
@@ -37,7 +38,9 @@ describe("tryOpenExternalUrl", () => {
 
     expect(consoleError).toHaveBeenCalledTimes(1);
     const [message, attributes] = consoleError.mock.calls[0] ?? [];
-    expect(message).toBe("Failed to open pull-request URL with the https scheme.");
+    expect(message).toBe(
+      t("lib.openExternalUrl.openFailed", { target: "pull-request", scheme: "https" }),
+    );
     expect(attributes).toEqual(
       expect.objectContaining({
         _tag: "ExternalUrlOpenError",

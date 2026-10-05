@@ -14,6 +14,7 @@ import {
   squashAtomCommandFailure,
 } from "@t3tools/client-runtime/state/runtime";
 import type { EnvironmentProject } from "@t3tools/client-runtime/state/shell";
+import { t } from "@t3tools/shared/i18n";
 import { useEffect, useRef, useState } from "react";
 import { ActivityIndicator, Alert, Platform, Pressable, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -45,16 +46,16 @@ function deriveProjectEmptyState(catalogState: WorkspaceState): {
 } {
   if (catalogState.isLoadingConnections) {
     return {
-      title: "Loading environments",
-      detail: "Checking saved environments on this device.",
+      title: t("threads.newTaskRouteScreen.loadingEnvironmentsTitle"),
+      detail: t("threads.newTaskRouteScreen.loadingEnvironmentsDetail"),
       loading: true,
     };
   }
 
   if (!catalogState.hasConnections) {
     return {
-      title: "No environments connected",
-      detail: "Add an environment before creating a task.",
+      title: t("threads.newTaskRouteScreen.noEnvironmentsTitle"),
+      detail: t("threads.newTaskRouteScreen.noEnvironmentsDetail"),
       loading: false,
     };
   }
@@ -66,10 +67,9 @@ function deriveProjectEmptyState(catalogState: WorkspaceState): {
     !catalogState.hasLoadedShellSnapshot
   ) {
     return {
-      title: "Environment unavailable",
+      title: t("threads.newTaskRouteScreen.environmentUnavailableTitle"),
       detail:
-        catalogState.connectionError ??
-        "The saved environment is offline. Check the URL or start the environment, then retry.",
+        catalogState.connectionError ?? t("threads.newTaskRouteScreen.environmentOfflineDetail"),
       loading: false,
     };
   }
@@ -80,15 +80,15 @@ function deriveProjectEmptyState(catalogState: WorkspaceState): {
     catalogState.connectionError === null
   ) {
     return {
-      title: "Connecting to environment",
-      detail: "Loading projects from the saved environment.",
+      title: t("threads.newTaskRouteScreen.connectingTitle"),
+      detail: t("threads.newTaskRouteScreen.connectingDetail"),
       loading: true,
     };
   }
 
   return {
-    title: "No projects found",
-    detail: "The connected environment did not report any projects.",
+    title: t("threads.newTaskRouteScreen.noProjectsTitle"),
+    detail: t("threads.newTaskRouteScreen.noProjectsDetail"),
     loading: false,
   };
 }
@@ -108,7 +108,7 @@ function NewTaskHeader(props: {
       subtitle={props.subtitle ?? undefined}
       sidebar={false}
       backInSplitView={{
-        accessibilityLabel: "Go back",
+        accessibilityLabel: t("threads.newTaskRouteScreen.goBack"),
         icon: "chevron.left",
       }}
       options={{ headerBackVisible: !layout.usesSplitView }}
@@ -118,7 +118,7 @@ function NewTaskHeader(props: {
         props.canAddProject
           ? [
               {
-                accessibilityLabel: "Add project",
+                accessibilityLabel: t("threads.newTaskRouteScreen.addProject"),
                 icon: "plus",
                 onPress: () => navigation.dispatch(StackActions.push("AddProject")),
               },
@@ -128,7 +128,7 @@ function NewTaskHeader(props: {
       search={{
         value: props.searchText,
         onChangeText: props.onSearchTextChange,
-        placeholder: "Search projects",
+        placeholder: t("threads.newTaskRouteScreen.searchProjects"),
       }}
     />
   );
@@ -149,12 +149,24 @@ export function NewTaskRouteScreen({ route }: StaticScreenProps<NewTaskRoutePara
   const incomingShare = routeShareId ? getShare(routeShareId) : null;
   const incomingShareSubtitle = incomingShare
     ? incomingShare.attachments.length === 0
-      ? "Choose a project for what you shared"
+      ? t("threads.newTaskRouteScreen.chooseProjectForShare")
       : incomingShare.attachments.length === 1
-        ? `Choose a project for the ${incomingShare.attachments[0]?.type === "image" ? "image" : "file"} you shared`
-        : `Choose a project for the ${incomingShare.attachments.length} ${incomingShare.attachments.every((attachment) => attachment.type === "image") ? "images" : "files"} you shared`
+        ? t("threads.newTaskRouteScreen.chooseProjectForSharedAttachment", {
+            kind:
+              incomingShare.attachments[0]?.type === "image"
+                ? t("threads.newTaskRouteScreen.image")
+                : t("threads.newTaskRouteScreen.file"),
+          })
+        : t("threads.newTaskRouteScreen.chooseProjectForSharedAttachments", {
+            count: incomingShare.attachments.length,
+            kind: incomingShare.attachments.every((attachment) => attachment.type === "image")
+              ? t("threads.newTaskRouteScreen.image")
+              : t("threads.newTaskRouteScreen.file"),
+          })
     : null;
-  const screenTitle = incomingShare ? "Start a task" : "Choose project";
+  const screenTitle = incomingShare
+    ? t("threads.newTaskRouteScreen.startTask")
+    : t("draft.chooseProject");
   const projectEmptyState = deriveProjectEmptyState(catalogState);
   const serverConfigs = useServerConfigs();
   // Scratch projects are reached through the No project row, never as rows
@@ -203,10 +215,10 @@ export function NewTaskRouteScreen({ route }: StaticScreenProps<NewTaskRoutePara
         await releaseShareReservation(incomingShare.id, incomingShare.destination);
       } catch (error) {
         Alert.alert(
-          "Could not change project",
+          t("threads.newTaskRouteScreen.couldNotChangeProjectTitle"),
           error instanceof Error
             ? error.message
-            : "The shared content reservation could not be updated.",
+            : t("threads.newTaskRouteScreen.couldNotChangeProjectBody"),
         );
         return;
       }
@@ -239,10 +251,10 @@ export function NewTaskRouteScreen({ route }: StaticScreenProps<NewTaskRoutePara
         if (!isAtomCommandInterrupted(result)) {
           const error = squashAtomCommandFailure(result);
           Alert.alert(
-            "Could not start without a project",
+            t("threads.newTaskRouteScreen.couldNotStartWithoutProjectTitle"),
             error instanceof Error
               ? error.message
-              : "The folder for threads without a project could not be created.",
+              : t("threads.newTaskRouteScreen.couldNotStartWithoutProjectBody"),
           );
         }
         return;
@@ -315,8 +327,8 @@ export function NewTaskRouteScreen({ route }: StaticScreenProps<NewTaskRoutePara
               <View collapsable={false} className="overflow-hidden rounded-[28px] bg-grouped-card">
                 <MaterialListRow
                   className="bg-grouped-card"
-                  title="No project"
-                  subtitle="Start a task without a project"
+                  title={t("threads.newTaskRouteScreen.noProject")}
+                  subtitle={t("threads.newTaskRouteScreen.startTaskWithoutProject")}
                   onPress={() => void startScratch()}
                   leading={
                     <SymbolView
@@ -332,7 +344,7 @@ export function NewTaskRouteScreen({ route }: StaticScreenProps<NewTaskRoutePara
               <View collapsable={false} className="overflow-hidden rounded-[24px] bg-grouped-card">
                 <Pressable
                   accessibilityRole="button"
-                  accessibilityLabel="No project"
+                  accessibilityLabel={t("threads.newTaskRouteScreen.noProject")}
                   onPress={() => void startScratch()}
                   className="flex-row items-center gap-3 bg-grouped-card px-4 py-3.5"
                 >
@@ -345,9 +357,11 @@ export function NewTaskRouteScreen({ route }: StaticScreenProps<NewTaskRoutePara
                     />
                   </View>
                   <View className="min-w-0 flex-1">
-                    <Text className="text-base font-t3-bold leading-snug">No project</Text>
+                    <Text className="text-base font-t3-bold leading-snug">
+                      {t("threads.newTaskRouteScreen.noProject")}
+                    </Text>
                     <Text className="text-xs leading-snug text-foreground-muted" numberOfLines={1}>
-                      Start a task without a project
+                      {t("threads.newTaskRouteScreen.startTaskWithoutProject")}
                     </Text>
                   </View>
                   <SymbolView
@@ -380,7 +394,11 @@ export function NewTaskRouteScreen({ route }: StaticScreenProps<NewTaskRoutePara
               {Platform.OS === "android" ? (
                 <>
                   <MaterialButton
-                    label={catalogState.hasReadyEnvironment ? "Add new project" : "Add environment"}
+                    label={
+                      catalogState.hasReadyEnvironment
+                        ? t("threads.newTaskRouteScreen.addNewProject")
+                        : t("threads.newTaskRouteScreen.addEnvironment")
+                    }
                     tone="primary"
                     onPress={() =>
                       catalogState.hasReadyEnvironment
@@ -390,7 +408,7 @@ export function NewTaskRouteScreen({ route }: StaticScreenProps<NewTaskRoutePara
                   />
                   {canStartScratch ? (
                     <MaterialButton
-                      label="Start without a project"
+                      label={t("threads.newTaskRouteScreen.startWithoutProject")}
                       tone="secondary"
                       onPress={() => void startScratch()}
                     />
@@ -402,7 +420,7 @@ export function NewTaskRouteScreen({ route }: StaticScreenProps<NewTaskRoutePara
                   onPress={() => navigation.navigate("ConnectionsNew")}
                 >
                   <Text className="text-sm font-t3-bold text-primary-foreground">
-                    Add environment
+                    {t("threads.newTaskRouteScreen.addEnvironment")}
                   </Text>
                 </Pressable>
               ) : (
@@ -412,7 +430,7 @@ export function NewTaskRouteScreen({ route }: StaticScreenProps<NewTaskRoutePara
                     onPress={() => navigation.dispatch(StackActions.push("AddProject"))}
                   >
                     <Text className="text-sm font-t3-bold text-primary-foreground">
-                      Add new project
+                      {t("threads.newTaskRouteScreen.addNewProject")}
                     </Text>
                   </Pressable>
                   {canStartScratch ? (
@@ -421,7 +439,7 @@ export function NewTaskRouteScreen({ route }: StaticScreenProps<NewTaskRoutePara
                       onPress={() => void startScratch()}
                     >
                       <Text className="text-sm font-t3-bold text-foreground">
-                        Start without a project
+                        {t("threads.newTaskRouteScreen.startWithoutProject")}
                       </Text>
                     </Pressable>
                   ) : null}
@@ -431,10 +449,10 @@ export function NewTaskRouteScreen({ route }: StaticScreenProps<NewTaskRoutePara
           ) : visibleScopes.length === 0 ? (
             <View className="items-center gap-2 px-6 py-8">
               <Text className="text-center text-lg font-t3-bold text-foreground">
-                No matching projects
+                {t("threads.newTaskRouteScreen.noMatchingProjects")}
               </Text>
               <Text className="text-center text-sm leading-normal text-foreground-muted">
-                Try a different project name or workspace path.
+                {t("threads.newTaskRouteScreen.noMatchingProjectsDetail")}
               </Text>
             </View>
           ) : (
@@ -460,7 +478,9 @@ export function NewTaskRouteScreen({ route }: StaticScreenProps<NewTaskRoutePara
                       title={scope.title}
                       subtitle={
                         hasMultipleProjects
-                          ? `${scope.projects.length} workspaces`
+                          ? t("threads.newTaskRouteScreen.workspaceCount", {
+                              count: scope.projects.length,
+                            })
                           : selectionTarget.workspaceRoot
                       }
                       disabled={reservedDestinationProject !== null}
@@ -510,7 +530,9 @@ export function NewTaskRouteScreen({ route }: StaticScreenProps<NewTaskRoutePara
                           numberOfLines={1}
                         >
                           {hasMultipleProjects
-                            ? `${scope.projects.length} workspaces`
+                            ? t("threads.newTaskRouteScreen.workspaceCount", {
+                                count: scope.projects.length,
+                              })
                             : selectionTarget.workspaceRoot}
                         </Text>
                       </View>

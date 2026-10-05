@@ -1,4 +1,5 @@
 import { describe, expect, it, vi } from "vite-plus/test";
+import { t } from "@t3tools/shared/i18n";
 
 import { buildHomeListFilterMenu } from "./home-list-filter-menu";
 
@@ -18,13 +19,13 @@ describe("buildHomeListFilterMenu", () => {
     });
 
     const projectMenu = menu.items.find(
-      (item) => item.type === "submenu" && item.title === "Project",
+      (item) => item.type === "submenu" && item.title === t("home.homeHeader.project"),
     );
     expect(menu.items.some((item) => item.title === "Settings")).toBe(false);
     expect(projectMenu).toMatchObject({
       type: "submenu",
       items: [
-        { title: "All projects", state: "off" },
+        { title: t("sidebar.allProjects"), state: "off" },
         { title: "Codething", state: "on" },
         { title: "Website", state: "off" },
       ],

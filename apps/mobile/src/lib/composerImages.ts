@@ -18,6 +18,7 @@ import {
   isComposerAttachmentFileRetained,
   resolveOwnedComposerAttachmentFileUri,
 } from "./composerAttachmentFiles";
+import { t } from "@t3tools/shared/i18n";
 import { imageMimeType } from "@t3tools/shared/image";
 import { videoMimeType } from "@t3tools/shared/video";
 import { beginForegroundHandoff } from "./foreground-handoff";
@@ -54,7 +55,7 @@ export async function createPastedTextComposerAttachment(input: {
 }): Promise<DraftComposerFileAttachment> {
   const bytes = new TextEncoder().encode(input.text).byteLength;
   if (bytes <= 0) {
-    throw new Error("Clipboard is empty.");
+    throw new Error(t("threads.composerImages.clipboardEmpty"));
   }
   if (bytes > input.maxBytes) {
     throw new Error(fileAttachmentTooLargeMessage(input.name, input.maxBytes));
@@ -253,7 +254,7 @@ async function createComposerFileAttachment(input: {
   try {
     const sizeBytes = new File(fileUri).size ?? input.sizeBytes ?? 0;
     if (sizeBytes <= 0) {
-      throw new Error(`'${input.name}' is empty or could not be read.`);
+      throw new Error(t("chat.chatComposer.fileEmptyOrUnreadable", { name: input.name }));
     }
     if (sizeBytes > input.maxBytes) {
       throw new Error(fileAttachmentTooLargeMessage(input.name, input.maxBytes));
@@ -283,7 +284,9 @@ export async function pickComposerFiles(input: {
   if (remainingSlots <= 0) {
     return {
       files: [],
-      error: `You can attach up to ${PROVIDER_SEND_TURN_MAX_ATTACHMENTS} files per message.`,
+      error: t("threads.newTaskDraftScreen.maxFilesPerMessage", {
+        count: PROVIDER_SEND_TURN_MAX_ATTACHMENTS,
+      }),
     };
   }
 
@@ -297,7 +300,8 @@ export async function pickComposerFiles(input: {
   } catch (cause) {
     return {
       files: [],
-      error: cause instanceof Error ? cause.message : "Could not open the file picker.",
+      error:
+        cause instanceof Error ? cause.message : t("threads.composerImages.couldNotOpenFilePicker"),
     };
   } finally {
     endHandoff();
@@ -332,11 +336,16 @@ export async function pickComposerFiles(input: {
         }),
       );
     } catch (cause) {
-      error = cause instanceof Error ? cause.message : `Could not read '${name}'.`;
+      error =
+        cause instanceof Error
+          ? cause.message
+          : t("threads.composerImages.couldNotReadFile", { name });
     }
   }
   if (exceededAttachmentLimit) {
-    error = `You can attach up to ${PROVIDER_SEND_TURN_MAX_ATTACHMENTS} files per message.`;
+    error = t("threads.newTaskDraftScreen.maxFilesPerMessage", {
+      count: PROVIDER_SEND_TURN_MAX_ATTACHMENTS,
+    });
   }
   return { files: attachments, error };
 }
@@ -385,7 +394,7 @@ async function loadImagePicker() {
   try {
     return await import("expo-image-picker");
   } catch (error) {
-    throw new Error("The photo library is unavailable right now.", { cause: error });
+    throw new Error(t("threads.composerImages.photoLibraryUnavailable"), { cause: error });
   }
 }
 
@@ -393,7 +402,7 @@ async function loadClipboard() {
   try {
     return await import("expo-clipboard");
   } catch (error) {
-    throw new Error("Clipboard paste is unavailable right now.", { cause: error });
+    throw new Error(t("threads.composerImages.clipboardPasteUnavailable"), { cause: error });
   }
 }
 
@@ -420,7 +429,9 @@ export async function pickComposerMedia(input: {
   if (remainingSlots <= 0) {
     return {
       attachments: [],
-      error: `You can attach up to ${PROVIDER_SEND_TURN_MAX_ATTACHMENTS} attachments per message.`,
+      error: t("threads.newTaskDraftScreen.maxAttachmentsPerMessage", {
+        count: PROVIDER_SEND_TURN_MAX_ATTACHMENTS,
+      }),
     };
   }
 
@@ -430,7 +441,10 @@ export async function pickComposerMedia(input: {
   } catch (error) {
     return {
       attachments: [],
-      error: error instanceof Error ? error.message : "The photo library is unavailable right now.",
+      error:
+        error instanceof Error
+          ? error.message
+          : t("threads.composerImages.photoLibraryUnavailable"),
     };
   }
 
@@ -453,7 +467,10 @@ export async function pickComposerMedia(input: {
   } catch (error) {
     return {
       attachments: [],
-      error: error instanceof Error ? error.message : "Could not open the photo library.",
+      error:
+        error instanceof Error
+          ? error.message
+          : t("threads.composerImages.couldNotOpenPhotoLibrary"),
     };
   } finally {
     endHandoff();
@@ -471,13 +488,15 @@ export async function pickComposerMedia(input: {
 
   for (const asset of result.assets) {
     if (attachments.length >= remainingSlots) {
-      error = `You can attach up to ${PROVIDER_SEND_TURN_MAX_ATTACHMENTS} attachments per message.`;
+      error = t("threads.newTaskDraftScreen.maxAttachmentsPerMessage", {
+        count: PROVIDER_SEND_TURN_MAX_ATTACHMENTS,
+      });
       break;
     }
     const mimeType = asset.mimeType?.toLowerCase();
     if (asset.type === "video" || mimeType?.startsWith("video/")) {
       if (input.maxVideoBytes === undefined) {
-        error = "Video attachments are unavailable here.";
+        error = t("threads.composerImages.videoAttachmentsUnavailable");
         continue;
       }
       try {
@@ -494,12 +513,14 @@ export async function pickComposerMedia(input: {
         );
       } catch (cause) {
         error =
-          cause instanceof Error ? cause.message : `Could not read '${asset.fileName ?? "video"}'.`;
+          cause instanceof Error
+            ? cause.message
+            : t("threads.composerImages.couldNotReadFile", { name: asset.fileName ?? "video" });
       }
       continue;
     }
     if (asset.type !== "image" && !mimeType?.startsWith("image/")) {
-      error = `Unsupported file type for '${asset.fileName ?? "image"}'.`;
+      error = t("threads.composerImages.unsupportedFileType", { name: asset.fileName ?? "image" });
       continue;
     }
 
@@ -546,13 +567,13 @@ export async function pickComposerMedia(input: {
         };
       }
     } catch {
-      error = `Failed to read '${name}'.`;
+      error = t("threads.composerImages.couldNotReadFile", { name });
       continue;
     }
 
     const sizeBytes = estimateBase64ByteSize(image.base64);
     if (sizeBytes <= 0 || sizeBytes > PROVIDER_SEND_TURN_MAX_IMAGE_BYTES) {
-      error = `'${name}' exceeds the 10 MB attachment limit.`;
+      error = t("threads.composerImages.imageExceedsAttachmentLimit", { name });
       continue;
     }
 
@@ -593,7 +614,10 @@ export async function pasteComposerClipboard(input: { readonly existingCount: nu
     return {
       images: [],
       text: null,
-      error: error instanceof Error ? error.message : "Clipboard paste is unavailable right now.",
+      error:
+        error instanceof Error
+          ? error.message
+          : t("threads.composerImages.clipboardPasteUnavailable"),
     };
   }
 
@@ -604,7 +628,9 @@ export async function pasteComposerClipboard(input: { readonly existingCount: nu
       return {
         images: [],
         text: null,
-        error: `You can attach up to ${PROVIDER_SEND_TURN_MAX_ATTACHMENTS} images per message.`,
+        error: t("threads.composerImages.maxImagesPerMessage", {
+          count: PROVIDER_SEND_TURN_MAX_ATTACHMENTS,
+        }),
       };
     }
     const image = await clipboard.getImageAsync({ format: "png" });
@@ -612,7 +638,7 @@ export async function pasteComposerClipboard(input: { readonly existingCount: nu
       return {
         images: [],
         text: null,
-        error: "Clipboard image is unavailable.",
+        error: t("threads.composerImages.clipboardImageUnavailable"),
       };
     }
 
@@ -622,7 +648,7 @@ export async function pasteComposerClipboard(input: { readonly existingCount: nu
       return {
         images: [],
         text: null,
-        error: "Clipboard image exceeds the 10 MB attachment limit.",
+        error: t("threads.composerImages.clipboardImageExceedsLimit"),
       };
     }
 
@@ -647,14 +673,16 @@ export async function pasteComposerClipboard(input: { readonly existingCount: nu
     const text = await clipboard.getStringAsync();
     return {
       images: [],
-      ...(text.length > 0 ? { text, error: null } : { text: null, error: "Clipboard is empty." }),
+      ...(text.length > 0
+        ? { text, error: null }
+        : { text: null, error: t("threads.composerImages.clipboardEmpty") }),
     };
   }
 
   return {
     images: [],
     text: null,
-    error: "Clipboard does not contain pasteable text or image content.",
+    error: t("threads.composerImages.clipboardNoPasteableContent"),
   };
 }
 

@@ -8,6 +8,7 @@ import {
   ProviderInstanceId,
   ThreadId,
 } from "@t3tools/contracts";
+import { t } from "@t3tools/shared/i18n";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vite-plus/test";
 
 import type { PreparedTurnAttachments } from "../lib/attachmentUpload";
@@ -656,7 +657,13 @@ describe("thread outbox recovery rollback", () => {
       [sourceKey]: { text: "Follow-up", attachments: [] },
     });
     harness.draftFile.setWriteError(new Error("disk full"));
-    await expect(recoverFailedThreadDraft(message)).rejects.toThrow("Composer draft persistence");
+    await expect(recoverFailedThreadDraft(message)).rejects.toThrow(
+      t("state.useComposerDrafts.persistenceFailed", {
+        operation: "write",
+        directory: "composer-drafts",
+        fileName: "drafts.json",
+      }),
+    );
     expect(composerDrafts.getComposerDraftSnapshot(sourceKey).text).toBe("Follow-up");
     harness.draftFile.setWriteError(null);
     await recoverFailedThreadDraft(message);

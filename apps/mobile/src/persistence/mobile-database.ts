@@ -1,4 +1,5 @@
 import type { EnvironmentId } from "@t3tools/contracts";
+import { t } from "@t3tools/shared/i18n";
 import * as Context from "effect/Context";
 import * as Effect from "effect/Effect";
 import * as Layer from "effect/Layer";
@@ -69,7 +70,7 @@ export class MobileDatabaseError extends Schema.TaggedError<MobileDatabaseError>
   },
 ) {
   override get message(): string {
-    return `Mobile database operation failed: ${this.operation}.`;
+    return t("persistence.mobileDatabase.operationFailed", { operation: this.operation });
   }
 }
 

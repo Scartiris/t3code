@@ -1,6 +1,7 @@
 import { useAtomValue } from "@effect/atom-react";
 import { useNavigation } from "@react-navigation/native";
 import type { EnvironmentId } from "@t3tools/contracts";
+import { t } from "@t3tools/shared/i18n";
 import * as Cause from "effect/Cause";
 import { AsyncResult, Atom } from "effect/unstable/reactivity";
 import { useCallback } from "react";
@@ -117,14 +118,16 @@ export function useRemoteConnections() {
       if (AsyncResult.isFailure(result)) {
         const error = Cause.squash(result.cause);
         const message =
-          error instanceof Error ? error.message : "Failed to pair with the environment.";
+          error instanceof Error
+            ? error.message
+            : t("state.useRemoteEnvironmentRegistry.pairingFailed");
         if (
           error !== null &&
           typeof error === "object" &&
           "reason" in error &&
           error.reason === "unsupported"
         ) {
-          Alert.alert("Client not supported", message);
+          Alert.alert(t("state.useRemoteEnvironmentRegistry.clientNotSupported"), message);
         } else {
           setPendingConnectionError(message);
         }
@@ -162,7 +165,7 @@ export function useRemoteConnections() {
         return;
       }
       const remove = {
-        text: "Remove",
+        text: t("state.useRemoteEnvironmentRegistry.remove"),
         style: "destructive",
         onPress: () => {
           void controller.removeEnvironment(environmentId);
@@ -172,12 +175,14 @@ export function useRemoteConnections() {
       // and host space, so point to where it can be deregistered.
       if (environment.isRelayManaged) {
         Alert.alert(
-          "Remove from this device?",
-          `Forget ${environment.environmentLabel} and its cached threads on this device.\n\nIt stays on your T3 Connect account and keeps its host space. Deregister it under T3 Account → T3 Connect to free it.`,
+          t("state.useRemoteEnvironmentRegistry.removeFromDeviceTitle"),
+          t("state.useRemoteEnvironmentRegistry.removeRelayEnvironmentBody", {
+            environmentLabel: environment.environmentLabel,
+          }),
           [
-            { text: "Cancel", style: "cancel" },
+            { text: t("action.cancel"), style: "cancel" },
             {
-              text: "Open T3 Account",
+              text: t("state.useRemoteEnvironmentRegistry.openT3Account"),
               onPress: () => navigation.navigate("SettingsSheet", { screen: "SettingsAuth" }),
             },
             remove,
@@ -186,9 +191,11 @@ export function useRemoteConnections() {
         return;
       }
       Alert.alert(
-        "Remove from this device?",
-        `Forget ${environment.environmentLabel} and its cached threads on this device. Switch it off instead to keep it saved.`,
-        [{ text: "Cancel", style: "cancel" }, remove],
+        t("state.useRemoteEnvironmentRegistry.removeFromDeviceTitle"),
+        t("state.useRemoteEnvironmentRegistry.removeEnvironmentBody", {
+          environmentLabel: environment.environmentLabel,
+        }),
+        [{ text: t("action.cancel"), style: "cancel" }, remove],
       );
     },
     [connectedEnvironments, controller, navigation],

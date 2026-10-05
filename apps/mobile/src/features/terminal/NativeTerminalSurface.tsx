@@ -9,6 +9,7 @@ import {
   type TextInputInstance,
   type ViewProps,
 } from "react-native";
+import { t } from "@t3tools/shared/i18n";
 
 import { AppText as Text } from "../../components/AppText";
 import { MOBILE_TYPOGRAPHY } from "../../lib/typography";
@@ -66,8 +67,8 @@ const FallbackTerminalSurface = memo(function FallbackTerminalSurface(props: Ter
   const { themeAppearance, themeId } = useAppearancePreferences();
   const theme = props.theme ?? getMobileTerminalTheme(themeId, themeAppearance);
   const statusLabel = props.isRunning
-    ? "Native terminal unavailable. Using text fallback."
-    : "Open terminal to start a shell.";
+    ? t("terminal.nativeTerminalSurface.nativeUnavailable")
+    : t("terminal.nativeTerminalSurface.openToStart");
 
   const handleLayout = (event: LayoutChangeEvent) => {
     const { width, height } = event.nativeEvent.layout;
@@ -136,7 +137,7 @@ const FallbackTerminalSurface = memo(function FallbackTerminalSurface(props: Ter
           autoCorrect={false}
           blurOnSubmit={false}
           editable={props.isRunning}
-          placeholder="type and press return"
+          placeholder={t("terminal.nativeTerminalSurface.inputPlaceholder")}
           placeholderTextColor={theme.mutedForeground}
           returnKeyType="send"
           className="text-sm"

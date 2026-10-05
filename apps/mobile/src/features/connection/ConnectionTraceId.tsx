@@ -1,4 +1,5 @@
 import { AppText as Text } from "../../components/AppText";
+import { t } from "@t3tools/shared/i18n";
 import { cn } from "../../lib/cn";
 import { copyTextWithHaptic } from "../../lib/copyTextWithHaptic";
 
@@ -15,14 +16,18 @@ export function ConnectionTraceId({
   const copy = () => copyTextWithHaptic(traceId, { target: "connection-trace-id" });
   return (
     <>
-      {" Trace ID: "}
+      {t("connection.connectionTraceId.prefix")}
       <Text
         accessibilityHint={
-          activation === "longPress" ? "Long press to copy the trace ID" : "Copies the trace ID"
+          activation === "longPress"
+            ? t("connection.connectionTraceId.copyHintLongPress")
+            : t("connection.connectionTraceId.copyHint")
         }
-        accessibilityLabel={`Copy trace ID ${traceId}`}
+        accessibilityLabel={t("connection.connectionTraceId.copyLabel", { traceId })}
         accessibilityRole="button"
-        accessibilityActions={[{ name: "activate", label: "Copy trace ID" }]}
+        accessibilityActions={[
+          { name: "activate", label: t("connection.connectionTraceId.copyAction") },
+        ]}
         onAccessibilityAction={(event) => {
           event.stopPropagation();
           if (event.nativeEvent.actionName === "activate") copy();

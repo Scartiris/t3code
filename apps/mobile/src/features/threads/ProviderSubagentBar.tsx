@@ -3,6 +3,7 @@ import {
   type ProviderSubagentStatus,
 } from "@t3tools/client-runtime/state/thread-execution";
 import { isOrchestrationV2WorkActive } from "@t3tools/contracts";
+import { t } from "@t3tools/shared/i18n";
 import { useEffect, useState } from "react";
 import { View } from "react-native";
 
@@ -41,7 +42,10 @@ export function ProviderSubagentBar(props: {
       {/* Only the text is one element, so "Open parent" stays reachable. */}
       <View
         accessible
-        accessibilityLabel={`${modelDescription} subagent, ${statusLabel}. It runs on its own and cannot take messages.`}
+        accessibilityLabel={t("threads.providerSubagentBar.accessibilityLabel", {
+          modelDescription,
+          statusLabel,
+        })}
         className="min-w-0 flex-1 gap-0.5"
       >
         <View className="min-w-0 flex-row items-center gap-1.5">
@@ -69,11 +73,15 @@ export function ProviderSubagentBar(props: {
           className="font-sans text-xs text-foreground-secondary"
           style={{ fontVariant: ["tabular-nums"] }}
         >
-          {statusLabel} · Runs on its own
+          {t("threads.providerSubagentBar.statusLine", { statusLabel })}
         </Text>
       </View>
       {props.onOpenParent ? (
-        <RequestActionButton label="Open parent" tone="secondary" onPress={props.onOpenParent} />
+        <RequestActionButton
+          label={t("threads.providerSubagentBar.openParent")}
+          tone="secondary"
+          onPress={props.onOpenParent}
+        />
       ) : null}
     </View>
   );

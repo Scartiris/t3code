@@ -1,4 +1,5 @@
 import { StackActions, useNavigation } from "@react-navigation/native";
+import { t } from "@t3tools/shared/i18n";
 import { resolveThreadReferenceCopyTarget } from "@t3tools/shared/threadReference";
 import {
   createContext,
@@ -140,7 +141,7 @@ export function HardwareKeyboardCommandProvider({
               : {
                   phase: "error",
                   label: copyTarget.failureTitle,
-                  description: "Try again.",
+                  description: t("keyboard.hardwareKeyboardCommandProvider.tryAgain"),
                 },
           );
         });

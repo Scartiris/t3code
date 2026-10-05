@@ -9,6 +9,7 @@ import {
   threadSearchMatchKey,
   type EnvironmentThreadSearchMatch,
 } from "@t3tools/client-runtime/state/thread-search";
+import { t } from "@t3tools/shared/i18n";
 import { LegendList } from "@legendapp/list/react-native";
 import type { MenuAction } from "@react-native-menu/menu";
 import { useAtomValue } from "@effect/atom-react";
@@ -482,12 +483,12 @@ function ThreadNavigationSidebarPane(
     () => [
       {
         id: "environment",
-        title: "Environment",
+        title: t("threads.threadNavigationSidebar.environment"),
         subactions: [
           {
             id: "environment:all",
-            title: "All environments",
-            subtitle: "Show threads from every environment",
+            title: t("threads.threadNavigationSidebar.allEnvironments"),
+            subtitle: t("threads.threadNavigationSidebar.allEnvironmentsSubtitle"),
             state: options.selectedEnvironmentId === null ? "on" : "off",
           },
           ...environments.map((environment) => ({
@@ -505,12 +506,12 @@ function ThreadNavigationSidebarPane(
         : ([
             {
               id: "project",
-              title: "Project",
+              title: t("sidebar.projects"),
               subactions: [
                 {
                   id: "project:all",
-                  title: "All projects",
-                  subtitle: "Show threads from every project",
+                  title: t("sidebar.allProjects"),
+                  subtitle: t("threads.threadNavigationSidebar.allProjectsSubtitle"),
                   state: selectedProjectKey === null ? "on" : "off",
                 },
                 ...projectFilterOptions.map((project) => ({
@@ -875,16 +876,16 @@ function ThreadNavigationSidebarPane(
       }
     >
       {catalogState.isLoadingConnections
-        ? "Loading threads…"
+        ? t("threads.threadNavigationSidebar.loadingThreads")
         : Platform.OS === "android" && !catalogState.hasConnections
-          ? "No environments connected"
+          ? t("threads.threadNavigationSidebar.noEnvironmentsConnected")
           : props.searchQuery.trim().length > 0
             ? threadSearch.isPending
-              ? "Searching thread messages…"
-              : "No matching threads"
+              ? t("threads.threadNavigationSidebar.searchingThreadMessages")
+              : t("threads.threadNavigationSidebar.noMatchingThreads")
             : selectedProjectScope !== null
-              ? `No threads in ${selectedProjectScope.title}`
-              : "No threads yet"}
+              ? t("sidebar.noThreadsInProject", { project: selectedProjectScope.title })
+              : t("sidebar.noThreads")}
     </Text>
   );
 
@@ -911,7 +912,7 @@ function ThreadNavigationSidebarPane(
               // hidesSearchBarWhenScrolling collapses it on scroll.
               hideWhenScrolling: false,
               obscureBackground: false,
-              placeholder: "Search",
+              placeholder: t("sidebar.search"),
               placement: "stacked",
               onCancelButtonPress: () => {
                 props.onSearchQueryChange("");
@@ -1063,7 +1064,10 @@ function ThreadNavigationSidebarPane(
             />
             <View className="flex-row items-center gap-2.5">
               <ControlPillMenu actions={listMenuActions} onPressAction={handleListMenuAction}>
-                <SidebarFilterButton accessibilityLabel="Filter threads" icon={filterIcon} />
+                <SidebarFilterButton
+                  accessibilityLabel={t("threads.threadNavigationSidebar.filterThreads")}
+                  icon={filterIcon}
+                />
               </ControlPillMenu>
               <SidebarHeaderActions onOpenSettings={props.onOpenSettings} />
             </View>
@@ -1078,12 +1082,12 @@ function ThreadNavigationSidebarPane(
             />
             <TextInput
               ref={searchInputRef}
-              accessibilityLabel="Search threads"
+              accessibilityLabel={t("threads.threadNavigationSidebar.searchThreads")}
               autoCapitalize="none"
               autoCorrect={false}
               clearButtonMode="while-editing"
               onChangeText={props.onSearchQueryChange}
-              placeholder="Search"
+              placeholder={t("sidebar.search")}
               placeholderTextColorClassName="accent-placeholder"
               selectionColorClassName={undefined}
               cursorColorClassName={undefined}

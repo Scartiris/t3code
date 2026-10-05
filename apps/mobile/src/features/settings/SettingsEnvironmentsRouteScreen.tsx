@@ -3,6 +3,7 @@ import { useNavigation } from "@react-navigation/native";
 import { useAtomValue } from "@effect/atom-react";
 import { managedRelaySessionAtom } from "@t3tools/client-runtime/relay";
 import type { EnvironmentId } from "@t3tools/contracts";
+import { t } from "@t3tools/shared/i18n";
 import { useCallback, useRef, useState } from "react";
 import { Platform, RefreshControl } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -105,15 +106,15 @@ export function SettingsEnvironmentsRouteScreen() {
 
   return (
     <SettingsScreen
-      title="Environments"
+      title={t("settings.settingsEnvironmentsRouteScreen.title")}
       trailing={
         Platform.OS === "android" && relaySession ? (
           <AndroidAnchoredMenu
-            title="Environment options"
+            title={t("settings.settingsEnvironmentsRouteScreen.options")}
             actions={[
               {
                 id: "refresh",
-                title: "Refresh cloud environments",
+                title: t("settings.settingsEnvironmentsRouteScreen.refreshCloudEnvironments"),
                 attributes: { disabled: isRefreshingCloud },
               },
             ]}
@@ -123,7 +124,7 @@ export function SettingsEnvironmentsRouteScreen() {
           >
             {(open) => (
               <AndroidHeaderIconButton
-                accessibilityLabel="Environment options"
+                accessibilityLabel={t("settings.settingsEnvironmentsRouteScreen.options")}
                 icon="ellipsis"
                 onPress={open}
               />
@@ -133,7 +134,7 @@ export function SettingsEnvironmentsRouteScreen() {
       }
       actions={[
         {
-          accessibilityLabel: "Add environment",
+          accessibilityLabel: t("settings.settingsEnvironmentsRouteScreen.addEnvironment"),
           icon: "plus",
           tintColor: headerIconColor,
           onPress: () =>

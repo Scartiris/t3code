@@ -11,6 +11,7 @@ import {
   PROJECT_SCOPED_SERVER_SETTING_KEYS,
   type ProjectScopedServerSettingKey,
 } from "@t3tools/contracts";
+import { t } from "@t3tools/shared/i18n";
 import { useRef, useState } from "react";
 import { View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -40,10 +41,10 @@ import {
 type SettingsPage = "new-threads" | "source-control" | "agent-behavior" | "maintenance";
 
 const PAGE_TITLES: Record<SettingsPage, string> = {
-  "new-threads": "New threads",
-  "source-control": "Source control",
-  "agent-behavior": "Agent behavior",
-  maintenance: "Maintenance",
+  "new-threads": t("settings.option.newThreads"),
+  "source-control": t("settings.section.sourceControl"),
+  "agent-behavior": t("settings.settingsServerControlsRouteScreen.pageAgentBehavior"),
+  maintenance: t("settings.settingsServerControlsRouteScreen.pageMaintenance"),
 };
 
 const PAGE_PROJECT_KEYS: Record<SettingsPage, readonly ProjectScopedServerSettingKey[]> = {
@@ -67,16 +68,24 @@ const SUBMODULE_CHOICES: ReadonlyArray<{
   // Only offered at environment scope; a project falls back through "Use defaults".
   {
     mode: null,
-    label: "Inherit",
-    description: "Use the repository's t3.json, or initialize recursively.",
+    label: t("settings.settingsServerControlsRouteScreen.inherit"),
+    description: t("settings.settingsServerControlsRouteScreen.submoduleInheritDescription"),
   },
-  { mode: "recursive", label: "Recursive", description: "Initialize nested submodules too." },
+  {
+    mode: "recursive",
+    label: t("settings.settingsServerControlsRouteScreen.recursive"),
+    description: t("settings.settingsServerControlsRouteScreen.recursiveDescription"),
+  },
   {
     mode: "top-level",
-    label: "Top level only",
-    description: "Skip submodules declared inside other submodules.",
+    label: t("settings.settingsServerControlsRouteScreen.topLevelOnly"),
+    description: t("settings.settingsServerControlsRouteScreen.topLevelOnlyDescription"),
   },
-  { mode: "none", label: "Skip", description: "Leave submodules empty for a setup script." },
+  {
+    mode: "none",
+    label: t("settings.settingsServerControlsRouteScreen.skip"),
+    description: t("settings.settingsServerControlsRouteScreen.skipDescription"),
+  },
 ];
 
 const WORKSPACE_CHOICES: ReadonlyArray<{
@@ -87,18 +96,18 @@ const WORKSPACE_CHOICES: ReadonlyArray<{
   // Only offered at environment scope; a project falls back through "Use defaults".
   {
     mode: null,
-    label: "Inherit",
-    description: "Use the repository's t3.json, or the current checkout.",
+    label: t("settings.settingsServerControlsRouteScreen.inherit"),
+    description: t("settings.settingsServerControlsRouteScreen.workspaceInheritDescription"),
   },
   {
     mode: "local",
-    label: "Current checkout",
-    description: "Start new threads in the existing workspace.",
+    label: t("workspace.currentCheckout"),
+    description: t("settings.settingsServerControlsRouteScreen.currentCheckoutDescription"),
   },
   {
     mode: "worktree",
-    label: "New worktree",
-    description: "Give each new thread a separate checkout.",
+    label: t("workspace.newWorktree"),
+    description: t("settings.settingsServerControlsRouteScreen.newWorktreeDescription"),
   },
 ];
 
@@ -109,13 +118,13 @@ const STREAMING_CHOICES: ReadonlyArray<{
 }> = [
   {
     mode: "turn",
-    label: "After the turn",
-    description: "Show the answer when the agent finishes.",
+    label: t("settings.settingsServerControlsRouteScreen.afterTheTurn"),
+    description: t("settings.settingsServerControlsRouteScreen.afterTheTurnDescription"),
   },
   {
     mode: "paragraph",
-    label: "Finished paragraphs",
-    description: "Show each paragraph or code block as it completes.",
+    label: t("settings.settingsServerControlsRouteScreen.finishedParagraphs"),
+    description: t("settings.settingsServerControlsRouteScreen.finishedParagraphsDescription"),
   },
 ];
 
@@ -231,14 +240,17 @@ function ServerSettingsDetail(props: { readonly page: SettingsPage }) {
           {!hasConnectedSelection || reference === null ? (
             <Text className="px-2 text-base text-foreground-muted">
               {projectSelected
-                ? "Select a project with a checkout on a connected environment."
-                : "Use the filter above to select a connected environment."}
+                ? t("settings.settingsServerControlsRouteScreen.selectProjectWithCheckout")
+                : t("settings.settingsServerControlsRouteScreen.selectConnectedEnvironment")}
             </Text>
           ) : (
             <>
               {projectSelected ? (
                 <SettingsProjectOverridesSection
-                  projectLabel={selectedProject?.label ?? "Unavailable project"}
+                  projectLabel={
+                    selectedProject?.label ??
+                    t("settings.settingsServerControlsRouteScreen.unavailableProject")
+                  }
                   hasOverrides={targets.some((target) =>
                     PAGE_PROJECT_KEYS[props.page].some((key) => target.sources[key] === "project"),
                   )}
@@ -250,7 +262,7 @@ function ServerSettingsDetail(props: { readonly page: SettingsPage }) {
               {props.page === "new-threads" ? (
                 <>
                   <SettingsSection
-                    title="Default workspace"
+                    title={t("settings.settingsServerControlsRouteScreen.defaultWorkspace")}
                     trailing={
                       pendingWrites === 0 && isMixed("defaultThreadEnvMode") ? (
                         <MixedValuesLabel projectSelected={projectSelected} />
@@ -275,7 +287,7 @@ function ServerSettingsDetail(props: { readonly page: SettingsPage }) {
                     ))}
                   </SettingsSection>
                   <SettingsSection
-                    title="Worktree submodules"
+                    title={t("settings.settingsServerControlsRouteScreen.worktreeSubmodules")}
                     trailing={
                       pendingWrites === 0 && isMixed("worktreeSubmodules") ? (
                         <MixedValuesLabel projectSelected={projectSelected} />
@@ -300,7 +312,7 @@ function ServerSettingsDetail(props: { readonly page: SettingsPage }) {
                     ))}
                   </SettingsSection>
                   <SettingsSection
-                    title="Default permissions"
+                    title={t("settings.settingsServerControlsRouteScreen.defaultPermissions")}
                     trailing={
                       pendingWrites === 0 && uniform("defaultRuntimeMode") === null ? (
                         <MixedValuesLabel projectSelected={projectSelected} />
@@ -334,21 +346,29 @@ function ServerSettingsDetail(props: { readonly page: SettingsPage }) {
                     disabled={disabledFor("branchNamingMode")}
                     onChange={write}
                   />
-                  <SettingsSection title="Default branch">
+                  <SettingsSection
+                    title={t("settings.settingsServerControlsRouteScreen.defaultBranch")}
+                  >
                     <SettingsSwitchRow
                       icon="arrow.down.circle"
-                      label="Automatically pull"
-                      subtitle="Keep the default branch current when there are no local changes."
+                      label={t("settings.settingsServerControlsRouteScreen.automaticallyPull")}
+                      subtitle={t(
+                        "settings.settingsServerControlsRouteScreen.automaticallyPullDescription",
+                      )}
                       value={uniform("defaultAutoPull")}
                       disabled={disabledFor("defaultAutoPull")}
                       onValueChange={(value) => write({ defaultAutoPull: value })}
                     />
                   </SettingsSection>
-                  <SettingsSection title="Worktrees">
+                  <SettingsSection
+                    title={t("settings.settingsServerControlsRouteScreen.worktrees")}
+                  >
                     <SettingsSwitchRow
                       icon="arrow.triangle.branch"
-                      label="Start from origin"
-                      subtitle="Base new worktrees on the remote branch."
+                      label={t("git.startFromOrigin")}
+                      subtitle={t(
+                        "settings.settingsServerControlsRouteScreen.startFromOriginDescription",
+                      )}
                       value={uniform("newWorktreesStartFromOrigin")}
                       disabled={disabledFor("newWorktreesStartFromOrigin")}
                       onValueChange={(value) => write({ newWorktreesStartFromOrigin: value })}
@@ -360,7 +380,7 @@ function ServerSettingsDetail(props: { readonly page: SettingsPage }) {
               {props.page === "agent-behavior" ? (
                 <>
                   <SettingsSection
-                    title="Response streaming"
+                    title={t("settings.settingsServerControlsRouteScreen.responseStreaming")}
                     trailing={
                       pendingWrites === 0 && uniform("responseStreamingMode") === null ? (
                         <MixedValuesLabel projectSelected={projectSelected} />
@@ -379,11 +399,15 @@ function ServerSettingsDetail(props: { readonly page: SettingsPage }) {
                       />
                     ))}
                   </SettingsSection>
-                  <SettingsSection title="Preview browser">
+                  <SettingsSection
+                    title={t("settings.settingsServerControlsRouteScreen.previewBrowser")}
+                  >
                     <SettingsSwitchRow
                       icon="globe"
-                      label="Agent browser access"
-                      subtitle="Allow agents to use the in-app preview browser."
+                      label={t("settings.settingsServerControlsRouteScreen.agentBrowserAccess")}
+                      subtitle={t(
+                        "settings.settingsServerControlsRouteScreen.agentBrowserAccessDescription",
+                      )}
                       value={uniform("enableAgentBrowserAccess")}
                       disabled={disabledFor("enableAgentBrowserAccess")}
                       onValueChange={(value) => write({ enableAgentBrowserAccess: value })}
@@ -395,13 +419,17 @@ function ServerSettingsDetail(props: { readonly page: SettingsPage }) {
               {props.page === "maintenance" ? (
                 <>
                   {!projectSelected ? (
-                    <SettingsSection title="Manage environments">
+                    <SettingsSection
+                      title={t("settings.settingsServerControlsRouteScreen.manageEnvironments")}
+                    >
                       {selectedTargets.map((target) => (
                         <SettingsRow
                           key={target.environmentId}
                           icon="server.rack"
                           label={target.label}
-                          value="Server and provider updates"
+                          value={t(
+                            "settings.settingsServerControlsRouteScreen.serverAndProviderUpdates",
+                          )}
                           onPress={() =>
                             navigation.navigate("SettingsSheet", {
                               screen: "SettingsContent",
@@ -415,14 +443,18 @@ function ServerSettingsDetail(props: { readonly page: SettingsPage }) {
                       ))}
                     </SettingsSection>
                   ) : null}
-                  <SettingsSection title="Updates">
+                  <SettingsSection title={t("settings.settingsServerControlsRouteScreen.updates")}>
                     <SettingsSwitchRow
                       icon="arrow.clockwise"
-                      label="Check provider updates"
+                      label={t("settings.settingsServerControlsRouteScreen.checkProviderUpdates")}
                       subtitle={
                         projectSelected
-                          ? "Environment-wide setting. Select All projects to change it."
-                          : "Check installed provider CLIs for newer versions."
+                          ? t(
+                              "settings.settingsServerControlsRouteScreen.checkProviderUpdatesScoped",
+                            )
+                          : t(
+                              "settings.settingsServerControlsRouteScreen.checkProviderUpdatesDescription",
+                            )
                       }
                       value={uniform("enableProviderUpdateChecks")}
                       disabled={disabledFor("enableProviderUpdateChecks")}
@@ -431,11 +463,15 @@ function ServerSettingsDetail(props: { readonly page: SettingsPage }) {
                     <View className="border-t border-border-subtle">
                       <SettingsSwitchRow
                         icon="arrow.uturn.forward"
-                        label="Continue after restart"
+                        label={t("settings.option.continueAfterRestart")}
                         subtitle={
                           supportsContinuation
-                            ? "Resume interrupted threads after an update or restart."
-                            : "Update older servers to control restart continuation."
+                            ? t(
+                                "settings.settingsServerControlsRouteScreen.continueAfterRestartDescription",
+                              )
+                            : t(
+                                "settings.settingsServerControlsRouteScreen.continueAfterRestartUnsupported",
+                              )
                         }
                         value={uniform("continueThreadsAfterServerUpdate")}
                         disabled={
@@ -462,12 +498,12 @@ function MixedValuesLabel(props: { readonly projectSelected: boolean }) {
     <Text
       accessibilityLabel={
         props.projectSelected
-          ? "Selected project checkouts use different values"
-          : "Selected environments use different values"
+          ? t("settings.settingsServerControlsRouteScreen.mixedProjectAccessibility")
+          : t("settings.settingsServerControlsRouteScreen.mixedEnvironmentsAccessibility")
       }
       className="px-2 text-sm text-foreground-muted android:px-4"
     >
-      Mixed
+      {t("settings.settingsServerControlsRouteScreen.mixed")}
     </Text>
   );
 }

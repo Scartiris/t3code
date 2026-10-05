@@ -2,6 +2,7 @@ import { type NavigationProp, type ParamListBase, useNavigation } from "@react-n
 import { useCallback, useLayoutEffect, useState } from "react";
 import { ActivityIndicator, Linking, Pressable, View } from "react-native";
 import { WebView } from "react-native-webview";
+import { t } from "@t3tools/shared/i18n";
 
 import { AppText as Text } from "../../../components/AppText";
 import { LoadingStrip } from "../../../components/LoadingStrip";
@@ -13,7 +14,7 @@ export function SettingsLegalDocumentCloseHeaderButton() {
 
   return (
     <Pressable
-      accessibilityLabel="Close legal document"
+      accessibilityLabel={t("components.settingsLegalDocumentRouteScreen.closeA11y")}
       accessibilityRole="button"
       hitSlop={12}
       onPress={() => navigation.goBack()}
@@ -39,7 +40,7 @@ export function SettingsLegalDocumentExternalHeaderButton({
 
   return (
     <Pressable
-      accessibilityLabel="Open legal documents in external browser"
+      accessibilityLabel={t("components.settingsLegalDocumentRouteScreen.openExternalA11y")}
       accessibilityRole="button"
       hitSlop={12}
       onPress={() => void Linking.openURL(safeExternalUrl).catch(() => undefined)}
@@ -96,7 +97,9 @@ export function SettingsLegalDocumentRouteScreen({
         />
         <View className="items-center gap-2">
           <Text className="text-center font-t3-bold text-lg text-foreground">
-            Couldn&apos;t load the {documentName.toLowerCase()}
+            {t("components.settingsLegalDocumentRouteScreen.loadFailedTitle", {
+              documentName: documentName.toLowerCase(),
+            })}
           </Text>
           <Text selectable className="text-center text-sm leading-normal text-foreground-muted">
             {loadError}
@@ -111,14 +114,18 @@ export function SettingsLegalDocumentRouteScreen({
             }}
             className="items-center rounded-xl bg-foreground px-4 py-3 active:opacity-80"
           >
-            <Text className="font-t3-bold text-base text-sheet">Try Again</Text>
+            <Text className="font-t3-bold text-base text-sheet">
+              {t("components.settingsLegalDocumentRouteScreen.tryAgain")}
+            </Text>
           </Pressable>
           <Pressable
             accessibilityRole="link"
             onPress={() => openExternalUrl(documentUrl)}
             className="items-center rounded-xl px-4 py-3 active:bg-foreground/5"
           >
-            <Text className="font-t3-medium text-base text-foreground-muted">Open in Browser</Text>
+            <Text className="font-t3-medium text-base text-foreground-muted">
+              {t("components.settingsLegalDocumentRouteScreen.openInBrowser")}
+            </Text>
           </Pressable>
         </View>
       </View>
@@ -163,12 +170,19 @@ export function SettingsLegalDocumentRouteScreen({
         }}
         onError={(event) => {
           setLoadProgress(0);
-          setLoadError(event.nativeEvent.description || "The page could not be loaded.");
+          setLoadError(
+            event.nativeEvent.description ||
+              t("components.settingsLegalDocumentRouteScreen.pageLoadFailed"),
+          );
         }}
         onHttpError={(event) => {
           if (!isLegalDocumentUrl(event.nativeEvent.url)) return;
           setLoadProgress(0);
-          setLoadError(`The server returned status ${event.nativeEvent.statusCode}.`);
+          setLoadError(
+            t("components.settingsLegalDocumentRouteScreen.serverStatus", {
+              statusCode: event.nativeEvent.statusCode,
+            }),
+          );
         }}
         renderLoading={() => (
           <View className="absolute inset-0 items-center justify-center bg-sheet">

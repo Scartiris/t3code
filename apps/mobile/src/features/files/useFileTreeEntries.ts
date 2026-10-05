@@ -1,5 +1,6 @@
 import { executeAtomQuery } from "@t3tools/client-runtime/state/runtime";
 import type { EnvironmentId, ProjectEntry } from "@t3tools/contracts";
+import { t } from "@t3tools/shared/i18n";
 import * as Cause from "effect/Cause";
 import { useCallback, useEffect, useMemo, useReducer, useRef } from "react";
 
@@ -87,7 +88,7 @@ export function useFileTreeEntries(input: {
           const error = Cause.squash(result.cause);
           directories.errors.set(
             directoryPath,
-            error instanceof Error ? error.message : "Files unavailable",
+            error instanceof Error ? error.message : t("files.fileTreeBrowser.filesUnavailable"),
           );
         }
         render();

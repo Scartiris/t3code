@@ -1,5 +1,9 @@
 import { beforeEach, describe, expect, it, vi } from "vite-plus/test";
-import { PROVIDER_SEND_TURN_MAX_IMAGE_BYTES } from "@t3tools/contracts";
+import {
+  PROVIDER_SEND_TURN_MAX_ATTACHMENTS,
+  PROVIDER_SEND_TURN_MAX_IMAGE_BYTES,
+} from "@t3tools/contracts";
+import { t } from "@t3tools/shared/i18n";
 import type { ImagePickerAsset } from "expo-image-picker";
 
 const mocks = vi.hoisted(() => ({
@@ -285,7 +289,7 @@ describe("composer file attachments", () => {
 
       await expect(pickComposerImages({ existingCount: 0 })).resolves.toEqual({
         images: [],
-        error: "'photo.HEIC' exceeds the 10 MB attachment limit.",
+        error: t("threads.composerImages.imageExceedsAttachmentLimit", { name: "photo.HEIC" }),
       });
     });
 
@@ -299,7 +303,9 @@ describe("composer file attachments", () => {
       const result = await pickComposerImages({ existingCount: 0 });
 
       expect(result.images).toEqual([expect.objectContaining({ name: "photo.jpg" })]);
-      expect(result.error).toBe("Failed to read 'missing.gif'.");
+      expect(result.error).toBe(
+        t("threads.composerImages.couldNotReadFile", { name: "missing.gif" }),
+      );
     });
 
     it("reports a photo the native renderer cannot decode", async () => {
@@ -313,7 +319,7 @@ describe("composer file attachments", () => {
 
       await expect(pickComposerImages({ existingCount: 0 })).resolves.toEqual({
         images: [],
-        error: "Failed to read 'photo.HEIC'.",
+        error: t("threads.composerImages.couldNotReadFile", { name: "photo.HEIC" }),
       });
     });
   });
@@ -399,7 +405,7 @@ describe("composer file attachments", () => {
       const result = await pickComposerMedia({ existingCount: 0 });
 
       expect(result.attachments).toEqual([expect.objectContaining({ type: "image" })]);
-      expect(result.error).toBe("Video attachments are unavailable here.");
+      expect(result.error).toBe(t("threads.composerImages.videoAttachmentsUnavailable"));
       expect(mocks.copy).not.toHaveBeenCalled();
     });
 
@@ -442,7 +448,7 @@ describe("composer file attachments", () => {
         reported: 42,
         stored: 0,
         limit: 1024 * 1024,
-        error: "'clip.mov' is empty or could not be read.",
+        error: t("chat.chatComposer.fileEmptyOrUnreadable", { name: "clip.mov" }),
       },
       {
         reason: "server advertises more than the contract limit",
@@ -483,7 +489,11 @@ describe("composer file attachments", () => {
       });
 
       expect(result.attachments).toEqual([expect.objectContaining({ type: "image" })]);
-      expect(result.error).toBe("You can attach up to 100 attachments per message.");
+      expect(result.error).toBe(
+        t("threads.newTaskDraftScreen.maxAttachmentsPerMessage", {
+          count: PROVIDER_SEND_TURN_MAX_ATTACHMENTS,
+        }),
+      );
       expect(mocks.pickMedia).toHaveBeenCalledWith(expect.objectContaining({ selectionLimit: 1 }));
       expect(mocks.copy).not.toHaveBeenCalled();
     });
@@ -630,7 +640,9 @@ describe("composer file attachments", () => {
   it("does not open the picker when the draft has no remaining attachment slots", async () => {
     await expect(pickComposerFiles({ existingCount: 100 })).resolves.toEqual({
       files: [],
-      error: "You can attach up to 100 files per message.",
+      error: t("threads.newTaskDraftScreen.maxFilesPerMessage", {
+        count: PROVIDER_SEND_TURN_MAX_ATTACHMENTS,
+      }),
     });
 
     expect(mocks.pickFile).not.toHaveBeenCalled();
@@ -780,7 +792,7 @@ describe("composer file attachments", () => {
 
     await expect(pickComposerFiles({ existingCount: 0 })).resolves.toEqual({
       files: [],
-      error: "'empty.txt' is empty or could not be read.",
+      error: t("chat.chatComposer.fileEmptyOrUnreadable", { name: "empty.txt" }),
     });
   });
 

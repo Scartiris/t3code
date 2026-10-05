@@ -1,5 +1,6 @@
 import { resolveAssetUrl } from "@t3tools/client-runtime/state/assets";
 import type { EnvironmentId, ThreadId } from "@t3tools/contracts";
+import { t } from "@t3tools/shared/i18n";
 import * as Option from "effect/Option";
 import { useCallback, useEffect, useLayoutEffect, useRef } from "react";
 import { Alert } from "react-native";
@@ -37,12 +38,12 @@ export function useFileChipShare(
       requestRef.current = request;
       const httpBaseUrl = connectionRef.current;
       void (async () => {
-        if (httpBaseUrl === null) throw new Error("Reconnect to the environment and try again.");
+        if (httpBaseUrl === null) throw new Error(t("media.mediaActions.reconnectEnvironment"));
         const result = await createUrl({ environmentId, input: { resource: source.resource } });
         if (request.signal.aborted) return;
         const url =
           result._tag === "Success" ? resolveAssetUrl(httpBaseUrl, result.value.relativeUrl) : null;
-        if (url === null) throw new Error("The file could not be loaded. Reconnect and try again.");
+        if (url === null) throw new Error(t("threads.useFileChipShare.fileLoadFailed"));
         await downloadAndShareAttachment({
           url,
           attachment: source,
@@ -53,8 +54,8 @@ export function useFileChipShare(
         .catch((error: unknown) => {
           if (!request.signal.aborted) {
             Alert.alert(
-              "Could not share file",
-              error instanceof Error ? error.message : "Try again.",
+              t("threads.useFileChipShare.couldNotShareFile"),
+              error instanceof Error ? error.message : t("files.attachmentFileScreen.tryAgain"),
             );
           }
         })

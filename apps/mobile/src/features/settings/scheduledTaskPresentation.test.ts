@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vite-plus/test";
+import { t } from "@t3tools/shared/i18n";
 import {
   formatNextScheduledTaskRun,
   formatScheduledTaskInterval,
@@ -11,34 +12,58 @@ const timeLabel = (date: Date) =>
 
 describe("formatScheduledTaskInterval", () => {
   it.each([
-    [1, "Every minute"],
-    [15, "Every 15 minutes"],
-    [60, "Every hour"],
-    [90, "Every 1 hour 30 minutes"],
-    [120, "Every 2 hours"],
-    [1440, "Every day"],
-    [1500, "Every 1 day 1 hour"],
-    [2880, "Every 2 days"],
-    [10080, "Every week"],
+    [1, "每分钟"],
+    [15, "每 15 分钟"],
+    [60, "每小时"],
+    [90, "每 1 小时 30 分钟"],
+    [120, "每 2 小时"],
+    [1440, "每天"],
+    [1500, "每 1 天 1 小时"],
+    [2880, "每 2 天"],
+    [10080, "每周"],
   ])("formats a %i-minute interval as %s", (minutes, expected) => {
     expect(formatScheduledTaskInterval(minutes * MINUTE)).toBe(expected);
   });
 
   it("retains precision for legacy sub-minute schedules", () => {
-    expect(formatScheduledTaskInterval(30_000)).toBe("Every 30 seconds");
-    expect(formatScheduledTaskInterval(90_000)).toBe("Every 1 minute 30 seconds");
+    expect(formatScheduledTaskInterval(30_000)).toBe("每 30 秒");
+    expect(formatScheduledTaskInterval(90_000)).toBe("每 1 分钟 30 秒");
   });
 });
 
 describe("formatNextScheduledTaskRun", () => {
   it.each([
-    [30_000, "Next run in less than a minute"],
-    [MINUTE, "Next run in 1 minute"],
-    [15 * MINUTE, "Next run in 15 minutes"],
-    [60 * MINUTE, "Next run in 1 hour"],
-    [120 * MINUTE, "Next run in 2 hours"],
-    [0, "Next run due"],
-    [-MINUTE, "Next run due"],
+    [30_000, t("settings.scheduledTaskPresentation.nextRunInLessThanAMinute")],
+    [
+      MINUTE,
+      t("settings.scheduledTaskPresentation.nextRunIn", {
+        count: 1,
+        unit: t("settings.scheduledTaskPresentation.minute"),
+      }),
+    ],
+    [
+      15 * MINUTE,
+      t("settings.scheduledTaskPresentation.nextRunIn", {
+        count: 15,
+        unit: t("settings.scheduledTaskPresentation.minute"),
+      }),
+    ],
+    [
+      60 * MINUTE,
+      t("settings.scheduledTaskPresentation.nextRunIn", {
+        count: 1,
+        unit: t("settings.scheduledTaskPresentation.hour"),
+      }),
+    ],
+    [
+      120 * MINUTE,
+      t("settings.scheduledTaskPresentation.nextRunIn", {
+        count: 2,
+        unit: t("settings.scheduledTaskPresentation.hour"),
+      }),
+    ],
+    [0, t("settings.scheduledTaskPresentation.nextRunDue")],
+    [-MINUTE, t("settings.scheduledTaskPresentation.nextRunDue")],
   ])("formats a nearby run %i ms away", (offset, expected) => {
     expect(formatNextScheduledTaskRun(new Date(now + offset).toISOString(), now)).toBe(expected);
   });
@@ -47,14 +72,17 @@ describe("formatNextScheduledTaskRun", () => {
     const current = new Date(2026, 8, 17, 23, 50);
     const next = new Date(2026, 8, 18, 0, 10);
     expect(formatNextScheduledTaskRun(next.toISOString(), current.getTime())).toBe(
-      `Next run tomorrow at ${timeLabel(next)}`,
+      t("settings.scheduledTaskPresentation.nextRunTomorrowAt", { time: timeLabel(next) }),
     );
   });
 
   it("uses the next weekday within a week", () => {
     const next = new Date(2026, 8, 21, 14, 30);
     expect(formatNextScheduledTaskRun(next.toISOString(), now)).toBe(
-      `Next run next ${next.toLocaleDateString([], { weekday: "long" })} at ${timeLabel(next)}`,
+      t("settings.scheduledTaskPresentation.nextRunNextWeekdayAt", {
+        weekday: next.toLocaleDateString([], { weekday: "long" }),
+        time: timeLabel(next),
+      }),
     );
   });
 
@@ -66,12 +94,14 @@ describe("formatNextScheduledTaskRun", () => {
         ...(next.getFullYear() === 2026 ? {} : { year: "numeric" as const }),
       });
       expect(formatNextScheduledTaskRun(next.toISOString(), now)).toBe(
-        `Next run ${date} at ${timeLabel(next)}`,
+        t("settings.scheduledTaskPresentation.nextRunOnDateAt", { date, time: timeLabel(next) }),
       );
     }
   });
 
   it("does not show an invalid date", () => {
-    expect(formatNextScheduledTaskRun("invalid", now)).toBe("Next run unavailable");
+    expect(formatNextScheduledTaskRun("invalid", now)).toBe(
+      t("settings.scheduledTaskPresentation.nextRunUnavailable"),
+    );
   });
 });

@@ -6,6 +6,7 @@ import { EnvironmentId } from "@t3tools/contracts";
 import { RelayMobileClientId } from "@t3tools/contracts/relay";
 import { ManagedRelay } from "@t3tools/client-runtime/relay";
 import { remoteHttpClientLayer } from "@t3tools/client-runtime/rpc";
+import { t } from "@t3tools/shared/i18n";
 import { HttpClient } from "effect/unstable/http";
 
 import * as MobileStorage from "../../persistence/mobile-storage";
@@ -173,7 +174,7 @@ describe("mobile cloud link environment client", () => {
         ).pipe(Effect.flip);
         expect(error).toMatchObject({
           _tag: "CloudEnvironmentLinkError",
-          message: "Relay returned credentials for a different environment.",
+          message: t("cloud.linkEnvironment.relayEnvironmentMismatch"),
         });
         expect(fetchMock).toHaveBeenCalledTimes(3);
       }),
@@ -206,7 +207,7 @@ describe("mobile cloud link environment client", () => {
       ).pipe(Effect.flip);
       expect(error._tag).toBe("CloudEnvironmentLinkError");
       expect(error.message).toBe(
-        "Could not obtain environment link proof: Invalid environment bearer session.",
+        t("cloud.linkEnvironment.obtainLinkProofFailed") + ": Invalid environment bearer session.",
       );
       expect(fetchMock).toHaveBeenCalledTimes(2);
     }),
@@ -245,7 +246,10 @@ describe("mobile cloud link environment client", () => {
       expect(error).toMatchObject({
         _tag: "CloudEnvironmentLinkError",
         message:
-          "https://relay.example.test/v1/client/environment-links failed: Relay rejected the environment link proof (origin_not_allowed).",
+          `${t("cloud.linkEnvironment.relayRequestFailed", {
+            url: "https://relay.example.test/v1/client/environment-links",
+          })}: ` +
+          t("relayErrors.errorPresentation.linkProofInvalid", { reason: "origin_not_allowed" }),
         traceId: "trace-test",
       });
       expect(fetchMock).toHaveBeenCalledTimes(3);
@@ -282,7 +286,7 @@ describe("mobile cloud link environment client", () => {
       ).pipe(Effect.flip);
       expect(error).toMatchObject({
         _tag: "CloudEnvironmentLinkError",
-        message: "Relay returned credentials for a different endpoint provider.",
+        message: t("cloud.linkEnvironment.relayEndpointProviderMismatch"),
       });
       expect(fetchMock).toHaveBeenCalledTimes(3);
     }),

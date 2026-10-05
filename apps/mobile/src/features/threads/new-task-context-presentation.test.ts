@@ -1,3 +1,4 @@
+import { t } from "@t3tools/shared/i18n";
 import { describe, expect, it } from "vite-plus/test";
 
 import {
@@ -104,7 +105,7 @@ describe("resolveNewTaskBranchLabel", () => {
         startFromOrigin: false,
         workspaceMode: "worktree",
       }),
-    ).toBe("From main");
+    ).toBe(t("git.fromRef", { ref: "main" }));
   });
 
   it("labels a remote worktree base with From origin", () => {
@@ -114,7 +115,7 @@ describe("resolveNewTaskBranchLabel", () => {
         startFromOrigin: true,
         workspaceMode: "worktree",
       }),
-    ).toBe("From origin/main");
+    ).toBe(t("git.fromRef", { ref: "origin/main" }));
   });
 
   it("prompts when no branch is available", () => {
@@ -124,7 +125,7 @@ describe("resolveNewTaskBranchLabel", () => {
         startFromOrigin: true,
         workspaceMode: "worktree",
       }),
-    ).toBe("Choose branch");
+    ).toBe(t("threads.newTaskContextPresentation.chooseBranch"));
   });
 });
 

@@ -15,6 +15,7 @@ import {
   MAX_SIDEBAR_AUTO_SETTLE_AFTER_DAYS,
   MIN_SIDEBAR_AUTO_SETTLE_AFTER_DAYS,
 } from "@t3tools/contracts";
+import { t } from "@t3tools/shared/i18n";
 import { useState } from "react";
 
 import { useAppearancePreferences } from "../appearance/AppearancePreferencesProvider";
@@ -42,7 +43,11 @@ export function AutoSettleDaysField(props: AutoSettleDaysFieldProps) {
             modifiers={[
               buttonStyle("bordered"),
               disabled(props.disabled),
-              accessibilityLabel(`Days before auto-settle: ${props.value}`),
+              accessibilityLabel(
+                t("components.autoSettleDaysFieldIos.daysBeforeAutoSettleA11y", {
+                  value: props.value,
+                }),
+              ),
               frame({ minWidth: 64, minHeight: 44 }),
               foregroundStyle(colors["--color-primary-text"]),
               font({ size: appearance.baseFontSize }),
@@ -60,7 +65,7 @@ export function AutoSettleDaysField(props: AutoSettleDaysFieldProps) {
             ]}
           >
             <Picker
-              label="Days before auto-settle"
+              label={t("settings.option.daysBeforeAutoSettle")}
               selection={draft}
               onSelectionChange={setDraft}
               modifiers={[pickerStyle("wheel"), frame({ height: 180 })]}
@@ -70,18 +75,18 @@ export function AutoSettleDaysField(props: AutoSettleDaysFieldProps) {
                   key={value}
                   modifiers={[tag(value), foregroundStyle(colors["--color-foreground"])]}
                 >
-                  {`${value} ${value === 1 ? "day" : "days"}`}
+                  {t("components.autoSettleDaysFieldIos.daysOption", { value })}
                 </Text>
               ))}
             </Picker>
             <HStack spacing={24}>
               <Button
-                label="Cancel"
+                label={t("action.cancel")}
                 onPress={() => setOpen(false)}
                 modifiers={[foregroundStyle(colors["--color-primary-text"])]}
               />
               <Button
-                label="Done"
+                label={t("components.autoSettleDaysFieldIos.done")}
                 onPress={() => {
                   setOpen(false);
                   if (!props.disabled && draft !== props.value) props.onValueChange(draft);

@@ -9,6 +9,7 @@ import type {
   ServerProviderSlashCommand,
 } from "@t3tools/contracts";
 import type { ComposerTriggerKind } from "@t3tools/shared/composerTrigger";
+import { t } from "@t3tools/shared/i18n";
 import { memo } from "react";
 import { Pressable, ScrollView, StyleSheet, View, type ViewStyle } from "react-native";
 
@@ -115,13 +116,13 @@ function itemIcon(item: ComposerCommandItem): AppSymbolName | null {
 function groupLabel(triggerKind: ComposerTriggerKind | null): string | null {
   switch (triggerKind) {
     case "pull-request":
-      return "Pull requests";
+      return t("threads.composerCommandPopover.groupPullRequests");
     case "slash-command":
-      return "Commands";
+      return t("threads.composerCommandPopover.groupCommands");
     case "skill":
-      return "Skills";
+      return t("threads.composerCommandPopover.groupSkills");
     case "path":
-      return "Files";
+      return t("threads.composerCommandPopover.groupFiles");
     default:
       return null;
   }
@@ -129,19 +130,21 @@ function groupLabel(triggerKind: ComposerTriggerKind | null): string | null {
 
 function emptyText(triggerKind: ComposerTriggerKind | null, isLoading: boolean): string {
   if (isLoading) {
-    return triggerKind === "path" ? "Searching files…" : "Loading…";
+    return triggerKind === "path"
+      ? t("threads.composerCommandPopover.searchingFiles")
+      : t("threads.composerCommandPopover.loading");
   }
   switch (triggerKind) {
     case "pull-request":
-      return "No matching pull requests.";
+      return t("threads.composerCommandPopover.noMatchingPullRequests");
     case "path":
-      return "No matching files or folders.";
+      return t("threads.composerCommandPopover.noMatchingPaths");
     case "skill":
-      return "No skills found.";
+      return t("threads.composerCommandPopover.noSkills");
     case "slash-command":
-      return "No matching commands.";
+      return t("threads.composerCommandPopover.noMatchingCommands");
     default:
-      return "No results.";
+      return t("threads.composerCommandPopover.noResults");
   }
 }
 
@@ -173,7 +176,9 @@ const CommandRow = memo(function CommandRow(props: {
       <Text className="shrink-0 text-base font-t3-medium text-foreground" numberOfLines={1}>
         {props.isSlashSkill && props.item.type === "skill" ? (
           <>
-            <Text className="text-foreground-muted">skill:</Text>
+            <Text className="text-foreground-muted">
+              {t("threads.composerCommandPopover.skillPrefix")}
+            </Text>
             {props.item.skill.name}
           </>
         ) : (

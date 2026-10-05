@@ -3,6 +3,7 @@ import { useAuth, useUser } from "@clerk/expo";
 import { useNavigation } from "@react-navigation/native";
 import { Platform, View } from "react-native";
 import { deriveProjectGroupLabel } from "@t3tools/client-runtime/state/project-grouping";
+import { t } from "@t3tools/shared/i18n";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { hasCloudPublicConfig } from "../cloud/publicConfig";
@@ -32,7 +33,7 @@ export function SettingsRouteScreen() {
       {Platform.OS === "ios" && layout.usesSplitView ? (
         <NativeHeaderToolbar placement="left">
           <NativeHeaderToolbar.Button
-            accessibilityLabel="Go back"
+            accessibilityLabel={t("sidebar.back")}
             icon="chevron.left"
             onPress={() => navigation.goBack()}
           />
@@ -40,7 +41,7 @@ export function SettingsRouteScreen() {
       ) : null}
       <SettingsEnvironmentFilterHeader closeSettings />
       {Platform.OS === "android" ? (
-        <SettingsScreen title="Settings" trailing={<AndroidSettingsEnvironmentFilter />}>
+        <SettingsScreen title={t("settings.title")} trailing={<AndroidSettingsEnvironmentFilter />}>
           {content}
         </SettingsScreen>
       ) : (
@@ -57,10 +58,10 @@ function ConfiguredSettingsRouteScreen() {
   const { user } = useUser();
   const { savedConnectionsById } = useSavedRemoteConnections();
   const accountLabel = !isLoaded
-    ? "Checking"
+    ? t("settings.settingsRouteScreen.accountChecking")
     : !isSignedIn
-      ? "Sign in"
-      : (user?.primaryEmailAddress?.emailAddress ?? "Signed in");
+      ? t("settings.settingsRouteScreen.signIn")
+      : (user?.primaryEmailAddress?.emailAddress ?? t("settings.settingsRouteScreen.signedIn"));
 
   return (
     <View collapsable={false} className="flex-1 bg-sheet">
@@ -71,22 +72,26 @@ function ConfiguredSettingsRouteScreen() {
         contentContainerClassName="gap-4 px-5 pt-4"
         contentContainerStyle={{ paddingBottom: Math.max(insets.bottom, 18) + 18 }}
       >
-        <SettingsSection title="Connections">
+        <SettingsSection title={t("settings.section.connections")}>
           <SettingsRow
             icon="person.crop.circle"
-            label="T3 Account"
+            label={t("settings.settingsRouteScreen.t3Account")}
             value={accountLabel}
             disabled={!isLoaded}
             onPress={() => navigation.navigate("SettingsSheet", { screen: "SettingsAuth" })}
           />
           <SettingsRow
             icon="desktopcomputer"
-            label="Environments"
+            label={t("settings.settingsRouteScreen.environments")}
             value={`${Object.keys(savedConnectionsById).length}`}
             valuePosition="trailing"
             target="SettingsEnvironments"
           />
-          <SettingsRow icon="bell.badge" label="Notifications" target="SettingsNotifications" />
+          <SettingsRow
+            icon="bell.badge"
+            label={t("settings.settingsRouteScreen.notifications")}
+            target="SettingsNotifications"
+          />
         </SettingsSection>
 
         <SettingsIndexSections />
@@ -111,10 +116,10 @@ function LocalSettingsRouteScreen() {
           paddingBottom: Math.max(insets.bottom, 18) + 18,
         }}
       >
-        <SettingsSection title="Connections">
+        <SettingsSection title={t("settings.section.connections")}>
           <SettingsRow
             icon="desktopcomputer"
-            label="Environments"
+            label={t("settings.settingsRouteScreen.environments")}
             value={`${environmentCount}`}
             valuePosition="trailing"
             target="SettingsEnvironments"
@@ -143,71 +148,103 @@ function SettingsIndexSections() {
           representative: scopedProjectMembers[0]!,
           members: scopedProjectMembers,
         })
-      : (selectedProject?.label ?? "Unavailable project");
+      : (selectedProject?.label ?? t("settings.settingsRouteScreen.unavailableProject"));
   return (
     <>
-      <SettingsSection title="Interface">
-        <SettingsRow icon="paintbrush" label="Appearance" target="SettingsAppearance" />
+      <SettingsSection title={t("settings.group.interface")}>
+        <SettingsRow
+          icon="paintbrush"
+          label={t("settings.section.appearance")}
+          target="SettingsAppearance"
+        />
         {Platform.OS === "ios" ? (
-          <SettingsRow icon="keyboard" label="Keyboard" target="SettingsKeyboard" />
+          <SettingsRow
+            icon="keyboard"
+            label={t("settings.settingsRouteScreen.keyboard")}
+            target="SettingsKeyboard"
+          />
         ) : null}
       </SettingsSection>
 
-      <SettingsSection title="Automations">
-        <SettingsRow icon="clock" label="Scheduled tasks" target="SettingsScheduledTasks" />
+      <SettingsSection title={t("settings.settingsRouteScreen.automations")}>
+        <SettingsRow
+          icon="clock"
+          label={t("settings.settingsRouteScreen.scheduledTasks")}
+          target="SettingsScheduledTasks"
+        />
       </SettingsSection>
 
-      <SettingsSection title="Projects & threads">
+      <SettingsSection title={t("settings.group.projectsThreads")}>
         {selectedProjectKey !== null ? (
           <SettingsRow
             icon="folder"
-            label="Overview"
+            label={t("settings.settingsRouteScreen.overview")}
             value={projectLabel}
             target="SettingsProjectOverview"
           />
         ) : null}
-        <SettingsRow icon="folder" label="Organization" target="SettingsOrganization" />
-        <SettingsRow icon="text.bubble" label="Thread behavior" target="SettingsThreads" />
-        <SettingsRow icon="arrow.turn.left.up" label="Follow-ups" target="SettingsFollowUp" />
-        <SettingsRow icon="archivebox" label="Archived Threads" target="SettingsArchive" />
+        <SettingsRow
+          icon="folder"
+          label={t("settings.group.organization")}
+          target="SettingsOrganization"
+        />
+        <SettingsRow
+          icon="text.bubble"
+          label={t("settings.settingsRouteScreen.threadBehavior")}
+          target="SettingsThreads"
+        />
+        <SettingsRow
+          icon="arrow.turn.left.up"
+          label={t("settings.settingsRouteScreen.followUps")}
+          target="SettingsFollowUp"
+        />
+        <SettingsRow
+          icon="archivebox"
+          label={t("settings.option.archivedThreads")}
+          target="SettingsArchive"
+        />
       </SettingsSection>
 
-      <SettingsSection title="Server settings">
+      <SettingsSection title={t("settings.settingsRouteScreen.serverSettings")}>
         <SettingsRow
           icon="person.crop.circle"
-          label="Provider accounts"
+          label={t("settings.settingsRouteScreen.providerAccounts")}
           target="SettingsProviderAccounts"
           disabled={noServerTargets}
         />
         <SettingsRow
           icon="text.bubble"
-          label="New threads"
+          label={t("settings.option.newThreads")}
           target="SettingsEnvironmentNewThreads"
           disabled={noServerTargets}
         />
         <SettingsRow
           icon="arrow.triangle.branch"
-          label="Source control"
+          label={t("settings.option.sourceControl")}
           target="SettingsEnvironmentSourceControl"
           disabled={noServerTargets}
         />
         <SettingsRow
           icon="text.alignleft"
-          label="Agent behavior"
+          label={t("settings.settingsRouteScreen.agentBehavior")}
           target="SettingsEnvironmentAgentBehavior"
           disabled={noServerTargets}
         />
         <SettingsRow
           icon="arrow.clockwise"
-          label="Maintenance"
+          label={t("settings.settingsRouteScreen.maintenance")}
           target="SettingsEnvironmentMaintenance"
           disabled={noServerTargets}
         />
       </SettingsSection>
 
-      <SettingsSection title="App">
-        <SettingsRow icon="chart.bar.xaxis" label="Usage" target="SettingsUsage" />
-        <SettingsRow icon="info.circle" label="About T3 Code" target="SettingsAbout" />
+      <SettingsSection title={t("settings.settingsRouteScreen.app")}>
+        <SettingsRow icon="chart.bar.xaxis" label={t("sidebar.usage")} target="SettingsUsage" />
+        <SettingsRow
+          icon="info.circle"
+          label={t("settings.settingsRouteScreen.aboutT3Code")}
+          target="SettingsAbout"
+        />
       </SettingsSection>
     </>
   );

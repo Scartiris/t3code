@@ -37,6 +37,7 @@ import {
   type ProviderSubagentStatus,
 } from "@t3tools/client-runtime/state/thread-execution";
 import { formatModelSlugName, resolveSelectableModel } from "@t3tools/shared/model";
+import { t } from "@t3tools/shared/i18n";
 import { isProviderNativeSubagentThread } from "@t3tools/contracts";
 import type { QueuedRunEdit } from "../../state/queued-run-edit";
 import type { FollowUpBehavior } from "../../lib/followUpBehavior";
@@ -422,9 +423,11 @@ export const ThreadDetailScreen = memo(function ThreadDetailScreen(props: Thread
       case "cached":
       case "synchronizing":
         if (contentPresentationKind === "ready") {
-          return "Syncing messages...";
+          return t("threads.threadDetailScreen.syncingMessages");
         }
-        return contentPresentationKind === "loading" ? "Loading messages..." : null;
+        return contentPresentationKind === "loading"
+          ? t("threads.threadDetailScreen.loadingMessages")
+          : null;
       default:
         return null;
     }
@@ -457,7 +460,9 @@ export const ThreadDetailScreen = memo(function ThreadDetailScreen(props: Thread
       if (props.worktreeSetup) return null;
       return {
         kind: "preparing",
-        label: props.creationState.preparingWorktree ? "Setting up worktree…" : "Starting…",
+        label: props.creationState.preparingWorktree
+          ? t("threads.threadDetailScreen.settingUpWorktree")
+          : t("threads.threadDetailScreen.starting"),
       };
     }
     if (props.creationState?.kind === "failed") {
@@ -970,8 +975,8 @@ export const ThreadDetailScreen = memo(function ThreadDetailScreen(props: Thread
       }
     } catch (error) {
       Alert.alert(
-        "Could not edit message",
-        error instanceof Error ? error.message : "Please try again.",
+        t("threads.threadDetailScreen.couldNotEditMessage"),
+        error instanceof Error ? error.message : t("threads.threadDetailScreen.tryAgain"),
       );
     }
   }, []);
@@ -1061,7 +1066,7 @@ export const ThreadDetailScreen = memo(function ThreadDetailScreen(props: Thread
             renderFallback={(fallback) => (
               <RenderFailureView
                 {...fallback}
-                title="The conversation couldn't be displayed"
+                title={t("threads.threadDetailScreen.renderFailedTitle")}
                 bottomInset={estimatedOverlayHeight}
               />
             )}
@@ -1304,7 +1309,7 @@ export const ThreadDetailScreen = memo(function ThreadDetailScreen(props: Thread
                       editorRef={composerEditorRef}
                       draftMessage={props.draftMessage}
                       draftAttachments={props.draftAttachments}
-                      placeholder="Ask the repo agent, or run a command…"
+                      placeholder={t("threads.threadDetailScreen.composerPlaceholder")}
                       contentMaxWidth={contentMaxWidth}
                       connectionState={props.connectionStateLabel}
                       environmentLabel={props.environmentLabel}
@@ -1320,7 +1325,9 @@ export const ThreadDetailScreen = memo(function ThreadDetailScreen(props: Thread
                       // them against a thread id the server may still reject
                       // would strand them in the outbox.
                       sendBlockedReason={
-                        props.creationState?.kind === "preparing" ? "Starting the task…" : null
+                        props.creationState?.kind === "preparing"
+                          ? t("threads.threadDetailScreen.startingTask")
+                          : null
                       }
                       draftKey={props.composerDraftKey ?? undefined}
                       followUpBehavior={props.followUpBehavior}

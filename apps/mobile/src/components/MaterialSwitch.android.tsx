@@ -1,4 +1,5 @@
 import { Host, Switch as ComposeSwitch } from "@expo/ui/jetpack-compose";
+import { t } from "@t3tools/shared/i18n";
 import { View } from "react-native";
 import type { ThemedSwitchProps } from "./MaterialSwitch.types";
 
@@ -18,7 +19,9 @@ export function MaterialSwitch(props: ThemedSwitchProps) {
       accessibilityHint={props.accessibilityHint}
       accessibilityRole="switch"
       accessibilityState={{ checked: Boolean(props.value), disabled: Boolean(props.disabled) }}
-      accessibilityActions={[{ name: "activate", label: "Toggle" }]}
+      accessibilityActions={[
+        { name: "activate", label: t("components.materialSwitchAndroid.toggle") },
+      ]}
       onAccessibilityAction={toggle}
       style={props.style}
       testID={props.testID}

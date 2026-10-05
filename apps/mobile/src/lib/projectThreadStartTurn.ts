@@ -11,6 +11,7 @@ import {
 } from "@t3tools/contracts";
 import { deriveThreadTitleSeed } from "@t3tools/client-runtime/operations";
 import { assistantCitationsToPlainText } from "@t3tools/shared/assistantCitations";
+import { t } from "@t3tools/shared/i18n";
 
 import type { UploadedMobileAttachment } from "./attachmentUpload";
 
@@ -89,7 +90,7 @@ export function buildProjectThreadStartTurnInput(spec: ProjectThreadStartTurnSpe
 export function deriveThreadTitleFromPrompt(value: string): string {
   const trimmed = assistantCitationsToPlainText(value).trim();
   if (trimmed.length === 0) {
-    return "New thread";
+    return t("components.chatView.newThread");
   }
 
   const compact = trimmed.replace(/\s+/g, " ");

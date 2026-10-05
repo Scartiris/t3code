@@ -1,4 +1,5 @@
 import type { AssetResource, EnvironmentId } from "@t3tools/contracts";
+import { t } from "@t3tools/shared/i18n";
 import { createContext, useContext, useEffect, useId, useState } from "react";
 import {
   ActivityIndicator,
@@ -85,15 +86,19 @@ export function ThreadMarkdownImageView(props: {
         <MediaActionsMenu media={mediaActions}>
           <Pressable
             accessibilityRole="imagebutton"
-            accessibilityLabel={props.alt ?? "Markdown image"}
+            accessibilityLabel={props.alt ?? t("threads.threadMarkdownImage.markdownImage")}
             accessibilityHint={
-              mediaActions.actions.length > 0 ? "Touch and hold for media actions" : undefined
+              mediaActions.actions.length > 0
+                ? t("threads.threadMarkdownImage.mediaActionsHint")
+                : undefined
             }
             className="items-center justify-center rounded-[10px] bg-md-code-bg"
             style={frameStyle}
           >
             {failed ? (
-              <Text className="text-xs text-foreground-muted">Image unavailable</Text>
+              <Text className="text-xs text-foreground-muted">
+                {t("threads.threadMarkdownImage.imageUnavailable")}
+              </Text>
             ) : (
               <ActivityIndicator />
             )}
@@ -104,15 +109,20 @@ export function ThreadMarkdownImageView(props: {
           <MediaActionsMenu media={mediaActions}>
             <Pressable
               accessibilityRole="imagebutton"
-              accessibilityLabel={props.alt ?? "Markdown image"}
+              accessibilityLabel={props.alt ?? t("threads.threadMarkdownImage.markdownImage")}
               accessibilityHint={
-                mediaActions.actions.length > 0 ? "Touch and hold for media actions" : undefined
+                mediaActions.actions.length > 0
+                  ? t("threads.threadMarkdownImage.mediaActionsHint")
+                  : undefined
               }
               onPress={() =>
                 props.onPressPreview({
                   kind: "image",
                   uri: props.uri!,
-                  name: props.actionsSource?.name ?? props.alt ?? "Image",
+                  name:
+                    props.actionsSource?.name ??
+                    props.alt ??
+                    t("threads.threadMarkdownImage.image"),
                   sourceIdentifier,
                   actionsSource: props.actionsSource,
                 })
@@ -168,7 +178,9 @@ function ThreadMarkdownImageRequest(props: {
           pointerEvents="none"
           style={[StyleSheet.absoluteFill, { alignItems: "center", justifyContent: "center" }]}
         >
-          <Text className="text-xs text-foreground-muted">Loading image…</Text>
+          <Text className="text-xs text-foreground-muted">
+            {t("threads.threadMarkdownImage.loadingImage")}
+          </Text>
         </View>
       )}
     </>

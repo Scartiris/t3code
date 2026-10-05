@@ -3,6 +3,7 @@ import type {
   EnvironmentThreadShell,
 } from "@t3tools/client-runtime/state/shell";
 import { EnvironmentId, ThreadId, type SidebarProjectGroupingMode } from "@t3tools/contracts";
+import { t } from "@t3tools/shared/i18n";
 import { useAtomValue } from "@effect/atom-react";
 import { useFocusEffect } from "@react-navigation/native";
 import {
@@ -585,8 +586,11 @@ function AdaptiveWorkspaceLayoutContent(
                   renderFallback={(fallback) => (
                     <RenderFailureView
                       {...fallback}
-                      title="The sidebar couldn't be displayed"
-                      exit={{ label: "Open settings", onPress: handleOpenSettings }}
+                      title={t("layout.adaptiveWorkspaceLayout.sidebarRenderFailed")}
+                      exit={{
+                        label: t("layout.adaptiveWorkspaceLayout.openSettings"),
+                        onPress: handleOpenSettings,
+                      }}
                     />
                   )}
                 >

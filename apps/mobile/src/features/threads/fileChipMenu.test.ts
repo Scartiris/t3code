@@ -1,4 +1,5 @@
 import { ThreadId } from "@t3tools/contracts";
+import { t } from "@t3tools/shared/i18n";
 import { describe, expect, it } from "vite-plus/test";
 
 import { fileChipMenu, fileChipShareSource, resolveFileChipTarget } from "./fileChipMenu";
@@ -33,8 +34,8 @@ describe("fileChipMenu", () => {
     expect(fileChipMenu({ fullPath: "/tmp/report.md" })).toEqual({
       title: "/tmp/report.md",
       actions: [
-        { id: "copy-full-path", title: "Copy full path" },
-        { id: "open-file", title: "Open in file viewer" },
+        { id: "copy-full-path", title: t("media.mediaActions.copyFullPath") },
+        { id: "open-file", title: t("media.mediaActions.openInFileViewer") },
       ],
     });
     expect(fileChipMenu({ relativePath: "src/app.ts" }).actions.map(({ id }) => id)).toEqual([
@@ -60,7 +61,7 @@ describe("file chip downloads", () => {
     const target = resolveFileChipTarget(href, "/repo")!;
     expect(fileChipMenu(target).actions).toContainEqual({
       id: "save",
-      title: "Save or share",
+      title: t("files.attachmentFileScreen.saveOrShare"),
     });
     expect(fileChipShareSource(target, threadId)).toEqual({
       name: path.split("/").at(-1),

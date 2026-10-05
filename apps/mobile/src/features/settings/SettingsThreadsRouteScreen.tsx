@@ -8,6 +8,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { DEFAULT_SERVER_SETTINGS } from "@t3tools/contracts";
 import { supportsSharedSettingsSync } from "@t3tools/client-runtime/state/shared-settings";
+import { t } from "@t3tools/shared/i18n";
 import { AppText as Text } from "../../components/AppText";
 import { mobilePreferencesAtom, updateMobilePreferencesAtom } from "../../state/preferences";
 import { serverEnvironment } from "../../state/server";
@@ -36,7 +37,10 @@ export function SettingsThreadsRouteScreen() {
   return (
     <>
       <SettingsEnvironmentFilterHeader />
-      <SettingsScreen title="Thread behavior" trailing={<AndroidSettingsEnvironmentFilter />}>
+      <SettingsScreen
+        title={t("settings.settingsThreadsRouteScreen.title")}
+        trailing={<AndroidSettingsEnvironmentFilter />}
+      >
         <ScrollView
           contentInsetAdjustmentBehavior="automatic"
           showsVerticalScrollIndicator={false}
@@ -162,7 +166,9 @@ function AutoSettleSettingsRows() {
     <View className="gap-6">
       {projectSelected ? (
         <SettingsProjectOverridesSection
-          projectLabel={selectedProject?.label ?? "Unavailable project"}
+          projectLabel={
+            selectedProject?.label ?? t("settings.settingsThreadsRouteScreen.unavailableProject")
+          }
           hasOverrides={hasProjectOverrides}
           supportsOverrides={supportsProjectOverrides}
           pending={pendingWrites > 0}
@@ -170,34 +176,34 @@ function AutoSettleSettingsRows() {
         />
       ) : null}
       {!projectSelected ? (
-        <SettingsSection title="Usage limits">
+        <SettingsSection title={t("settings.settingsThreadsRouteScreen.usageLimits")}>
           <SettingsSwitchRow
             icon="clock"
-            label="Auto-resume limited threads"
+            label={t("settings.settingsThreadsRouteScreen.autoResumeLimitedThreads")}
             value={uniformMobileSetting(displayTargets, "autoResumeLimitedThreads")}
             disabled={disabled}
             onValueChange={(value) => writeToAll({ autoResumeLimitedThreads: value })}
           />
           <SettingsSwitchRow
             icon="clock"
-            label="Snooze limited threads"
+            label={t("settings.settingsThreadsRouteScreen.snoozeLimitedThreads")}
             value={uniformMobileSetting(displayTargets, "snoozeLimitedThreads")}
             disabled={disabled}
             onValueChange={(value) => writeToAll({ snoozeLimitedThreads: value })}
           />
         </SettingsSection>
       ) : null}
-      <SettingsSection title="Auto-settle">
+      <SettingsSection title={t("settings.settingsThreadsRouteScreen.autoSettle")}>
         <SettingsSwitchRow
           icon="arrow.triangle.branch"
-          label="Auto-settle merged threads"
+          label={t("settings.option.autoSettleMergedThreads")}
           value={referenceSettings.sidebarAutoSettleOnMerge}
           disabled={disabled}
           onValueChange={(value) => writeToAll({ sidebarAutoSettleOnMerge: value })}
         />
         <SettingsSwitchRow
           icon="clock"
-          label="Auto-settle inactive threads"
+          label={t("settings.option.autoSettleInactiveThreads")}
           value={afterDays !== null}
           disabled={disabled}
           onValueChange={(value) =>
@@ -207,7 +213,9 @@ function AutoSettleSettingsRows() {
         {afterDays !== null ? (
           <View className="flex-row items-center gap-4 px-4 py-4 android:min-h-14 android:py-3">
             <View className="w-[22px] android:w-6" />
-            <Text className="flex-1 text-foreground text-lg android:text-base">Inactive days</Text>
+            <Text className="flex-1 text-foreground text-lg android:text-base">
+              {t("settings.settingsThreadsRouteScreen.inactiveDays")}
+            </Text>
             <AutoSettleDaysField
               value={afterDays}
               disabled={disabled}
@@ -217,9 +225,11 @@ function AutoSettleSettingsRows() {
         ) : null}
       </SettingsSection>
       {pendingWrites === 0 && mismatches.length > 0 ? (
-        <SettingsSection title="Across environments">
+        <SettingsSection title={t("settings.settingsThreadsRouteScreen.acrossEnvironments")}>
           <View className="gap-3 p-4">
-            <Text className="text-base text-foreground">Auto-settle defaults differ</Text>
+            <Text className="text-base text-foreground">
+              {t("settings.settingsThreadsRouteScreen.autoSettleDefaultsDiffer")}
+            </Text>
             <Text className="text-sm text-foreground-muted">
               {mismatches.map((mismatch) => mismatch.label).join(", ")}
             </Text>
@@ -230,7 +240,7 @@ function AutoSettleSettingsRows() {
               className="self-start rounded-full bg-subtle px-4 py-2 active:opacity-70"
             >
               <Text className="text-sm font-t3-medium text-foreground">
-                Apply auto-settle defaults
+                {t("settings.settingsThreadsRouteScreen.applyAutoSettleDefaults")}
               </Text>
             </Pressable>
           </View>
@@ -252,18 +262,16 @@ function BetaSettingsSection() {
 
   return (
     <View className="gap-3">
-      <SettingsSection title="Beta">
+      <SettingsSection title={t("settings.settingsThreadsRouteScreen.beta")}>
         <SettingsSwitchRow
           icon="bolt.circle"
-          label="Working section"
+          label={t("settings.settingsThreadsRouteScreen.workingSection")}
           value={workingShelfEnabled}
           onValueChange={(value) => savePreferences({ workingShelfEnabled: value })}
         />
       </SettingsSection>
       <Text className="px-2 text-sm text-foreground-muted">
-        Fold working and monitoring threads into a Working section. They return to the top of the
-        list when they need you. While this is on, active threads are ordered by time and cannot be
-        moved.
+        {t("settings.settingsThreadsRouteScreen.workingSectionDescription")}
       </Text>
     </View>
   );
@@ -282,17 +290,16 @@ function LegacySettingsSection() {
 
   return (
     <View className="gap-3">
-      <SettingsSection title="Legacy">
+      <SettingsSection title={t("settings.settingsThreadsRouteScreen.legacy")}>
         <SettingsSwitchRow
           icon="hammer"
-          label="Plan Mode"
+          label={t("settings.settingsThreadsRouteScreen.planMode")}
           value={planModeEnabled}
           onValueChange={(value) => savePreferences({ planModeEnabled: value })}
         />
       </SettingsSection>
       <Text className="px-2 text-sm text-foreground-muted">
-        Opt into retired interfaces kept for compatibility. Plan Mode restores the Build/Plan
-        control; otherwise every task runs in Build mode.
+        {t("settings.settingsThreadsRouteScreen.legacyDescription")}
       </Text>
     </View>
   );

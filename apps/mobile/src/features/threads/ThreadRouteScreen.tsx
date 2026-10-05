@@ -1,6 +1,7 @@
 import { makeTurnCommandMetadata } from "../../lib/commandMetadata";
 import { buildProjectThreadStartTurnInput } from "../../lib/projectThreadStartTurn";
 import { useWorktreeSetup } from "./use-worktree-setup";
+import { t } from "@t3tools/shared/i18n";
 import { worktreeSetupAgentStarted } from "@t3tools/client-runtime/worktree-setup";
 import { ScreenHeader } from "../../components/ScreenHeader";
 import { ScreenHeaderButton } from "../../components/ScreenHeaderButton";
@@ -103,7 +104,7 @@ function ThreadHeader(
     const actions: ScreenHeaderAction[] = [];
     if (props.onReturnToThread) {
       actions.push({
-        accessibilityLabel: "Return to chat",
+        accessibilityLabel: t("threads.threadRouteScreen.returnToChat"),
         icon: "chevron.left",
         onPress: props.onReturnToThread,
       });
@@ -111,7 +112,9 @@ function ThreadHeader(
     if (props.hasThreadCwd) {
       const filesVisible = props.inspectorMode === "files" && panes.auxiliaryPaneVisible;
       actions.push({
-        accessibilityLabel: filesVisible ? "Close files" : "Open files",
+        accessibilityLabel: filesVisible
+          ? t("threads.threadRouteScreen.closeFiles")
+          : t("threads.threadRouteScreen.openFiles"),
         selected: filesVisible,
         icon: "folder",
         onPress: filesVisible ? toggleAuxiliaryPane : props.onOpenFilesInspector,
@@ -119,19 +122,19 @@ function ThreadHeader(
     }
     if (props.hasWorkspaceRoot) {
       actions.push({
-        accessibilityLabel: "Open terminal",
+        accessibilityLabel: t("threads.threadRouteScreen.openTerminal"),
         icon: "terminal",
         onPress: () => onOpenTerminal(null),
       });
     }
     actions.push({
-      accessibilityLabel: "Open git controls",
+      accessibilityLabel: t("threads.threadRouteScreen.openGitControls"),
       icon: "point.topleft.down.curvedto.point.bottomright.up",
       onPress: props.onOpenGitInspector,
     });
     if (onMergeBack) {
       actions.push({
-        accessibilityLabel: "Merge back to source",
+        accessibilityLabel: t("threads.threadRouteScreen.mergeBackToSource"),
         icon: "arrow.triangle.merge",
         onPress: onMergeBack,
       });
@@ -163,8 +166,8 @@ function ThreadHeader(
             <ScreenHeaderButton
               accessibilityLabel={
                 props.inspectorMode !== null && panes.auxiliaryPaneVisible
-                  ? "Hide inspector"
-                  : "Show inspector"
+                  ? t("threads.threadRouteScreen.hideInspector")
+                  : t("threads.threadRouteScreen.showInspector")
               }
               icon="sidebar.right"
               selected={props.inspectorMode !== null && panes.auxiliaryPaneVisible}
@@ -209,7 +212,12 @@ function firstRouteParam(value: string | string[] | undefined): string | null {
 }
 
 function OpeningThreadLoadingScreen() {
-  return <LoadingScreen message="Opening thread…" messagePlacement="above-spinner" />;
+  return (
+    <LoadingScreen
+      message={t("threads.threadRouteScreen.openingThread")}
+      messagePlacement="above-spinner"
+    />
+  );
 }
 
 type ThreadRouteScreenRouteProps = StaticScreenProps<{
@@ -239,8 +247,8 @@ function ThreadUnavailableScreen(props: {
       className="bg-screen flex-1"
     >
       <EmptyState
-        title="Thread unavailable"
-        detail="This thread is not available in the current mobile snapshot."
+        title={t("threads.threadRouteScreen.threadUnavailable")}
+        detail={t("threads.threadRouteScreen.threadUnavailableDetail")}
         actionLabel={props.actionLabel}
         onAction={props.onAction}
       />
@@ -301,7 +309,9 @@ export function ThreadRouteScreen(props: ThreadRouteScreenProps) {
   return (
     <ThreadUnavailableScreen
       actionLabel={
-        routeEnvironmentRuntime === null ? "Manage environments" : "Reconnect environment"
+        routeEnvironmentRuntime === null
+          ? t("threads.threadRouteScreen.manageEnvironments")
+          : t("threads.threadRouteScreen.reconnectEnvironment")
       }
       onAction={() => {
         if (routeEnvironmentRuntime !== null) {
@@ -626,7 +636,7 @@ function ThreadRouteContent(
           cwd={selectedThreadCwd}
           environmentId={selectedThread.environmentId}
           headerInset={inspectorHeaderInset}
-          projectName={selectedThreadProject?.title ?? "Files"}
+          projectName={selectedThreadProject?.title ?? t("threads.threadRouteScreen.files")}
           selectedPath={null}
           onSelectFile={handleSelectInspectorFile}
         />
@@ -803,7 +813,7 @@ function ThreadRouteContent(
     auxiliaryPaneControl:
       !layout.usesSplitView && fileInspector.supported && selectedThreadCwd !== null
         ? {
-            accessibilityLabel: "Toggle inspector",
+            accessibilityLabel: t("threads.threadRouteScreen.toggleInspector"),
             onPress: handleToggleInspector,
           }
         : undefined,
@@ -845,7 +855,7 @@ function ThreadRouteContent(
       await recoverFailedThreadDraft(creation);
     } catch (error) {
       Alert.alert(
-        "Could not restore draft",
+        t("threads.threadRouteScreen.couldNotRestoreDraft"),
         error instanceof Error ? error.message : String(error),
       );
       return;
