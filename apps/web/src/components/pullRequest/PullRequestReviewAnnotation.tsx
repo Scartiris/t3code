@@ -9,6 +9,7 @@ import type {
   PullRequestThreadCommentsResult,
   PullRequestThreadComment,
 } from "@t3tools/contracts";
+import { t } from "@t3tools/shared/i18n";
 import { HammerIcon, MessageSquareIcon, Trash2Icon } from "lucide-react";
 import { Circle, CircleCheck } from "lucide";
 import { useRef, useState } from "react";
@@ -69,12 +70,12 @@ export function PendingReviewCommentCard({
     >
       <div className="flex items-center gap-2 text-xs text-muted-foreground">
         <MessageSquareIcon className="size-3.5" />
-        <span>Pending — sent when you submit the review</span>
+        <span>{t("pullRequest.pullRequestReviewAnnotation.pendingComment")}</span>
         <Button
           size="icon-xs"
           variant="ghost"
           className="ml-auto"
-          aria-label="Discard this comment"
+          aria-label={t("pullRequest.pullRequestReviewAnnotation.discardComment")}
           onClick={onRemove}
         >
           <Trash2Icon className="size-3.5" />
@@ -96,7 +97,7 @@ export function ReviewThreadCard({
   reference,
   pending,
   fixPending,
-  fixLabel = "Fix in a thread",
+  fixLabel = t("pullRequest.pullRequestReviewAnnotation.fixInAThread"),
   onFix,
   onReply,
   onLoadMore,
@@ -225,10 +226,14 @@ export function ReviewThreadCard({
           aria-expanded={expanded}
           onClick={() => setExpanded((current) => !current)}
         >
-          {thread.isResolved ? "Resolved" : "Open"} · {commentCount}{" "}
-          {commentCount === 1 ? "comment" : "comments"}
+          {thread.isResolved
+            ? t("pullRequest.pullRequestReviewAnnotation.threadResolved")
+            : t("pullRequest.pullRequestReviewAnnotation.threadOpen")}{" "}
+          · {t("pullRequest.pullRequestReviewAnnotation.commentCount", { count: commentCount })}
         </button>
-        {thread.isOutdated ? <span>outdated</span> : null}
+        {thread.isOutdated ? (
+          <span>{t("pullRequest.pullRequestReviewAnnotation.outdated")}</span>
+        ) : null}
         {onFix ? (
           <Button
             size="xs"
@@ -238,7 +243,7 @@ export function ReviewThreadCard({
             onClick={onFix}
           >
             <HammerIcon className="size-3" />
-            {fixPending ? "Preparing..." : fixLabel}
+            {fixPending ? t("pullRequest.pullRequestReviewAnnotation.preparing") : fixLabel}
           </Button>
         ) : null}
         {canResolve ? (
@@ -249,7 +254,9 @@ export function ReviewThreadCard({
             disabled={pending}
             onClick={onToggleResolved}
           >
-            {thread.isResolved ? "Unresolve" : "Resolve"}
+            {thread.isResolved
+              ? t("pullRequest.pullRequestReviewAnnotation.unresolve")
+              : t("pullRequest.pullRequestReviewAnnotation.resolve")}
           </Button>
         ) : null}
       </div>
@@ -278,7 +285,7 @@ export function ReviewThreadCard({
                     value={comment.body}
                     cwd={workspaceRoot}
                     environmentId={environmentId}
-                    label="Edit comment"
+                    label={t("pullRequest.pullRequestReviewAnnotation.editComment")}
                     saving={savingEdit}
                     onSave={(body) => void saveEdit(comment.id, body)}
                     onCancel={() => setEditingId(null)}
@@ -293,7 +300,7 @@ export function ReviewThreadCard({
                     />
                     {canEditComment(comment) ? (
                       <PullRequestEditButton
-                        aria-label="Edit comment"
+                        aria-label={t("pullRequest.pullRequestReviewAnnotation.editComment")}
                         onClick={() => setEditingId(comment.id)}
                       />
                     ) : null}
@@ -310,7 +317,9 @@ export function ReviewThreadCard({
                 disabled={loadingMore}
                 onClick={() => void loadMore()}
               >
-                {loadingMore ? "Loading..." : "Load more comments"}
+                {loadingMore
+                  ? t("pullRequest.pullRequestReviewAnnotation.loading")
+                  : t("pullRequest.pullRequestReviewAnnotation.loadMoreComments")}
               </Button>
             </div>
           ) : null}
@@ -322,8 +331,8 @@ export function ReviewThreadCard({
                   autoFocus
                   size="sm"
                   value={reply}
-                  placeholder="Reply"
-                  aria-label="Reply to this conversation"
+                  placeholder={t("pullRequest.pullRequestReviewAnnotation.reply")}
+                  aria-label={t("pullRequest.pullRequestReviewAnnotation.replyToThread")}
                   onChange={(event) => setReply(event.target.value)}
                   onKeyDown={submitKeys({
                     value: reply,
@@ -334,20 +343,20 @@ export function ReviewThreadCard({
                 />
                 <div className="mt-2 flex justify-end gap-2">
                   <Button size="xs" variant="ghost" onClick={() => setReplying(false)}>
-                    Cancel
+                    {t("action.cancel")}
                   </Button>
                   <Button
                     size="xs"
                     disabled={pending || reply.trim().length === 0}
                     onClick={() => void send()}
                   >
-                    Reply
+                    {t("pullRequest.pullRequestReviewAnnotation.reply")}
                   </Button>
                 </div>
               </div>
             ) : (
               <Button size="xs" variant="ghost" className="mt-2" onClick={() => setReplying(true)}>
-                Reply
+                {t("pullRequest.pullRequestReviewAnnotation.reply")}
               </Button>
             )
           ) : null}

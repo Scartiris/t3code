@@ -3,6 +3,7 @@ import {
   ProviderDriverKind,
   type ProviderOptionDescriptor,
 } from "@t3tools/contracts";
+import { t } from "@t3tools/shared/i18n";
 import { type CustomModelDefinition, createModelCapabilities } from "@t3tools/shared/model";
 
 /** Editable mirror of a `ProviderOptionChoice`. `key` is only a React key. */
@@ -39,10 +40,10 @@ export interface DescriptorPreset {
 }
 
 const EFFORT_CHOICES = [
-  { id: "low", label: "Low" },
-  { id: "medium", label: "Medium", isDefault: true },
-  { id: "high", label: "High" },
-  { id: "xhigh", label: "Extra High" },
+  { id: "low", label: t("settings.customModelEditor.effortLow") },
+  { id: "medium", label: t("settings.customModelEditor.effortMedium"), isDefault: true },
+  { id: "high", label: t("settings.customModelEditor.effortHigh") },
+  { id: "xhigh", label: t("settings.customModelEditor.effortExtraHigh") },
 ] as const;
 
 /**
@@ -54,66 +55,86 @@ export const DESCRIPTOR_PRESETS_BY_KIND: Partial<
   Record<ProviderDriverKind, ReadonlyArray<DescriptorPreset>>
 > = {
   [ProviderDriverKind.make("codex")]: [
-    { id: "reasoningEffort", label: "Reasoning", type: "select", choices: EFFORT_CHOICES },
+    {
+      id: "reasoningEffort",
+      label: t("settings.providerModelsSection.reasoning"),
+      type: "select",
+      choices: EFFORT_CHOICES,
+    },
     {
       id: "serviceTier",
-      label: "Speed",
+      label: t("settings.customModelEditor.speed"),
       type: "select",
       choices: [
-        { id: "default", label: "Standard", isDefault: true },
-        { id: "fast", label: "Fast" },
+        { id: "default", label: t("common.standard"), isDefault: true },
+        { id: "fast", label: t("chat.traitsPicker.fast") },
       ],
     },
   ],
   [ProviderDriverKind.make("claudeAgent")]: [
     {
       id: "effort",
-      label: "Reasoning",
+      label: t("settings.providerModelsSection.reasoning"),
       type: "select",
       choices: [
-        { id: "low", label: "Low" },
-        { id: "medium", label: "Medium" },
-        { id: "high", label: "High", isDefault: true },
-        { id: "xhigh", label: "Extra High" },
-        { id: "max", label: "Max" },
+        { id: "low", label: t("settings.customModelEditor.effortLow") },
+        { id: "medium", label: t("settings.customModelEditor.effortMedium") },
+        { id: "high", label: t("settings.customModelEditor.effortHigh"), isDefault: true },
+        { id: "xhigh", label: t("settings.customModelEditor.effortExtraHigh") },
+        { id: "max", label: t("settings.customModelEditor.effortMax") },
       ],
     },
-    { id: "fastMode", label: "Fast Mode", type: "boolean" },
-    { id: "thinking", label: "Thinking", type: "boolean" },
+    { id: "fastMode", label: t("settings.providerModelsSection.fastMode"), type: "boolean" },
+    { id: "thinking", label: t("settings.providerModelsSection.thinking"), type: "boolean" },
   ],
   [ProviderDriverKind.make("cursor")]: [
-    { id: "reasoning", label: "Reasoning", type: "select", choices: EFFORT_CHOICES },
-    { id: "fastMode", label: "Fast Mode", type: "boolean" },
-    { id: "thinking", label: "Thinking", type: "boolean" },
+    {
+      id: "reasoning",
+      label: t("settings.providerModelsSection.reasoning"),
+      type: "select",
+      choices: EFFORT_CHOICES,
+    },
+    { id: "fastMode", label: t("settings.providerModelsSection.fastMode"), type: "boolean" },
+    { id: "thinking", label: t("settings.providerModelsSection.thinking"), type: "boolean" },
   ],
   [ProviderDriverKind.make("grok")]: [
-    { id: "reasoningEffort", label: "Reasoning", type: "select", choices: EFFORT_CHOICES },
+    {
+      id: "reasoningEffort",
+      label: t("settings.providerModelsSection.reasoning"),
+      type: "select",
+      choices: EFFORT_CHOICES,
+    },
   ],
   [ProviderDriverKind.make("pi")]: [
     {
       id: "thinking",
-      label: "Thinking",
+      label: t("settings.providerModelsSection.thinking"),
       type: "select",
       choices: [
-        { id: "off", label: "Off" },
-        { id: "minimal", label: "Minimal" },
-        { id: "low", label: "Low" },
-        { id: "medium", label: "Medium", isDefault: true },
-        { id: "high", label: "High" },
-        { id: "xhigh", label: "Extra High" },
-        { id: "max", label: "Max" },
+        { id: "off", label: t("chat.traitsPicker.off") },
+        { id: "minimal", label: t("settings.customModelEditor.effortMinimal") },
+        { id: "low", label: t("settings.customModelEditor.effortLow") },
+        { id: "medium", label: t("settings.customModelEditor.effortMedium"), isDefault: true },
+        { id: "high", label: t("settings.customModelEditor.effortHigh") },
+        { id: "xhigh", label: t("settings.customModelEditor.effortExtraHigh") },
+        { id: "max", label: t("settings.customModelEditor.effortMax") },
       ],
     },
   ],
   [ProviderDriverKind.make("opencode")]: [
-    { id: "variant", label: "Reasoning", type: "select", choices: EFFORT_CHOICES },
+    {
+      id: "variant",
+      label: t("settings.providerModelsSection.reasoning"),
+      type: "select",
+      choices: EFFORT_CHOICES,
+    },
     {
       id: "agent",
-      label: "Agent",
+      label: t("chat.traitsPicker.agent"),
       type: "select",
       choices: [
-        { id: "build", label: "Build", isDefault: true },
-        { id: "plan", label: "Plan" },
+        { id: "build", label: t("chat.chatComposer.buildModeLabel"), isDefault: true },
+        { id: "plan", label: t("chat.chatComposer.planModeLabel") },
       ],
     },
   ],
@@ -211,20 +232,28 @@ export function descriptorsFromCapabilities(
 export function validateDraft(draft: CustomModelDraft): string | null {
   const seenIds = new Set<string>();
   for (const [index, descriptor] of draft.descriptors.entries()) {
-    const position = `Option ${index + 1}`;
+    const position = t("settings.customModelEditor.optionIndex", { index: index + 1 });
     const id = descriptor.id.trim();
-    if (!id) return `${position} needs an id.`;
-    if (seenIds.has(id)) return `${position}: id "${id}" is used twice.`;
+    if (!id) return t("settings.customModelEditor.validationNeedsId", { position });
+    if (seenIds.has(id)) {
+      return t("settings.customModelEditor.validationDuplicateId", { position, id });
+    }
     seenIds.add(id);
-    if (!descriptor.label.trim()) return `${position} needs a label.`;
+    if (!descriptor.label.trim()) {
+      return t("settings.customModelEditor.validationNeedsLabel", { position });
+    }
     if (descriptor.type !== "select") continue;
-    if (descriptor.choices.length === 0) return `${position} needs at least one choice.`;
+    if (descriptor.choices.length === 0) {
+      return t("settings.customModelEditor.validationNeedsChoice", { position });
+    }
     const seenChoices = new Set<string>();
     for (const choice of descriptor.choices) {
       const choiceId = choice.id.trim();
-      if (!choiceId) return `${position} has a choice without a value.`;
+      if (!choiceId) {
+        return t("settings.customModelEditor.validationChoiceNeedsValue", { position });
+      }
       if (seenChoices.has(choiceId)) {
-        return `${position}: choice "${choiceId}" is used twice.`;
+        return t("settings.customModelEditor.validationDuplicateChoice", { position, choiceId });
       }
       seenChoices.add(choiceId);
     }

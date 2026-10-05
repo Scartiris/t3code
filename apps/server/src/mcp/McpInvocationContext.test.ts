@@ -6,6 +6,7 @@ import {
   ProviderInstanceId,
   ThreadId,
 } from "@t3tools/contracts";
+import { t } from "@t3tools/shared/i18n";
 import * as Effect from "effect/Effect";
 
 import * as McpInvocationContext from "./McpInvocationContext.ts";
@@ -34,8 +35,12 @@ it.effect("reports the scoped credential context when preview capability is unav
       providerSessionId: invocation.providerSessionId,
       providerInstanceId: invocation.providerInstanceId,
     });
-    expect(error.message).toContain("MCP credential does not grant the preview capability");
-    expect(error.message).toContain("use a headless browser from the shell");
+    expect(error.message).toContain(
+      t("previewErrors.previewAutomation.capabilityPreviewUnavailable", {
+        capability: "preview",
+      }),
+    );
+    expect(error.message).toContain("如需检查页面，请在 shell 中使用无头浏览器");
   });
 });
 

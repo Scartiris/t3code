@@ -1,0 +1,14 @@
+{
+  "id": "deepseek-harness",
+  "name": "DeepSeek Harness",
+  "version": "0.1.5-rc.1",
+  "description": "DeepSeek Harness agents, served over ACP by the shipped `acp` profile.",
+  "repository": "https://www.npmjs.com/package/@deepseek-ai/dsh",
+  "authors": ["DeepSeek"],
+  "distribution": {
+    "npx": {
+      "package": "@deepseek-ai/dsh@0.1.5-rc.1",
+      "args": ["--profile", "acp"]
+    }
+  }
+}

@@ -17,6 +17,8 @@ import * as TestClock from "effect/testing/TestClock";
 import * as Stream from "effect/Stream";
 import { describe, expect } from "vite-plus/test";
 
+import { t } from "@t3tools/shared/i18n";
+
 import * as AcpSessionRuntime from "./AcpSessionRuntime.ts";
 import type * as EffectAcpProtocol from "effect-acp/protocol";
 import * as EffectAcpErrors from "effect-acp/errors";
@@ -1184,7 +1186,7 @@ describe("AcpSessionRuntime", () => {
         "completed",
       ]);
       for (const toolCall of toolCalls) {
-        expect(toolCall.title).toBe("Read file");
+        expect(toolCall.title).toBe(t("toolActivity.toolActivity.readFileSummary"));
       }
     }).pipe(
       Effect.provide(

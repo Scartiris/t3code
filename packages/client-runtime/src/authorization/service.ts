@@ -4,6 +4,7 @@ import {
   type ExecutionEnvironmentDescriptor,
 } from "@t3tools/contracts";
 import { RelayEnvironmentConnectScope } from "@t3tools/contracts/relay";
+import { t } from "@t3tools/shared/i18n";
 import { withRelayClientTracing } from "@t3tools/shared/relayTracing";
 import {
   exchangeRemoteDpopAccessToken,
@@ -205,7 +206,7 @@ export const make = Effect.gen(function* () {
             () =>
               new ConnectionBlockedError({
                 reason: "configuration",
-                detail: "Could not create the websocket authorization proof.",
+                detail: t("remoteAuth.service.websocketProofFailed"),
               }),
           ),
         );
@@ -224,7 +225,7 @@ export const make = Effect.gen(function* () {
   const sessionChanged = () =>
     new ConnectionBlockedError({
       reason: "authentication",
-      detail: "Your cloud sign-in changed. Sign in again to authorize the environment.",
+      detail: t("remoteAuth.service.cloudSignInChanged"),
     });
 
   const assertSession = Effect.fnUntraced(function* (
@@ -305,7 +306,7 @@ export const make = Effect.gen(function* () {
             () =>
               new ConnectionBlockedError({
                 reason: "configuration",
-                detail: "Could not create the environment authorization proof.",
+                detail: t("remoteAuth.service.environmentProofFailed"),
               }),
           ),
         );
@@ -347,7 +348,7 @@ export const make = Effect.gen(function* () {
         () =>
           new ConnectionBlockedError({
             reason: "configuration",
-            detail: "Could not load the environment authorization key.",
+            detail: t("remoteAuth.service.authorizationKeyLoadFailed"),
           }),
       ),
       Effect.withSpan("environment.authorization.dpopKey.resolve"),
@@ -418,7 +419,7 @@ export const make = Effect.gen(function* () {
               Effect.fail(
                 new ConnectionTransientError({
                   reason: "timeout",
-                  detail: "Timed out renewing the environment credential.",
+                  detail: t("remoteAuth.service.credentialRenewalTimedOut"),
                 }),
               ),
           }),

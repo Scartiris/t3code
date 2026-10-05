@@ -1,3 +1,4 @@
+import { t } from "@t3tools/shared/i18n";
 import { useState } from "react";
 
 import {
@@ -20,10 +21,7 @@ export function NotificationSettings() {
   return (
     <SettingsRow
       {...searchableSetting("thread-notifications")}
-      description={
-        permissionMessage ??
-        "System alerts when a thread finishes, fails, or needs input or approval. Applies to this device while T3 Code is open."
-      }
+      description={permissionMessage ?? t("settings.notificationSettings.description")}
       control={
         <Select
           value={mode}
@@ -40,24 +38,18 @@ export function NotificationSettings() {
             if (hasNotificationSound(value)) unlockNotificationAudio();
             if (hasDesktopNotifications(value)) {
               if (typeof Notification === "undefined" || !window.isSecureContext) {
-                setPermissionMessage(
-                  "Notifications need a supported browser over HTTPS, or the desktop app. Sound only is still available.",
-                );
+                setPermissionMessage(t("settings.notificationSettings.needsSecureContext"));
                 return;
               }
               setRequesting(true);
               try {
                 const permission = await Notification.requestPermission();
                 if (permission !== "granted") {
-                  setPermissionMessage(
-                    "Allow notifications in your browser or system settings, then choose this option again. Sound only is still available.",
-                  );
+                  setPermissionMessage(t("settings.notificationSettings.permissionDenied"));
                   return;
                 }
               } catch {
-                setPermissionMessage(
-                  "Notifications are unavailable in this browser. Sound only is still available.",
-                );
+                setPermissionMessage(t("settings.notificationSettings.unavailable"));
                 return;
               } finally {
                 setRequesting(false);
@@ -66,7 +58,11 @@ export function NotificationSettings() {
             updateSettings({ notificationMode: value });
           }}
         >
-          <SelectTrigger size="sm" className="w-full sm:w-56" aria-label="Thread notifications">
+          <SelectTrigger
+            size="sm"
+            className="w-full sm:w-56"
+            aria-label={t("settings.notificationSettings.aria")}
+          >
             <SelectValue>{NOTIFICATION_MODE_LABELS[mode]}</SelectValue>
           </SelectTrigger>
           <SelectPopup align="end" alignItemWithTrigger={false}>

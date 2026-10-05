@@ -26,6 +26,7 @@ import {
   type ServerProvider,
   ThreadId,
 } from "@t3tools/contracts";
+import { t } from "@t3tools/shared/i18n";
 import * as Cause from "effect/Cause";
 import * as Deferred from "effect/Deferred";
 import * as DateTime from "effect/DateTime";
@@ -413,7 +414,7 @@ it.effect("returns a visible preparing message while provisioning is still block
       let current = yield* threads.getThreadProjection(launched.threadId);
       assert.equal(
         current.turnItems.find((item) => item.type === "command_execution")?.title,
-        "Preparing worktree",
+        t("orchestration-v2.orchestrator.preparingWorktree"),
       );
       yield* Deferred.succeed(allowWorktree, undefined);
       const entered = yield* Deferred.await(setupEntered).pipe(
@@ -428,7 +429,7 @@ it.effect("returns a visible preparing message while provisioning is still block
       current = yield* threads.getThreadProjection(launched.threadId);
       assert.equal(
         current.turnItems.find((item) => item.type === "command_execution")?.title,
-        "Starting setup script",
+        t("orchestration-v2.orchestrator.startingSetupScript"),
       );
       const prematureEffects = yield* outbox.listByCommandId(
         CommandId.make("command:launch:blocked:initial-message"),

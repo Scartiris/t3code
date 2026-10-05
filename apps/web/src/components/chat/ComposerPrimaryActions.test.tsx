@@ -1,3 +1,4 @@
+import { t } from "@t3tools/shared/i18n";
 import { createElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { afterEach, describe, expect, it, vi } from "vite-plus/test";
@@ -81,11 +82,15 @@ describe("ComposerPrimaryActions", () => {
   });
 
   it("offers Stop generation while a running turn is waiting for user input", () => {
-    expect(renderPendingActions(true)).toContain('aria-label="Stop generation"');
+    expect(renderPendingActions(true)).toContain(
+      `aria-label="${t("chat.composerPrimaryActions.stopGeneration")}"`,
+    );
   });
 
   it("does not offer Stop generation for a pending request without a running turn", () => {
-    expect(renderPendingActions(false)).not.toContain('aria-label="Stop generation"');
+    expect(renderPendingActions(false)).not.toContain(
+      `aria-label="${t("chat.composerPrimaryActions.stopGeneration")}"`,
+    );
   });
 
   it("renders stage artwork inside the send button when artwork identification is active", () => {

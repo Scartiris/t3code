@@ -15,6 +15,7 @@ import {
   type MessageLike,
 } from "dbus-next";
 import * as Schema from "effect/Schema";
+import { t } from "@t3tools/shared/i18n";
 import { isKdeCaptureSession, type KdeCapturePaths } from "./KdeSnapShot.ts";
 import { isGnomeCaptureSession, readPortalPng, resizeLinuxCapture } from "./linuxCaptureSession.ts";
 export { readPortalPng, resizeLinuxCapture } from "./linuxCaptureSession.ts";
@@ -280,8 +281,8 @@ export class LinuxCaptureConnection {
       );
       const [status, results] = decodeResponse(body);
       completed = true;
-      if (status === 1) throw new Error("Snapshot was cancelled.");
-      if (status !== 0) throw new Error("Your desktop did not allow the snapshot.");
+      if (status === 1) throw new Error(t("snapShot.linuxSnapShot.cancelled"));
+      if (status !== 0) throw new Error(t("snapShot.linuxSnapShot.notAllowed"));
       const uri = decodeUri(results.uri).value;
       return { png: await readPortalPng(uri) };
     } finally {
@@ -306,7 +307,7 @@ export class LinuxCaptureConnection {
       this.bus.requestName(`${appId}.SnapShot`, NameFlag.DO_NOT_QUEUE),
     );
     if (result !== RequestNameReply.PRIMARY_OWNER) {
-      throw new Error("Another T3 Code instance is capturing a window. Try again.");
+      throw new Error(t("snapShot.linuxSnapShot.anotherInstanceCapturing"));
     }
     const withFeedback = this.feedbackAvailable && options !== undefined;
     const reply = await this.call({
@@ -390,7 +391,7 @@ export async function captureLinuxWindow(
   hyprlandPaths?: HyprlandCapturePaths,
 ): Promise<LinuxWindowSnapshot | undefined> {
   if (isHyprlandCaptureSession()) {
-    if (!hyprlandPaths) throw new Error("Hyprland capture setup is unavailable in this build.");
+    if (!hyprlandPaths) throw new Error(t("snapShot.linuxSnapShot.hyprlandSetupUnavailable"));
     const { captureHyprlandWindow } = await import("./HyprlandSnapShot.ts");
     return captureHyprlandWindow(hyprlandPaths, options);
   }
@@ -402,7 +403,7 @@ export async function captureLinuxWindow(
   try {
     switch (await connection.backend(appId)) {
       case "kde": {
-        if (!kdePaths) throw new Error("KDE capture setup is unavailable in this build.");
+        if (!kdePaths) throw new Error(t("snapShot.linuxSnapShot.kdeSetupUnavailable"));
         const { captureKdeWindow } = await import("./KdeSnapShot.ts");
         return await captureKdeWindow(kdePaths, options);
       }

@@ -1,4 +1,5 @@
 import type { MenuAction } from "@react-native-menu/menu";
+import { t } from "@t3tools/shared/i18n";
 import { Pressable } from "react-native";
 
 import { useAndroidControlSizing } from "./useAndroidControlSizing";
@@ -6,8 +7,8 @@ import { SymbolView } from "./AppSymbol";
 import { ControlPillMenu } from "./ControlPill";
 
 const ATTACHMENT_MENU_ACTIONS: MenuAction[] = [
-  { id: "photos", title: "Photo Library", image: "photo" },
-  { id: "files", title: "Choose Files", image: "folder" },
+  { id: "photos", title: t("components.composerAttachmentButton.photoLibrary"), image: "photo" },
+  { id: "files", title: t("components.composerAttachmentButton.chooseFiles"), image: "folder" },
 ];
 
 export function ComposerAttachmentButton(props: {
@@ -19,7 +20,7 @@ export function ComposerAttachmentButton(props: {
   const { scale } = useAndroidControlSizing();
   const button = (
     <Pressable
-      accessibilityLabel="Add attachment"
+      accessibilityLabel={t("components.composerAttachmentButton.addAttachment")}
       accessibilityRole="button"
       accessibilityState={{ disabled: props.disabled }}
       className="size-[44px] shrink-0 items-center justify-center rounded-full active:opacity-70 disabled:opacity-50"
@@ -43,7 +44,7 @@ export function ComposerAttachmentButton(props: {
   return (
     <ControlPillMenu
       accessible
-      accessibilityLabel="Add attachment"
+      accessibilityLabel={t("components.composerAttachmentButton.addAttachment")}
       accessibilityRole="button"
       actions={ATTACHMENT_MENU_ACTIONS}
       onPressAction={({ nativeEvent }) => {

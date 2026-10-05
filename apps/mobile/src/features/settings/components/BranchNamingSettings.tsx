@@ -1,4 +1,5 @@
 import { BranchNamingMode, type ServerSettingsPatch } from "@t3tools/contracts";
+import { t } from "@t3tools/shared/i18n";
 import { useRef } from "react";
 import { View } from "react-native";
 
@@ -7,14 +8,17 @@ import { SettingsChoiceRow } from "./SettingsChoiceRow";
 import { SettingsSection } from "./SettingsSection";
 
 const MODES = {
-  static: { label: "Static prefix", description: "Add your prefix to the generated branch name." },
+  static: {
+    label: t("components.branchNamingSettings.modeStaticLabel"),
+    description: t("components.branchNamingSettings.modeStaticDescription"),
+  },
   semantic: {
-    label: "Semantic prefix",
-    description: "Let the model choose feat/, fix/, refactor/, or another prefix.",
+    label: t("components.branchNamingSettings.modeSemanticLabel"),
+    description: t("components.branchNamingSettings.modeSemanticDescription"),
   },
   custom: {
-    label: "Custom instructions",
-    description: "Generate the complete name with no added prefix or suffix.",
+    label: t("components.branchNamingSettings.modeCustomLabel"),
+    description: t("components.branchNamingSettings.modeCustomDescription"),
   },
 } satisfies Record<BranchNamingMode, { label: string; description: string }>;
 
@@ -29,9 +33,13 @@ export function BranchNamingSettings(props: {
   const instructionsEdited = useRef(false);
   return (
     <SettingsSection
-      title="Worktree branch naming"
+      title={t("components.branchNamingSettings.sectionTitle")}
       trailing={
-        props.mode === null ? <Text className="text-xs text-foreground-muted">Mixed</Text> : null
+        props.mode === null ? (
+          <Text className="text-xs text-foreground-muted">
+            {t("components.branchNamingSettings.mixed")}
+          </Text>
+        ) : null
       }
     >
       {BranchNamingMode.literals.map((mode, index) => (
@@ -48,16 +56,20 @@ export function BranchNamingSettings(props: {
       {props.mode === "static" ? (
         <View className="gap-2 px-4 py-3">
           <Text className="text-sm text-foreground-muted">
-            Use t3code or t3code/ for t3code/add-search. Leave empty for no prefix.
+            {t("components.branchNamingSettings.prefixHint")}
           </Text>
           <AppTextInput
             key={props.prefix}
-            accessibilityLabel="Branch prefix"
+            accessibilityLabel={t("components.branchNamingSettings.prefixA11y")}
             onChangeText={() => {
               prefixEdited.current = true;
             }}
             defaultValue={props.prefix ?? ""}
-            placeholder={props.prefix === null ? "Mixed" : "No prefix"}
+            placeholder={
+              props.prefix === null
+                ? t("components.branchNamingSettings.mixed")
+                : t("components.branchNamingSettings.noPrefix")
+            }
             editable={!props.disabled}
             autoCapitalize="none"
             autoCorrect={false}
@@ -78,19 +90,19 @@ export function BranchNamingSettings(props: {
       {props.mode === "custom" ? (
         <View className="gap-2 px-4 py-3">
           <Text className="text-sm text-foreground-muted">
-            Append instructions to the naming prompt.
+            {t("components.branchNamingSettings.customHint")}
           </Text>
           <AppTextInput
             key={props.instructions}
-            accessibilityLabel="Branch naming instructions"
+            accessibilityLabel={t("components.branchNamingSettings.instructionsA11y")}
             onChangeText={() => {
               instructionsEdited.current = true;
             }}
             defaultValue={props.instructions ?? ""}
             placeholder={
               props.instructions === null
-                ? "Mixed. Enter instructions for all selected targets."
-                : "Use julius/ followed by the issue ID and a short description."
+                ? t("components.branchNamingSettings.instructionsMixedPlaceholder")
+                : t("components.branchNamingSettings.instructionsPlaceholder")
             }
             editable={!props.disabled}
             multiline

@@ -4,6 +4,7 @@ import {
   isXAiTaskCompletedWakeNotification,
   xAiRateLimitedErrorCode,
 } from "../../provider/acp/XAiAcpExtension.ts";
+import { t } from "@t3tools/shared/i18n";
 import { HostProcessEnvironment, HostProcessPlatform } from "@t3tools/shared/hostProcess";
 import { resolveSelfInvocation, type SelfInvocation } from "@t3tools/shared/nodeRuntime";
 import {
@@ -400,7 +401,7 @@ export const GrokAdapterV2Driver: ProviderAdapterDriver<GrokSettings, GrokAdapte
             new ProviderAdapterDriverCreateError({
               driver: GROK_DRIVER_KIND,
               instanceId: input.instanceId,
-              detail: "Failed to create Grok ACP adapter.",
+              detail: t("orchestration-v2.grokAdapterV2.adapterCreateFailed"),
               cause,
             }),
         ),

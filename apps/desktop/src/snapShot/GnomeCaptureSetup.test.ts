@@ -4,6 +4,7 @@ import * as NodeOS from "node:os";
 import * as NodePath from "node:path";
 import * as NodeEvents from "node:events";
 import type { Message, MessageBus } from "dbus-next";
+import { t } from "@t3tools/shared/i18n";
 import { afterEach, beforeEach, expect, it, vi } from "vite-plus/test";
 import {
   GnomeCaptureSetup,
@@ -105,7 +106,7 @@ it("refuses to replace symlinks or downgrade a newer extension", async () => {
   await NodeFSP.mkdir(NodePath.dirname(installedPath()), { recursive: true });
   await NodeFSP.symlink(bundle, installedPath());
   await expect(installGnomeCaptureBundle({ bundle, dataHome })).rejects.toThrow(
-    "regular directory",
+    t("snapShot.gnomeCaptureSetup.extensionNotDirectory"),
   );
   await NodeFSP.unlink(installedPath());
   await installGnomeCaptureBundle({ bundle, dataHome });
@@ -113,7 +114,9 @@ it("refuses to replace symlinks or downgrade a newer extension", async () => {
     NodePath.join(installedPath(), "metadata.json"),
     JSON.stringify({ uuid: GNOME_CAPTURE_UUID, version: 99, "shell-version": ["50"] }),
   );
-  await expect(installGnomeCaptureBundle({ bundle, dataHome })).rejects.toThrow("newer extension");
+  await expect(installGnomeCaptureBundle({ bundle, dataHome })).rejects.toThrow(
+    t("snapShot.gnomeCaptureSetup.newerExtensionInstalled"),
+  );
 });
 
 it.each([
@@ -173,14 +176,18 @@ it("enables and disables only the capture UUID", async () => {
 
 it("never changes the global user-extensions preference", async () => {
   const { setup, call } = fixture({ state: 2, version: 2, enabled: false });
-  await expect(setup.perform("enable-extension")).rejects.toThrow("GNOME has disabled");
+  await expect(setup.perform("enable-extension")).rejects.toThrow(
+    t("snapShot.gnomeCaptureSetup.extensionsDisabled"),
+  );
   expect(call.mock.calls.every(([message]) => message.member.startsWith("Get"))).toBe(true);
   setup.close();
 });
 
 it("surfaces desktop rejection and disconnect as actionable failures", async () => {
   const { setup, bus } = fixture({ state: 2, version: 2, accepted: false });
-  await expect(setup.perform("enable-extension")).rejects.toThrow("Sign out");
+  await expect(setup.perform("enable-extension")).rejects.toThrow(
+    t("snapShot.gnomeCaptureSetup.notLoaded"),
+  );
   bus.emit("error", new Error("Session bus disconnected"));
   expect(await setup.state()).toEqual({ status: "error", message: "Session bus disconnected" });
   setup.close();

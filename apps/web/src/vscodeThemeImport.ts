@@ -1,3 +1,4 @@
+import { t } from "@t3tools/shared/i18n";
 import {
   createVividThemeColors,
   getStandardThemeColors,
@@ -184,11 +185,11 @@ function resolveName(value: Record<string, unknown>): string {
     const humanized = humanizeThemeName(candidate);
     if (humanized.length > 0) return humanized.slice(0, 48);
   }
-  return "VS Code theme";
+  return t("web.vscodeThemeImport.fallbackName");
 }
 
 export function parseVsCodeThemeFile(value: unknown): ThemeDefinition {
-  if (!isRecord(value)) throw new Error("Theme files must contain a JSON object.");
+  if (!isRecord(value)) throw new Error(t("web.vscodeThemeImport.themeFileNotJsonObject"));
   const colors = isRecord(value.colors) ? value.colors : {};
 
   /** First key that carries a usable color, in priority order. */
@@ -206,9 +207,7 @@ export function parseVsCodeThemeFile(value: unknown): ThemeDefinition {
 
   const canvasColor = pick("editor.background", "editorPane.background");
   if (!canvasColor) {
-    throw new Error(
-      'That VS Code theme has no "editor.background" color, so there is nothing to build a palette from.',
-    );
+    throw new Error(t("web.vscodeThemeImport.missingEditorBackground"));
   }
   const canvas = { r: canvasColor.r, g: canvasColor.g, b: canvasColor.b };
   const appearance = resolveAppearance(value, canvas);

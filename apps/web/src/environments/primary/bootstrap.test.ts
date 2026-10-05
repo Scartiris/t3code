@@ -1,4 +1,5 @@
 import { EnvironmentId, type ExecutionEnvironmentDescriptor } from "@t3tools/contracts";
+import { t } from "@t3tools/shared/i18n";
 import * as Effect from "effect/Effect";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vite-plus/test";
 
@@ -222,7 +223,10 @@ describe("environmentBootstrap", () => {
     expect(error).toMatchObject({
       source: "configured",
       urlKind: "http-base-url",
-      message: "Could not parse http-base-url for the configured primary environment target.",
+      message: t("environments.target.urlInvalid", {
+        source: "configured",
+        urlKind: "http-base-url",
+      }),
     });
     expect(error.cause).toBeInstanceOf(TypeError);
     expect(error.message).not.toContain("http://[");
@@ -253,7 +257,7 @@ describe("environmentBootstrap", () => {
     expect(error).toMatchObject({
       hasHttpBaseUrl: true,
       hasWsBaseUrl: false,
-      message: "Desktop bootstrap is missing wsBaseUrl for the local environment.",
+      message: t("environments.target.bootstrapIncomplete", { missing: "wsBaseUrl" }),
     });
   });
 
@@ -269,7 +273,7 @@ describe("environmentBootstrap", () => {
     expect(readPrimaryEnvironmentTarget()).toBeNull();
     expect(getPrimaryKnownEnvironment()).toBeNull();
     expect(() => resolvePrimaryEnvironmentHttpUrl("/api/auth/session")).toThrow(
-      "The local environment is disabled.",
+      t("environments.target.localEnvironmentDisabled"),
     );
   });
 
@@ -288,7 +292,10 @@ describe("environmentBootstrap", () => {
     expect(error).toMatchObject({
       source: "window-origin",
       protocol: "file:",
-      message: "The window-origin primary environment target uses unsupported protocol file:.",
+      message: t("environments.target.protocolUnsupported", {
+        source: "window-origin",
+        protocol: "file:",
+      }),
     });
   });
 });

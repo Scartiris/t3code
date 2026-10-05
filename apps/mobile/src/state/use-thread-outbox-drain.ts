@@ -14,6 +14,7 @@ import {
   type MessageId,
 } from "@t3tools/contracts";
 import { buildTemporaryWorktreeBranchName } from "@t3tools/shared/git";
+import { t } from "@t3tools/shared/i18n";
 import * as Cause from "effect/Cause";
 import { AsyncResult } from "effect/unstable/reactivity";
 import { useCallback, useEffect, useRef, useState } from "react";
@@ -468,7 +469,9 @@ export async function restoreRejectedQueuedMessage(
     ).length;
     if (existingAttachmentIds.size + addedAttachmentCount > PROVIDER_SEND_TURN_MAX_ATTACHMENTS) {
       setPendingConnectionError(
-        `Remove attachments from the draft before restoring this message. Messages can contain at most ${PROVIDER_SEND_TURN_MAX_ATTACHMENTS} attachments.`,
+        t("state.useThreadOutboxDrain.removeAttachmentsBeforeRestore", {
+          limit: PROVIDER_SEND_TURN_MAX_ATTACHMENTS,
+        }),
       );
       return "blocked";
     }
@@ -562,7 +565,9 @@ export async function restoreRejectedQueuedMessage(
     }
     console.warn("[thread-outbox] failed to restore an undeliverable message", error);
     setPendingConnectionError(
-      error instanceof Error ? error.message : "The unsent message could not be restored.",
+      error instanceof Error
+        ? error.message
+        : t("state.useThreadOutboxDrain.unsentMessageNotRestored"),
     );
     return "retry";
   }
@@ -721,11 +726,11 @@ export function useThreadOutboxDrain(): void {
     const load = async () => {
       if ((await threadOutboxManager.load()) || !mounted) return;
       Alert.alert(
-        "Some queued messages could not be loaded",
-        "Unreadable records and attachment files are still saved. Other messages can still be sent.",
+        t("state.useThreadOutboxDrain.queuedMessagesLoadFailedTitle"),
+        t("state.useThreadOutboxDrain.queuedMessagesLoadFailedBody"),
         [
-          { text: "Dismiss", style: "cancel" },
-          { text: "Retry", onPress: () => void load() },
+          { text: t("state.useThreadOutboxDrain.dismiss"), style: "cancel" },
+          { text: t("state.useThreadOutboxDrain.retry"), onPress: () => void load() },
         ],
       );
     };
@@ -765,7 +770,10 @@ export function useThreadOutboxDrain(): void {
       });
       return {
         action,
-        message: error instanceof Error ? error.message : "The message could not be sent.",
+        message:
+          error instanceof Error
+            ? error.message
+            : t("state.useThreadOutboxDrain.messageCouldNotBeSent"),
       };
     };
     return { reportFailure };
@@ -781,7 +789,7 @@ export function useThreadOutboxDrain(): void {
       if (isModelSelectionUnavailable(serverConfig, settings.modelSelection)) {
         return restoreQueuedMessage(
           queuedMessage,
-          "Antigravity model unavailable. Set it up on web or desktop, or choose another model.",
+          t("state.useThreadOutboxDrain.antigravityModelUnavailable"),
         );
       }
       const { reportFailure } = makeDeliveryHelpers(queuedMessage);
@@ -844,7 +852,9 @@ export function useThreadOutboxDrain(): void {
         if (!shouldRetryThreadOutboxDelivery(error)) {
           return restoreQueuedMessage(
             queuedMessage,
-            error instanceof Error ? error.message : "An attachment could not upload.",
+            error instanceof Error
+              ? error.message
+              : t("state.useThreadOutboxDrain.attachmentCouldNotUpload"),
           );
         }
         return false;
@@ -859,7 +869,7 @@ export function useThreadOutboxDrain(): void {
       if (isModelSelectionUnavailable(currentConfig, settings.modelSelection)) {
         return restoreQueuedMessage(
           persistedMessage,
-          "Antigravity model unavailable. Set it up on web or desktop, or choose another model.",
+          t("state.useThreadOutboxDrain.antigravityModelUnavailable"),
         );
       }
       const sendSettings = resolveQueuedThreadSettings(
@@ -951,7 +961,7 @@ export function useThreadOutboxDrain(): void {
       if (isModelSelectionUnavailable(serverConfig, settings.modelSelection)) {
         return restoreQueuedMessage(
           queuedMessage,
-          "Antigravity model unavailable. Set it up on web or desktop, or choose another model.",
+          t("state.useThreadOutboxDrain.antigravityModelUnavailable"),
         );
       }
       let prepared: PreparedTurnAttachments;
@@ -980,7 +990,9 @@ export function useThreadOutboxDrain(): void {
         if (!shouldRetryThreadOutboxDelivery(error)) {
           return restoreQueuedMessage(
             queuedMessage,
-            error instanceof Error ? error.message : "An attachment could not upload.",
+            error instanceof Error
+              ? error.message
+              : t("state.useThreadOutboxDrain.attachmentCouldNotUpload"),
           );
         }
         return false;
@@ -995,7 +1007,7 @@ export function useThreadOutboxDrain(): void {
       if (isModelSelectionUnavailable(currentConfig, settings.modelSelection)) {
         return restoreQueuedMessage(
           persistedMessage,
-          "Antigravity model unavailable. Set it up on web or desktop, or choose another model.",
+          t("state.useThreadOutboxDrain.antigravityModelUnavailable"),
         );
       }
       const sendSettings = resolveQueuedThreadSettings(

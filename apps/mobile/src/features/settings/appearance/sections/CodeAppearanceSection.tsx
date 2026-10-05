@@ -1,5 +1,7 @@
 import { useCallback } from "react";
 
+import { t } from "@t3tools/shared/i18n";
+
 import {
   CODE_FONT_SIZE_STEP,
   MAX_CODE_FONT_SIZE,
@@ -26,7 +28,7 @@ export function CodeAppearanceSection() {
   );
 
   return (
-    <SettingsSection title="Code & Diffs">
+    <SettingsSection title={t("settings.codeAppearanceSection.title")}>
       <CodeAppearancePreview
         fontSize={appearance.codeFontSize}
         wordBreak={appearance.codeWordBreak}
@@ -35,7 +37,7 @@ export function CodeAppearanceSection() {
       <SettingsSwitchRow
         disabled={!isReady}
         icon="chevron.left.forwardslash.chevron.right"
-        label="Custom font size"
+        label={t("settings.codeAppearanceSection.customFontSize")}
         onValueChange={handleToggleCustom}
         value={custom}
       />
@@ -43,7 +45,7 @@ export function CodeAppearanceSection() {
         <FontSizeSliderRow
           disabled={!isReady}
           icon="textformat.size"
-          label="Font size"
+          label={t("settings.codeAppearanceSection.fontSize")}
           max={MAX_CODE_FONT_SIZE}
           min={MIN_CODE_FONT_SIZE}
           onChange={setCodeFontSize}
@@ -55,7 +57,7 @@ export function CodeAppearanceSection() {
       <SettingsSwitchRow
         disabled={!isReady}
         icon="text.word.spacing"
-        label="Word break"
+        label={t("settings.option.wordWrap")}
         onValueChange={setCodeWordBreak}
         value={appearance.codeWordBreak}
       />

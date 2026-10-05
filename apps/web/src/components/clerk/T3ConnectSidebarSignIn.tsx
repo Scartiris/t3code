@@ -1,4 +1,5 @@
 import { UserButton, useAuth } from "@clerk/react";
+import { t } from "@t3tools/shared/i18n";
 import { LogInIcon } from "lucide-react";
 
 import { hasCloudPublicConfig } from "../../cloud/publicConfig";
@@ -58,7 +59,7 @@ function ConfiguredT3ConnectSidebarSignIn() {
         <SidebarMenuItem>
           <SidebarMenuButton onClick={openAuthPrompt}>
             <LogInIcon />
-            <span>Sign in to T3 Connect</span>
+            <span>{t("clerk.t3ConnectSidebarSignIn.signIn")}</span>
           </SidebarMenuButton>
         </SidebarMenuItem>
       </SidebarMenu>

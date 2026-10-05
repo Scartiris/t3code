@@ -7,6 +7,7 @@ import {
   type UsageLimitSourceAccount,
   type UsageLimitSourceConfig,
 } from "@t3tools/contracts";
+import { t } from "@t3tools/shared/i18n";
 import * as DateTime from "effect/DateTime";
 import * as Effect from "effect/Effect";
 import * as Schema from "effect/Schema";
@@ -122,7 +123,7 @@ export const makeCliproxyApi = Effect.gen(function* () {
   ) {
     const url = yield* Effect.try({
       try: () => new URL(`/v0/management/${path}`, config.url).toString(),
-      catch: () => new UsageLimitSourceError({ detail: "The hub URL is not valid." }),
+      catch: () => new UsageLimitSourceError({ detail: t("usage.cliproxyApi.invalidHubUrl") }),
     });
     const request = (
       body === undefined ? HttpClientRequest.get(url) : HttpClientRequest.post(url)
@@ -134,7 +135,8 @@ export const makeCliproxyApi = Effect.gen(function* () {
         Effect.flatMap((response) => response.json),
         Effect.timeout("15 seconds"),
         Effect.mapError(
-          () => new UsageLimitSourceError({ detail: "The hub management request failed." }),
+          () =>
+            new UsageLimitSourceError({ detail: t("usage.cliproxyApi.managementRequestFailed") }),
         ),
       );
     return response;
@@ -173,7 +175,7 @@ export const makeCliproxyApi = Effect.gen(function* () {
     const response = yield* decodeApiResponse(raw);
     if (response.status_code < 200 || response.status_code >= 300) {
       return yield* new UsageLimitSourceError({
-        detail: `The provider refused the hub request (HTTP ${response.status_code}).`,
+        detail: t("usage.cliproxyApi.hubRequestRefused", { status: response.status_code }),
       });
     }
     return response.body;
@@ -286,7 +288,7 @@ export const makeCliproxyApi = Effect.gen(function* () {
         usageLimits: makeUnavailableUsageLimits({
           checkedAt,
           reason: "probeFailed",
-          message: "The hub could not read this account's usage.",
+          message: t("usage.cliproxyApi.accountUsageUnreadable"),
         }),
       })),
     );
@@ -297,7 +299,7 @@ export const makeCliproxyApi = Effect.gen(function* () {
   ): Effect.fn.Return<ReadonlyArray<UsageLimitSourceAccount>, UsageLimitSourceError> {
     const accounts = yield* authFiles(config).pipe(
       Effect.mapError(
-        () => new UsageLimitSourceError({ detail: "The hub could not list accounts." }),
+        () => new UsageLimitSourceError({ detail: t("usage.cliproxyApi.accountsListFailed") }),
       ),
     );
     return yield* Effect.forEach(
@@ -319,7 +321,7 @@ export const makeCliproxyApi = Effect.gen(function* () {
       const account = (yield* authFiles(config)).find((account) => account.id === accountId);
       if (!account || account.disabled || account.provider !== "codex") {
         return yield* new UsageLimitSourceError({
-          detail: "The Codex hub account is missing or disabled.",
+          detail: t("usage.cliproxyApi.accountMissingOrDisabled"),
         });
       }
       const body = yield* apiCall(config, account, `${CREDIT_URL}/consume`, {
@@ -357,7 +359,7 @@ export const makeCliproxyApi = Effect.gen(function* () {
         isUsageLimitSourceError(error)
           ? error
           : new UsageLimitSourceError({
-              detail: "The hub returned an unexpected reset-credit response.",
+              detail: t("usage.cliproxyApi.unexpectedResetCreditResponse"),
             }),
       ),
     );

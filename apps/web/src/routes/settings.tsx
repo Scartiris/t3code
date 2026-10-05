@@ -1,3 +1,4 @@
+import { t } from "@t3tools/shared/i18n";
 import { Outlet, createFileRoute, redirect, useLocation } from "@tanstack/react-router";
 import { useState, type ReactNode } from "react";
 import { RotateCcwIcon } from "lucide-react";
@@ -38,7 +39,7 @@ function RestoreDeviceDefaultsButton({ onRestored }: { onRestored: () => void })
       onClick={() => void restoreDefaults()}
     >
       <RotateCcwIcon className="mx-1 size-3.5" />
-      Restore device defaults
+      {t("routes.settings.restoreDeviceDefaults")}
     </Button>
   );
 }
@@ -64,8 +65,10 @@ function SettingsScopeBoundary({ pathname, children }: { pathname: string; child
         eligibleEnvironmentIds={autoSettlementAvailability.eligibleEnvironmentIds}
       >
         {autoSettlementAvailability.eligibleEnvironmentIds.length > 0
-          ? `${searchTarget.title} requires a supporting environment. Choose one to continue.`
-          : `${searchTarget.title} requires a supporting environment. Connect or update an environment to continue.`}
+          ? t("routes.settings.requiresSupportingEnvironment", { title: searchTarget.title })
+          : t("routes.settings.requiresSupportingEnvironmentConnect", {
+              title: searchTarget.title,
+            })}
       </SettingsScopeNotice>
     );
   }
@@ -82,7 +85,7 @@ function SettingsScopeBoundary({ pathname, children }: { pathname: string; child
         : "all";
     return (
       <SettingsScopeNotice target={target} targetId={hash}>
-        {`${searchTarget.title} is not available for the selected target. Choose its owning scope to continue.`}
+        {t("routes.settings.notAvailableForTarget", { title: searchTarget.title })}
       </SettingsScopeNotice>
     );
   }
@@ -102,7 +105,7 @@ function SettingsScopeBoundary({ pathname, children }: { pathname: string; child
     return (
       <SettingsPageContainer>
         <p className="text-sm text-muted-foreground">
-          Reconnect {scope.label} to change its settings.
+          {t("routes.settings.reconnectToChangeSettings", { label: scope.label })}
         </p>
       </SettingsPageContainer>
     );

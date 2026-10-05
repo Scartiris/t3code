@@ -1,6 +1,7 @@
 import { PASTED_TEXT_ATTACHMENT_THRESHOLD_BYTES } from "@t3tools/client-runtime/text-paste";
 import { PROVIDER_SEND_TURN_MAX_INPUT_CHARS } from "@t3tools/contracts";
 import { collectComposerInlineTokens } from "@t3tools/shared/composerInlineTokens";
+import { t } from "@t3tools/shared/i18n";
 import { composerContextEditorTokens } from "../lib/composerContext";
 import { requireNativeView } from "expo";
 import {
@@ -183,7 +184,7 @@ export function ComposerEditor({
             token.type === "skill"
               ? (skillLabels.get(token.value) ?? token.value)
               : token.type === "context"
-                ? `${token.label}${props.context?.records.some((record) => record.contextId === token.contextId) ? "" : " · unavailable"}`
+                ? `${token.label}${props.context?.records.some((record) => record.contextId === token.contextId) ? "" : t("native.t3ComposerEditorIos.contextUnavailableSuffix")}`
                 : basename(token.value),
           detail: token.type === "context" ? composerChipSizeSuffix(record) : "",
           // Only a mention wears per-filetype artwork. An attachment chip keeps the tinted
@@ -288,8 +289,10 @@ export function ComposerEditor({
       editable={props.editable ?? true}
       readOnly={props.readOnly ?? false}
       enterBehavior={props.enterBehavior ?? DEFAULT_COMPOSER_ENTER_BEHAVIOR}
-      submitTitle={props.submitTitle ?? "Send Message"}
-      alternateSubmitTitle={props.alternateSubmitTitle ?? props.submitTitle ?? "Send Message"}
+      submitTitle={props.submitTitle ?? t("chat.sendMessage")}
+      alternateSubmitTitle={
+        props.alternateSubmitTitle ?? props.submitTitle ?? t("chat.sendMessage")
+      }
       scrollEnabled={props.scrollEnabled ?? true}
       autoFocus={props.autoFocus ?? false}
       autoCorrect={props.autoCorrect ?? true}

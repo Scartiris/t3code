@@ -2,6 +2,7 @@ import Constants from "expo-constants";
 import type { NativeStackNavigationOptions } from "@react-navigation/native-stack";
 import { Platform, View } from "react-native";
 
+import { t } from "@t3tools/shared/i18n";
 import { AppText as Text } from "./AppText";
 import { T3Wordmark } from "./T3Wordmark";
 import { IPAD_HOME_TITLE_OFFSET } from "../lib/layoutMetrics";
@@ -32,7 +33,7 @@ export function CompactBrandTitle(
   return (
     <View
       aria-level={1}
-      accessibilityLabel="T3 Code, Threads"
+      accessibilityLabel={t("components.compactBrandTitle.accessibilityLabel")}
       accessible
       role="heading"
       className="flex-row items-center gap-1.5"
@@ -76,7 +77,7 @@ export function getCompactBrandHeaderOptions(
   return {
     headerTitle: renderCompactBrandTitle,
     headerTitleStyle: fallbackTitleStyle,
-    title: "Threads",
+    title: t("components.compactBrandTitle.title"),
     unstable_headerLeftItems: undefined,
   };
 }

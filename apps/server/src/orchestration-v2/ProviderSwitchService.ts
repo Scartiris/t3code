@@ -5,6 +5,7 @@ import {
   ProviderThreadId,
   ThreadId,
 } from "@t3tools/contracts";
+import { t } from "@t3tools/shared/i18n";
 import { modelSelectionsEqual } from "@t3tools/shared/model";
 import * as Context from "effect/Context";
 import * as DateTime from "effect/DateTime";
@@ -124,7 +125,9 @@ export const layer: Layer.Layer<
             Option.isNone(targetInstance) || Option.isNone(targetAdapter)
               ? ({
                   type: "reject",
-                  reason: "The target provider instance is unavailable.",
+                  reason: t(
+                    "orchestration-v2.providerSwitchService.targetProviderInstanceUnavailable",
+                  ),
                 } as const)
               : decideProviderSessionTransition({
                   current:

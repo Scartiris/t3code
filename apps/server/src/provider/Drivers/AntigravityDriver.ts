@@ -1,6 +1,7 @@
 import { withAgentDeviceEnvironment } from "../../mcp/McpProviderSession.ts";
 import { AntigravitySettings, ProviderDriverKind, ProviderSetupError } from "@t3tools/contracts";
 import { HostProcessPlatform } from "@t3tools/shared/hostProcess";
+import { t } from "@t3tools/shared/i18n";
 import { resolveSelfInvocation } from "@t3tools/shared/nodeRuntime";
 import {
   NodeRuntimeUnavailableError,
@@ -122,7 +123,7 @@ export const AntigravityDriver: ProviderDriver<AntigravitySettings, AntigravityD
             new ProviderDriverError({
               driver: DRIVER,
               instanceId,
-              detail: "Could not resolve the Antigravity profile directory.",
+              detail: t("provider.antigravityDriver.profileDirectoryUnresolved"),
               cause,
             }),
         ),
@@ -220,7 +221,7 @@ export const AntigravityDriver: ProviderDriver<AntigravitySettings, AntigravityD
                 new ProviderSetupError({
                   instanceId,
                   operation: "start",
-                  detail: "Could not create an Antigravity runtime temp directory.",
+                  detail: t("provider.antigravityDriver.runtimeTempDirectoryUncreatable"),
                   cause,
                 }),
             ),
@@ -273,7 +274,7 @@ export const AntigravityDriver: ProviderDriver<AntigravitySettings, AntigravityD
                 new ProviderSetupError({
                   instanceId,
                   operation: "start",
-                  detail: "Could not create an Antigravity setup workspace.",
+                  detail: t("provider.antigravityDriver.setupWorkspaceUncreatable"),
                 }),
             ),
           );
@@ -396,7 +397,7 @@ export const AntigravityDriver: ProviderDriver<AntigravitySettings, AntigravityD
             new ProviderDriverError({
               driver: DRIVER,
               instanceId,
-              detail: "Could not prepare the Antigravity provider status.",
+              detail: t("provider.antigravityDriver.providerStatusPreparationFailed"),
               cause,
             }),
         ),
@@ -467,7 +468,7 @@ export const AntigravityDriver: ProviderDriver<AntigravitySettings, AntigravityD
               new ProviderDriverError({
                 driver: DRIVER,
                 instanceId,
-                detail: "Antigravity model refresh timed out. Try again or check Google sign-in.",
+                detail: t("provider.antigravityDriver.modelRefreshTimedOut"),
               }),
             ),
         }),
@@ -511,7 +512,7 @@ export const AntigravityDriver: ProviderDriver<AntigravitySettings, AntigravityD
                     new ProviderDriverError({
                       driver: DRIVER,
                       instanceId,
-                      detail: "Could not read Antigravity workspace skills.",
+                      detail: t("provider.antigravityDriver.workspaceSkillsUnreadable"),
                       cause,
                     }),
                 ),

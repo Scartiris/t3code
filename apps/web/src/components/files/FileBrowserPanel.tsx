@@ -6,6 +6,7 @@ import type {
 import type { EnvironmentId, ProjectEntry } from "@t3tools/contracts";
 import { FileTree, useFileTree, useFileTreeSearch, useFileTreeSelector } from "@pierre/trees/react";
 import { serializeComposerFileLink } from "@t3tools/shared/composerTrigger";
+import { t } from "@t3tools/shared/i18n";
 import { ChevronsDownUp, ChevronsUpDown } from "lucide";
 import { useEffect, useMemo, useRef, useState } from "react";
 
@@ -55,14 +56,18 @@ function RefreshFilesButton(props: { isPending: boolean; onRefresh: () => void }
             type="button"
             variant="ghost"
             size="icon-xs"
-            aria-label="Refresh workspace files"
+            aria-label={t("files.fileBrowserPanel.refreshWorkspaceFiles")}
             onClick={props.onRefresh}
           />
         }
       >
         <RefreshIcon refreshing={props.isPending} />
       </TooltipTrigger>
-      <TooltipPopup>{props.isPending ? "Refreshing…" : "Refresh files"}</TooltipPopup>
+      <TooltipPopup>
+        {props.isPending
+          ? t("files.fileBrowserPanel.refreshing")
+          : t("files.fileBrowserPanel.refreshFiles")}
+      </TooltipPopup>
     </Tooltip>
   );
 }
@@ -82,7 +87,7 @@ function FileSearchField(props: {
         size="sm"
         value={props.value}
         aria-label={props.ariaLabel}
-        placeholder="Search files"
+        placeholder={t("files.fileBrowserPanel.searchFiles")}
         spellCheck={false}
         onChange={(event) => props.onValueChange(event.target.value)}
         onKeyDown={(event) => {
@@ -184,8 +189,8 @@ export default function FileBrowserPanel({
       const clicked = await api.contextMenu.show(
         [
           ...fileMenuItems,
-          { id: "copy-mention", label: "Copy mention" },
-          { id: "add-to-chat", label: "Add to chat" },
+          { id: "copy-mention", label: t("files.fileBrowserPanel.copyMention") },
+          { id: "add-to-chat", label: t("files.fileBrowserPanel.addToChat") },
         ],
         position,
       );
@@ -201,12 +206,16 @@ export default function FileBrowserPanel({
       if (clicked === "copy-mention") {
         try {
           await writeTextToClipboard(mention);
-          toastManager.add({ type: "success", title: "Mention copied", description: relativePath });
+          toastManager.add({
+            type: "success",
+            title: t("files.fileBrowserPanel.mentionCopied"),
+            description: relativePath,
+          });
         } catch (error) {
           toastManager.add({
             type: "error",
-            title: "Failed to copy mention",
-            description: error instanceof Error ? error.message : "An error occurred.",
+            title: t("files.fileBrowserPanel.copyMentionFailed"),
+            description: error instanceof Error ? error.message : t("error.generic"),
           });
         }
         return;
@@ -216,8 +225,8 @@ export default function FileBrowserPanel({
         if (!composer) {
           toastManager.add({
             type: "error",
-            title: "Unable to add to chat",
-            description: "Open a chat for this project and try again.",
+            title: t("files.fileBrowserPanel.unableToAddToChat"),
+            description: t("files.fileBrowserPanel.openChatAndRetry"),
           });
           return;
         }
@@ -225,8 +234,8 @@ export default function FileBrowserPanel({
         if (!inserted) {
           toastManager.add({
             type: "error",
-            title: "Unable to add to chat",
-            description: "The chat isn't ready to accept input right now.",
+            title: t("files.fileBrowserPanel.unableToAddToChat"),
+            description: t("files.fileBrowserPanel.chatNotReady"),
           });
         }
       }
@@ -495,7 +504,7 @@ export default function FileBrowserPanel({
         <RefreshFilesButton isPending={isPending} onRefresh={handleRefresh} />
         <FileSearchField
           name="project-files-search"
-          ariaLabel={`Search ${projectName} files`}
+          ariaLabel={t("files.fileBrowserPanel.searchProjectFiles", { projectName })}
           value={search.value}
           onValueChange={handleSearchValueChange}
           onClose={closeSearch}
@@ -510,8 +519,8 @@ export default function FileBrowserPanel({
                   variant="ghost"
                   aria-label={
                     expandAll || allDirectoriesExpanded
-                      ? "Collapse all folders"
-                      : "Expand all folders"
+                      ? t("files.fileBrowserPanel.collapseAllFolders")
+                      : t("files.fileBrowserPanel.expandAllFolders")
                   }
                   onClick={toggleAllDirectories}
                 />
@@ -523,7 +532,9 @@ export default function FileBrowserPanel({
               />
             </TooltipTrigger>
             <TooltipPopup>
-              {expandAll || allDirectoriesExpanded ? "Collapse all folders" : "Expand all folders"}
+              {expandAll || allDirectoriesExpanded
+                ? t("files.fileBrowserPanel.collapseAllFolders")
+                : t("files.fileBrowserPanel.expandAllFolders")}
             </TooltipPopup>
           </Tooltip>
         ) : null}
@@ -534,22 +545,22 @@ export default function FileBrowserPanel({
           onClick={handleRefresh}
           className="p-4 text-left text-xs leading-relaxed text-destructive"
         >
-          {error ?? pathSearch.error} Click to retry.
+          {error ?? pathSearch.error} {t("files.fileBrowserPanel.clickToRetry")}
         </button>
       ) : null}
       {query.trim() && pathSearch.truncated && !pathSearch.isPending ? (
         <div className="px-3 py-1 text-xs text-muted-foreground">
-          More matches available. Refine your search.
+          {t("files.fileBrowserPanel.moreMatchesAvailable")}
         </div>
       ) : null}
       {(isPending || pathSearch.isPending) && (
         <div role="status" className="px-3 py-1 text-xs text-muted-foreground">
-          Loading files…
+          {t("files.fileBrowserPanel.loadingFiles")}
         </div>
       )}
       <FileTree
         model={model}
-        aria-label={`${projectName} files`}
+        aria-label={t("files.fileBrowserPanel.projectFiles", { projectName })}
         className="min-h-0 flex-1 overflow-hidden"
         style={pierreTreeStyle(resolvedTheme)}
       />

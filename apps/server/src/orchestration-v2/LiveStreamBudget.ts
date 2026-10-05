@@ -1,3 +1,4 @@
+import { t } from "@t3tools/shared/i18n";
 import * as Schema from "effect/Schema";
 import * as Arr from "effect/Array";
 import type * as Cause from "effect/Cause";
@@ -70,7 +71,7 @@ export const makeLiveStreamBudget = Effect.fn("makeLiveStreamBudget")(function* 
     nextSerializedBytes: number,
   ) {
     failure ??= new LiveStreamBufferError({
-      message: "The live event buffer is full. Resume from the last received sequence.",
+      message: t("orchestration-v2.liveStreamBudget.bufferFull"),
     });
     yield* Deferred.fail(failed, failure);
     yield* Effect.logWarning("orchestration live event buffer is full", {

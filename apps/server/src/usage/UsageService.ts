@@ -29,6 +29,7 @@ import {
   UsageReadError,
 } from "@t3tools/contracts";
 import { HostProcessEnvironment, HostProcessPlatform } from "@t3tools/shared/hostProcess";
+import { t } from "@t3tools/shared/i18n";
 import * as Cause from "effect/Cause";
 import * as Clock from "effect/Clock";
 import * as Context from "effect/Context";
@@ -614,7 +615,7 @@ export const make = Effect.gen(function* () {
         volumeId: yield* Effect.promise(() => readDirectoryVolumeId(dir)),
         files: result.missing && !result.error ? null : result.files,
         status: result.error ? "partial" : "ok",
-        ...(result.error ? { message: "Some OpenCode history could not be read." } : {}),
+        ...(result.error ? { message: t("usage.usageService.openCodeHistoryUnreadable") } : {}),
       });
     }
     const antigravityRoots = yield* envRoots("ANTIGRAVITY_DATA_DIR", [
@@ -670,7 +671,7 @@ export const make = Effect.gen(function* () {
         volumeId: yield* Effect.promise(() => readDirectoryVolumeId(dir)),
         files: !exists && !failed ? null : antigravity.files.filter((file) => file.root === dir),
         status: failed ? "partial" : "ok",
-        ...(failed ? { message: "Some Antigravity history could not be read." } : {}),
+        ...(failed ? { message: t("usage.usageService.antigravityHistoryUnreadable") } : {}),
       });
     }
     const cursorUserHome =
@@ -704,7 +705,7 @@ export const make = Effect.gen(function* () {
         dir: cursorAuthPath,
         volumeId: "",
         files: null,
-        message: "Cursor account usage is off on this environment.",
+        message: t("usage.usageService.cursorAccountUsageOff"),
         action: "enableCursorKeychain",
       });
       return scanned;
@@ -715,7 +716,7 @@ export const make = Effect.gen(function* () {
           accountKey: null,
           records: [],
           missing: true,
-          error: "Cursor account history needs a Cursor CLI login on this server.",
+          error: t("usage.usageService.cursorLoginRequired"),
         }
       : yield* Effect.promise(() =>
           readCursorAccountUsage(
@@ -748,8 +749,7 @@ export const make = Effect.gen(function* () {
       volumeId: yield* Effect.promise(() => readDirectoryVolumeId(cursorAuthPath)),
       // Never combine a local fallback with another server's account-wide history.
       files: null,
-      message:
-        account.error ?? "Cursor account history needs a Cursor CLI login saved on this server.",
+      message: account.error ?? t("usage.usageService.cursorSavedLoginRequired"),
     });
     return scanned;
   });
@@ -898,8 +898,7 @@ export const make = Effect.gen(function* () {
         skippedFiles,
         malformedRecords: 0,
         distinctSessions: sessionIds.size,
-        message:
-          message ?? (files === null ? "No transcript directory on this environment." : null),
+        message: message ?? (files === null ? t("usage.usageService.noTranscriptDirectory") : null),
         ...(action ? { action } : {}),
       });
     }

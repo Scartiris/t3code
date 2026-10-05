@@ -1,4 +1,5 @@
 import { ApprovalRequestId, EnvironmentId, ThreadId } from "@t3tools/contracts";
+import { t } from "@t3tools/shared/i18n";
 import { describe, expect, it, vi } from "vite-plus/test";
 import {
   questionAttachmentDraftKey,
@@ -328,7 +329,7 @@ describe("draft upload scope and offline submission", () => {
         ...input,
         states: { [key]: { status: "failed", reason: "Offline" } },
       }),
-    ).toBe("Retry or remove the failed attachment");
+    ).toBe(t("threads.composerAttachmentUploadQueue.retryOrRemoveFailedAttachment"));
     expect(
       composerAttachmentsStillUploading({
         ...input,

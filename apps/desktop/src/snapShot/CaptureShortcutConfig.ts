@@ -12,6 +12,7 @@ import type {
   DesktopCaptureConfigPreview,
   DesktopCaptureConfigRequest,
 } from "@t3tools/contracts";
+import { t } from "@t3tools/shared/i18n";
 import {
   captureConfigKeys,
   editCaptureConfig,
@@ -55,11 +56,12 @@ async function readSnapshot(path: string) {
   try {
     const stat = await file.stat();
     if (!stat.isFile() || stat.size > MAX_BYTES)
-      throw new Error("Choose a config file smaller than 1 MB.");
+      throw new Error(t("snapShot.captureShortcutConfig.configFileTooLarge"));
     const bytes = await file.readFile();
-    if (bytes.length > MAX_BYTES) throw new Error("Choose a config file smaller than 1 MB.");
+    if (bytes.length > MAX_BYTES)
+      throw new Error(t("snapShot.captureShortcutConfig.configFileTooLarge"));
     const text = new TextDecoder("utf-8", { fatal: true, ignoreBOM: true }).decode(bytes);
-    if (text.includes("\0")) throw new Error("Choose a text config file.");
+    if (text.includes("\0")) throw new Error(t("snapShot.captureShortcutConfig.textConfigFile"));
     return { path, resolvedPath, text, bytes, stat };
   } finally {
     await file.close();
@@ -74,9 +76,7 @@ const defaultTools = {
         maxBuffer: 64 * 1024,
       });
     } catch {
-      throw new Error(
-        "Niri couldn't validate the proposed config. Nothing was changed. Check your config in Advanced.",
-      );
+      throw new Error(t("snapShot.captureShortcutConfig.niriValidateFailed"));
     }
   },
   hyprlandBindings: async () =>
@@ -89,7 +89,8 @@ const defaultTools = {
       timeout: 5000,
       maxBuffer: 64 * 1024,
     });
-    if (errors.stdout.trim()) throw new Error("Hyprland reported config errors.");
+    if (errors.stdout.trim())
+      throw new Error(t("snapShot.captureShortcutConfig.hyprlandConfigErrors"));
   },
 };
 
@@ -107,9 +108,7 @@ export class CaptureShortcutConfig {
   private async checkHyprlandKeys(appId: string, shortcut: string) {
     const keys = captureConfigKeys(shortcut);
     const bindings = await this.tools.hyprlandBindings().catch(() => {
-      throw new Error(
-        "Couldn't check Hyprland's current shortcuts. Try again from your Hyprland session.",
-      );
+      throw new Error(t("snapShot.captureShortcutConfig.hyprlandShortcutsCheckFailed"));
     });
     if (
       bindings.some(
@@ -119,20 +118,22 @@ export class CaptureShortcutConfig {
           !(binding.dispatcher === "global" && binding.arg === `${appId}:capture-window`),
       )
     )
-      throw new Error(`${keys.label} is already used by Hyprland. Choose another shortcut.`);
+      throw new Error(
+        t("snapShot.captureShortcutConfig.shortcutUsedByHyprland", { label: keys.label }),
+      );
   }
 
   async preview(
     target: Target,
     request: DesktopCaptureConfigRequest,
   ): Promise<DesktopCaptureConfigPreview> {
-    if (this.applying) throw new Error("Wait for the current config change to finish.");
+    if (this.applying) throw new Error(t("snapShot.captureShortcutConfig.waitForConfigChange"));
     this.pending = undefined;
     const root = await readSnapshot(target.path).catch(() => {
-      throw new Error("Couldn't read your settings file. Choose a different file in Advanced.");
+      throw new Error(t("snapShot.captureShortcutConfig.readSettingsFailed"));
     });
     if (root.stat.uid !== process.getuid?.() || /\/omarchy\/default\//.test(root.resolvedPath))
-      throw new Error("Choose your own config, not system or Omarchy defaults.");
+      throw new Error(t("snapShot.captureShortcutConfig.chooseOwnConfig"));
     const format: CaptureConfigFormat =
       target.desktop === "niri"
         ? "niri"
@@ -144,7 +145,7 @@ export class CaptureShortcutConfig {
         format === "niri" ? ".kdl" : format === "hyprland-lua" ? ".lua" : ".conf",
       )
     )
-      throw new Error("Choose a .kdl Niri config or a .conf/.lua Hyprland config.");
+      throw new Error(t("snapShot.captureShortcutConfig.chooseConfigFormat"));
     const edit = editCaptureConfig(
       root.text,
       format,
@@ -161,10 +162,10 @@ export class CaptureShortcutConfig {
           files.length > MAX_FILES ||
           files.reduce((size, item) => size + item.bytes.length, 0) > MAX_BYTES
         )
-          throw new Error("This config has too many included files. Use manual setup in Advanced.");
+          throw new Error(t("snapShot.captureShortcutConfig.tooManyIncludes"));
         for (const include of niriConfigIncludes(file.text)) {
           if (include.path.includes("$") || /[*?[\]]/.test(include.path))
-            throw new Error("This config uses a dynamic include. Use manual setup in Advanced.");
+            throw new Error(t("snapShot.captureShortcutConfig.dynamicInclude"));
           const path = include.path.startsWith("~/")
             ? NodePath.join(NodeOS.homedir(), include.path.slice(2))
             : NodePath.resolve(NodePath.dirname(file.path), include.path);
@@ -176,10 +177,9 @@ export class CaptureShortcutConfig {
               missing.push(path);
               continue;
             }
-            throw new Error(
-              "Couldn't read an included Niri config. Check its location in Advanced.",
-              { cause: error },
-            );
+            throw new Error(t("snapShot.captureShortcutConfig.readIncludeFailed"), {
+              cause: error,
+            });
           }
           if (files.some((item) => item.resolvedPath === child.resolvedPath)) continue;
           files.push(child);
@@ -188,7 +188,10 @@ export class CaptureShortcutConfig {
             niriConfigConflict(child.text, target.appId, edit.shortcut)
           )
             throw new Error(
-              `${edit.shortcut} is already used in ${child.path}. Choose another shortcut.`,
+              t("snapShot.captureShortcutConfig.shortcutUsedInInclude", {
+                shortcut: edit.shortcut,
+                path: child.path,
+              }),
             );
           await visit(child, depth + 1);
         }
@@ -218,7 +221,7 @@ export class CaptureShortcutConfig {
       pending.preview.id !== id ||
       pending.target.desktop !== desktop
     )
-      throw new Error("This preview expired. Review changes again before saving.");
+      throw new Error(t("snapShot.captureShortcutConfig.previewExpired"));
     this.pending = undefined;
     this.applying = true;
     const { preview, files } = pending;
@@ -235,9 +238,7 @@ export class CaptureShortcutConfig {
               (error: NodeJS.ErrnoException) => error.code !== "ENOENT",
             )
           )
-            throw new Error(
-              "Your config changed since this preview. Review changes again before saving.",
-            );
+            throw new Error(t("snapShot.captureShortcutConfig.configChanged"));
         }
         for (const original of files) {
           const current = await readSnapshot(original.path).catch(() => undefined);
@@ -248,9 +249,7 @@ export class CaptureShortcutConfig {
             current.stat.mode !== original.stat.mode ||
             !current.bytes.equals(original.bytes)
           )
-            throw new Error(
-              "Your config changed since this preview. Nothing was saved. Review changes again before saving.",
-            );
+            throw new Error(t("snapShot.captureShortcutConfig.configChangedNothingSaved"));
         }
       };
       await unchanged();
@@ -290,8 +289,7 @@ export class CaptureShortcutConfig {
         try {
           await this.tools.reloadHyprland();
         } catch {
-          warning =
-            "Config saved, but Hyprland couldn't reload it cleanly. Check hyprctl configerrors, then run hyprctl reload.";
+          warning = t("snapShot.captureShortcutConfig.hyprlandReloadWarning");
         }
       }
       return { backupPath, warning };

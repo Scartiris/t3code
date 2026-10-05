@@ -7,6 +7,7 @@ import type {
   ServerProviderModel,
   ServerProviderState,
 } from "@t3tools/contracts";
+import { t } from "@t3tools/shared/i18n";
 import { createModelCapabilities } from "@t3tools/shared/model";
 import * as DateTime from "effect/DateTime";
 import * as Effect from "effect/Effect";
@@ -309,9 +310,9 @@ export const checkCursorProviderStatus = Effect.fn("checkCursorProviderStatus")(
         auth: { status: authenticationFailure ? "unauthenticated" : "unknown" },
         message: authenticationFailure
           ? authenticationType === "browser"
-            ? "Cursor sign-in expired or was rejected. Sign in again in provider settings."
+            ? t("provider.cursorProvider.signInExpired")
             : "Cursor SDK authentication failed. Check CURSOR_API_KEY."
-          : "Cursor SDK catalog request failed. Check server logs for details.",
+          : t("provider.cursorProvider.catalogRequestFailed"),
       },
     });
   }
@@ -327,7 +328,9 @@ export const checkCursorProviderStatus = Effect.fn("checkCursorProviderStatus")(
         version: null,
         status: "error",
         auth: { status: "unknown" },
-        message: `Cursor SDK catalog request timed out after ${CURSOR_SDK_CATALOG_TIMEOUT_MS}ms.`,
+        message: t("provider.cursorProvider.catalogRequestTimedOut", {
+          timeoutMs: CURSOR_SDK_CATALOG_TIMEOUT_MS,
+        }),
       },
     });
   }

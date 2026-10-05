@@ -2,6 +2,7 @@ import { useState, type ReactElement } from "react";
 import { Modal, View } from "react-native";
 import { Screen, ScreenStack, ScreenStackHeaderConfig } from "react-native-screens";
 import { withUniwind } from "uniwind";
+import { t } from "@t3tools/shared/i18n";
 import { ContextSheetSize } from "../../components/ContextSheetSize";
 
 const NativeScreen = withUniwind(Screen);
@@ -40,7 +41,7 @@ export function WorktreeSetupSheet({ children, height, onClose }: WorktreeSetupS
           >
             {children}
             <NativeHeader
-              title="Worktree setup"
+              title={t("threads.worktreeSetupSheet.title")}
               titleColorClassName="accent-foreground"
               tintColorClassName="accent-foreground"
               backgroundColorClassName="bg-sheet-solid"
@@ -50,9 +51,9 @@ export function WorktreeSetupSheet({ children, height, onClose }: WorktreeSetupS
               headerRightBarButtonItems={[
                 {
                   type: "button",
-                  title: "Done",
+                  title: t("threads.worktreeSetupSheet.done"),
                   variant: "done",
-                  accessibilityLabel: "Close setup details",
+                  accessibilityLabel: t("threads.worktreeSetupSheet.closeDetails"),
                   identifier: "worktree-setup-done",
                   onPress: onClose,
                 },

@@ -13,6 +13,7 @@ import type {
   PullRequestMergeMethod,
   PullRequestRef,
 } from "@t3tools/contracts";
+import { t } from "@t3tools/shared/i18n";
 import { useState } from "react";
 
 import { type DraftId, useComposerDraftStore } from "~/composerDraftStore";
@@ -26,50 +27,44 @@ import { toastManager } from "../ui/toast";
 import { handoffPrompt, handoffReviewComments, readableFailure } from "./pullRequestDetail.logic";
 
 const ACTION_SUCCESS_LABELS: Record<PullRequestAction, string> = {
-  merge: "Pull request merged",
-  ready: "Marked ready for review",
-  draft: "Converted to draft",
-  close: "Pull request closed",
-  reopen: "Pull request reopened",
-  "update-branch": "Branch updated with the base branch",
-  "enable-auto-merge": "Auto-merge enabled",
-  "disable-auto-merge": "Auto-merge disabled",
-  revert: "Revert pull request opened",
-  "approve-workflows": "Workflows approved",
+  merge: t("pullRequest.pullRequestDetailPanel.actionMerged"),
+  ready: t("pullRequest.pullRequestDetailPanel.actionMarkedReady"),
+  draft: t("pullRequest.pullRequestDetailPanel.actionConvertedToDraft"),
+  close: t("pullRequest.pullRequestDetailPanel.actionClosed"),
+  reopen: t("pullRequest.pullRequestDetailPanel.actionReopened"),
+  "update-branch": t("pullRequest.pullRequestDetailPanel.actionBranchUpdated"),
+  "enable-auto-merge": t("pullRequest.pullRequestDetailPanel.actionAutoMergeEnabled"),
+  "disable-auto-merge": t("pullRequest.pullRequestDetailPanel.actionAutoMergeDisabled"),
+  revert: t("pullRequest.pullRequestDetailPanel.actionRevertOpened"),
+  "approve-workflows": t("pullRequest.pullRequestDetailPanel.actionWorkflowsApproved"),
 };
 
 /** Said as the thing that did not happen, rather than as the operation that returned an error. */
 const ACTION_FAILURE_LABELS: Record<PullRequestAction, string> = {
-  merge: "Could not merge this pull request",
-  ready: "Could not mark this ready for review",
-  draft: "Could not convert this to a draft",
-  close: "Could not close this pull request",
-  reopen: "Could not reopen this pull request",
-  "update-branch": "Could not update this branch",
-  "enable-auto-merge": "Could not enable auto-merge",
-  "disable-auto-merge": "Could not disable auto-merge",
-  revert: "Could not open a revert pull request",
-  "approve-workflows": "Could not approve workflows",
+  merge: t("pullRequest.pullRequestDetailPanel.failedMerge"),
+  ready: t("pullRequest.pullRequestDetailPanel.failedMarkReady"),
+  draft: t("pullRequest.pullRequestDetailPanel.failedConvertToDraft"),
+  close: t("pullRequest.pullRequestDetailPanel.failedClose"),
+  reopen: t("pullRequest.pullRequestDetailPanel.failedReopen"),
+  "update-branch": t("pullRequest.pullRequestDetailPanel.failedUpdateBranch"),
+  "enable-auto-merge": t("pullRequest.pullRequestDetailPanel.failedEnableAutoMerge"),
+  "disable-auto-merge": t("pullRequest.pullRequestDetailPanel.failedDisableAutoMerge"),
+  revert: t("pullRequest.pullRequestDetailPanel.failedOpenRevert"),
+  "approve-workflows": t("pullRequest.pullRequestDetailPanel.failedApproveWorkflows"),
 };
 
 /** What to try, for the times the host says only that it refused. */
 const ACTION_FAILURE_HINTS: Record<PullRequestAction, string> = {
-  merge:
-    "The host refused the merge. Check that you have write access, that the checks it requires have passed, and that the branch is not conflicting.",
-  ready: "The host refused it. Check that you have write access to this repository.",
-  draft: "The host refused it. Check that you have write access to this repository.",
-  close: "The host refused it. Check that you have write access, or that you opened it.",
-  reopen:
-    "The host refused it. Check that you have write access, and that the branch still exists.",
-  "update-branch":
-    "The host refused it. Check that you have write access, and that the base branch has not diverged in a way the host cannot merge.",
-  "enable-auto-merge":
-    "The host refused it. Check that auto-merge is enabled for this repository and that you have write access.",
-  "disable-auto-merge": "The host refused it. Check that you have write access to this repository.",
-  revert:
-    "The host refused it. Check that you have write access and that this pull request was merged on the host.",
-  "approve-workflows":
-    "The host refused it. Check that you have Actions write access and that these workflow runs are still awaiting approval.",
+  merge: t("pullRequest.pullRequestDetailPanel.hintMergeRefused"),
+  ready: t("pullRequest.pullRequestDetailPanel.hintRefusedWriteAccess"),
+  draft: t("pullRequest.pullRequestDetailPanel.hintRefusedWriteAccess"),
+  close: t("pullRequest.pullRequestDetailPanel.hintCloseRefused"),
+  reopen: t("pullRequest.pullRequestDetailPanel.hintReopenRefused"),
+  "update-branch": t("pullRequest.pullRequestDetailPanel.hintUpdateBranchRefused"),
+  "enable-auto-merge": t("pullRequest.pullRequestDetailPanel.hintEnableAutoMergeRefused"),
+  "disable-auto-merge": t("pullRequest.pullRequestDetailPanel.hintDisableAutoMergeRefused"),
+  revert: t("pullRequest.pullRequestDetailPanel.hintRevertRefused"),
+  "approve-workflows": t("pullRequest.pullRequestDetailPanel.hintApproveWorkflowsRefused"),
 };
 
 /**
@@ -210,20 +205,20 @@ export function usePullRequestHandoffs({
     if (opened === null) {
       toastManager.add({
         type: "error",
-        title: "Could not open a thread",
-        description: "Try again from the project, or open a thread first.",
+        title: t("pullRequest.pullRequestDetailPanel.couldNotOpenThread"),
+        description: t("pullRequest.pullRequestDetailPanel.tryAgainFromProject"),
       });
       return;
     }
     toastManager.add({
       type: "success",
-      title: "Asked in a thread",
+      title: t("pullRequest.pullRequestDetailPanel.askedInThread"),
       // "Ask" leaves the composer empty on purpose, so saying the question is in it would send
       // the reader looking for something that is not there. The chips are what landed.
       description:
         task.prompt.length > 0
-          ? "The question is in the composer — read it over, then send."
-          : "The pull request is in the composer — type your question, then send.",
+          ? t("pullRequest.pullRequestDetailPanel.questionInComposer")
+          : t("pullRequest.pullRequestDetailPanel.pullRequestInComposer"),
     });
   };
 
@@ -245,7 +240,7 @@ export function usePullRequestHandoffs({
     // never expires, and an explicit one would survive the update and pin the result on screen.
     const toastId = toastManager.add({
       type: "loading",
-      title: "Preparing the pull request checkout...",
+      title: t("pullRequest.pullRequestDetailPanel.preparingCheckout"),
     });
     const projectRef = scopeProjectRef(environmentId, detail.projectId);
     // The thread is opened before the checkout rather than after it, because the project's setup
@@ -262,8 +257,8 @@ export function usePullRequestHandoffs({
       // working tree than to prepare a worktree nobody asked for.
       toastManager.update(toastId, {
         type: "error",
-        title: "Could not open a thread for the checkout",
-        description: "Try again from the project, or open a thread first.",
+        title: t("pullRequest.pullRequestDetailPanel.couldNotOpenThreadForCheckout"),
+        description: t("pullRequest.pullRequestDetailPanel.tryAgainFromProject"),
       });
       return;
     }
@@ -280,7 +275,7 @@ export function usePullRequestHandoffs({
         prepareThread.error instanceof Error ? prepareThread.error.message : null;
       toastManager.update(toastId, {
         type: "error",
-        title: "Could not prepare the pull request checkout",
+        title: t("pullRequest.pullRequestDetailPanel.couldNotPrepareCheckout"),
         ...(detailMessage ? { description: detailMessage } : {}),
       });
       return;
@@ -302,8 +297,10 @@ export function usePullRequestHandoffs({
       // outcome worth stopping for, since it reads as success and is not.
       toastManager.update(toastId, {
         type: "error",
-        title: "Checked out, but the thread stayed where it was",
-        description: `The checkout is ready on \`${prepared.value.branch}\`. Point a thread at it from the branch picker, then ask again.`,
+        title: t("pullRequest.pullRequestDetailPanel.checkedOutThreadStayed"),
+        description: t("pullRequest.pullRequestDetailPanel.checkedOutThreadStayedDetail", {
+          branch: prepared.value.branch,
+        }),
       });
       return;
     }
@@ -315,9 +312,8 @@ export function usePullRequestHandoffs({
     // success, because everything else about the handoff did happen.
     const staleCheckoutToast = {
       type: "warning",
-      title: "Checked out, but not on the latest commits",
-      description:
-        "The checkout could not be moved onto the pull request's latest commits, so the code there is older than the pull request. Uncommitted work or local commits keep it where it is.",
+      title: t("pullRequest.pullRequestDetailPanel.checkedOutNotLatest"),
+      description: t("pullRequest.pullRequestDetailPanel.checkedOutNotLatestDetail"),
     } as const;
     if (task === null) {
       toastManager.update(
@@ -325,11 +321,14 @@ export function usePullRequestHandoffs({
         prepared.value.isOnPullRequestHead
           ? {
               type: "success",
-              title: mode === "local" ? "Checked out here" : "Checked out",
+              title:
+                mode === "local"
+                  ? t("pullRequest.pullRequestDetailPanel.checkedOutHere")
+                  : t("pullRequest.pullRequestDetailPanel.checkedOut"),
               description:
                 mode === "local"
-                  ? "This repository is on the pull request's branch, with a thread open on it."
-                  : "The pull request is in its own worktree, with a thread open on it.",
+                  ? t("pullRequest.pullRequestDetailPanel.checkedOutHereDetail")
+                  : t("pullRequest.pullRequestDetailPanel.checkedOutDetail"),
             }
           : staleCheckoutToast,
       );
@@ -341,8 +340,8 @@ export function usePullRequestHandoffs({
       prepared.value.isOnPullRequestHead
         ? {
             type: "success",
-            title: "Checkout ready",
-            description: "The task is in the composer — read it over, then send.",
+            title: t("pullRequest.pullRequestDetailPanel.checkoutReady"),
+            description: t("pullRequest.pullRequestDetailPanel.taskInComposer"),
           }
         : staleCheckoutToast,
     );

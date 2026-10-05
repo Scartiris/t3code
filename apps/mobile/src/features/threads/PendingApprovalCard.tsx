@@ -4,6 +4,7 @@ import type {
   ProviderApprovalOption,
   RuntimeRequestId,
 } from "@t3tools/contracts";
+import { t } from "@t3tools/shared/i18n";
 import { View } from "react-native";
 
 import { AppText as Text } from "../../components/AppText";
@@ -19,9 +20,9 @@ export interface PendingApprovalCardProps {
 }
 
 const DEFAULT_APPROVAL_OPTIONS: ReadonlyArray<ProviderApprovalOption> = [
-  { decision: "accept", label: "Allow once" },
-  { decision: "acceptForSession", label: "Allow session" },
-  { decision: "decline", label: "Decline" },
+  { decision: "accept", label: t("threads.pendingApprovalCard.allowOnce") },
+  { decision: "acceptForSession", label: t("threads.pendingApprovalCard.allowSession") },
+  { decision: "decline", label: t("threads.pendingApprovalCard.decline") },
 ];
 
 export function PendingApprovalCard(props: PendingApprovalCardProps) {
@@ -35,7 +36,7 @@ export function PendingApprovalCard(props: PendingApprovalCardProps) {
   return (
     <View className="gap-2.5 rounded-[20px] border border-border bg-card-alt p-4">
       <Text className="font-t3-bold text-2xs uppercase tracking-[1.1px] text-foreground-secondary">
-        Approval needed
+        {t("threads.pendingApprovalCard.approvalNeeded")}
       </Text>
       <Text className="font-t3-bold text-lg text-foreground">
         {props.approval.appName ?? props.approval.requestKind}
@@ -47,8 +48,7 @@ export function PendingApprovalCard(props: PendingApprovalCardProps) {
       ) : null}
       {!canRespond ? (
         <Text className="font-sans text-sm leading-5 text-adaptive-neutral-600-400">
-          The provider process for this request is no longer available. Interrupt or restart the run
-          to continue.
+          {t("threads.pendingApprovalCard.providerUnavailable")}
         </Text>
       ) : null}
       {warning ? (

@@ -8,6 +8,7 @@ import {
 } from "@t3tools/client-runtime/state/runtime";
 import { canSnooze, effectiveSnoozed } from "@t3tools/client-runtime/state/thread-settled";
 import type { ScopedThreadRef, ThreadId } from "@t3tools/contracts";
+import { t } from "@t3tools/shared/i18n";
 import { useRouter } from "@tanstack/react-router";
 import { useCallback, useMemo } from "react";
 
@@ -47,7 +48,7 @@ function failureToast(title: string, error: unknown) {
     stackedThreadToast({
       type: "error",
       title,
-      description: error instanceof Error ? error.message : "An error occurred.",
+      description: error instanceof Error ? error.message : t("components.sidebar.errorOccurred"),
     }),
   );
 }
@@ -103,22 +104,34 @@ export function useThreadActionMenu(input: {
   const timestampFormat = useClientSettings((s) => s.timestampFormat);
   const { copyToClipboard: copyPathToClipboard } = useCopyToClipboard<{ path: string }>({
     onCopy: ({ path }) => {
-      toastManager.add({ type: "success", title: "Path copied", description: path });
+      toastManager.add({
+        type: "success",
+        title: t("components.sidebar.pathCopied"),
+        description: path,
+      });
     },
-    onError: (error) => failureToast("Failed to copy path", error),
+    onError: (error) => failureToast(t("components.sidebar.failedToCopyPath"), error),
   });
   const { copyToClipboard: copyBranchToClipboard } = useCopyToClipboard<{ branch: string }>({
     target: "branch name",
     onCopy: ({ branch }) => {
-      toastManager.add({ type: "success", title: "Branch copied", description: branch });
+      toastManager.add({
+        type: "success",
+        title: t("components.sidebar.branchCopied"),
+        description: branch,
+      });
     },
-    onError: (error) => failureToast("Failed to copy branch", error),
+    onError: (error) => failureToast(t("components.sidebar.failedToCopyBranch"), error),
   });
   const { copyToClipboard: copyThreadIdToClipboard } = useCopyToClipboard<{ threadId: ThreadId }>({
     onCopy: ({ threadId }) => {
-      toastManager.add({ type: "success", title: "Thread ID copied", description: threadId });
+      toastManager.add({
+        type: "success",
+        title: t("components.sidebar.threadIdCopied"),
+        description: threadId,
+      });
     },
-    onError: (error) => failureToast("Failed to copy thread ID", error),
+    onError: (error) => failureToast(t("components.sidebar.failedToCopyThreadId"), error),
   });
 
   const openMenu = useCallback(
@@ -165,7 +178,10 @@ export function useThreadActionMenu(input: {
           if (!preset) return;
           const result = await snoozeThread(threadRef, preset.snoozedUntil);
           if (result._tag === "Failure" && !isAtomCommandInterrupted(result)) {
-            failureToast("Failed to snooze thread", squashAtomCommandFailure(result));
+            failureToast(
+              t("components.sidebar.failedToSnoozeThread"),
+              squashAtomCommandFailure(result),
+            );
           }
           return;
         }
@@ -207,29 +223,42 @@ export function useThreadActionMenu(input: {
               }),
             );
             if (result._tag === "Failure") {
-              failureToast("Could not create thread", squashAtomCommandFailure(result));
+              failureToast(
+                t("components.sidebar.couldNotCreateThread"),
+                squashAtomCommandFailure(result),
+              );
             }
             return;
           }
           case "settle":
-            await reportFailure("Failed to settle thread", () => settleThread(threadRef));
+            await reportFailure(t("components.sidebar.failedToSettleThread"), () =>
+              settleThread(threadRef),
+            );
             return;
           case "unsettle":
-            await reportFailure("Failed to un-settle thread", () => unsettleThread(threadRef));
+            await reportFailure(t("components.sidebar.failedToUnsettleThread"), () =>
+              unsettleThread(threadRef),
+            );
             return;
           case "unsnooze":
-            await reportFailure("Failed to wake thread", () => unsnoozeThread(threadRef));
+            await reportFailure(t("components.sidebar.failedToWakeThread"), () =>
+              unsnoozeThread(threadRef),
+            );
             return;
           case "pin":
-            await reportFailure("Failed to pin thread", () => pinThread(threadRef));
+            await reportFailure(t("components.sidebar.failedToPinThread"), () =>
+              pinThread(threadRef),
+            );
             return;
           case "unpin": {
-            await reportFailure("Failed to unpin thread", () => confirmAndUnpinThread(threadRef));
+            await reportFailure(t("components.sidebar.failedToUnpinThread"), () =>
+              confirmAndUnpinThread(threadRef),
+            );
             return;
           }
           case "auto-settle:enabled":
           case "auto-settle:disabled":
-            await reportFailure("Failed to update auto-settle", () =>
+            await reportFailure(t("components.sidebar.failedToUpdateAutoSettle"), () =>
               setThreadAutoSettle(threadRef, action === "auto-settle:enabled"),
             );
             return;
@@ -238,7 +267,7 @@ export function useThreadActionMenu(input: {
             return;
           case "regenerate-title":
             if (isRegeneratingTitle) return;
-            await reportFailure("Failed to regenerate thread title", () =>
+            await reportFailure(t("components.sidebar.failedToRegenerateThreadTitle"), () =>
               updateThreadMetadata({
                 environmentId: threadRef.environmentId,
                 input: { threadId: threadRef.threadId, regenerateTitle: true },
@@ -254,8 +283,8 @@ export function useThreadActionMenu(input: {
               toastManager.add(
                 stackedThreadToast({
                   type: "error",
-                  title: "Path unavailable",
-                  description: "This thread does not have a workspace path to copy.",
+                  title: t("components.sidebar.pathUnavailable"),
+                  description: t("components.sidebar.threadHasNoWorkspacePath"),
                 }),
               );
               return;
@@ -274,7 +303,9 @@ export function useThreadActionMenu(input: {
           case "archive": {
             if (confirmThreadArchive) {
               const confirmed = await settlePromise(() =>
-                api.dialogs.confirm(`Archive thread "${thread.title}"?`),
+                api.dialogs.confirm(
+                  t("components.sidebar.archiveThreadConfirm", { title: thread.title }),
+                ),
               );
               if (confirmed._tag === "Failure" || !confirmed.value) return;
             }
@@ -286,7 +317,9 @@ export function useThreadActionMenu(input: {
             });
             if (result._tag === "Failure" && !isAtomCommandInterrupted(result)) {
               failureToast(
-                didArchive ? "Thread archived, but navigation failed" : "Failed to archive thread",
+                didArchive
+                  ? t("components.sidebar.threadArchivedNavigationFailed")
+                  : t("components.sidebar.failedToArchiveThread"),
                 squashAtomCommandFailure(result),
               );
             }
@@ -297,8 +330,8 @@ export function useThreadActionMenu(input: {
               const confirmed = await settlePromise(() =>
                 api.dialogs.confirm(
                   [
-                    `Delete thread "${thread.title}"?`,
-                    "This permanently clears conversation history for this thread.",
+                    t("components.sidebar.deleteThreadConfirm", { title: thread.title }),
+                    t("components.sidebar.deleteThreadDetail"),
                   ].join("\n"),
                   { variant: "destructive" },
                 ),
@@ -314,7 +347,10 @@ export function useThreadActionMenu(input: {
               // that itself, and "Failed to delete thread" would be a lie.
               readThreadShell(threadRef) !== null
             ) {
-              failureToast("Failed to delete thread", squashAtomCommandFailure(deleted));
+              failureToast(
+                t("components.sidebar.failedToDeleteThread"),
+                squashAtomCommandFailure(deleted),
+              );
             }
             return;
           }

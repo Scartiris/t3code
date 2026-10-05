@@ -1,6 +1,7 @@
 import { SettingsGroup } from "./SettingsGroup";
 import { InfoIcon, Undo2Icon } from "lucide-react";
 import { DEFAULT_SERVER_SETTINGS, type ServerSettings } from "@t3tools/contracts";
+import { t } from "@t3tools/shared/i18n";
 import * as Equal from "effect/Equal";
 import { useLocation, useNavigate } from "@tanstack/react-router";
 import {
@@ -147,7 +148,11 @@ export function PolicyTooltip({ children }: { readonly children: string }) {
       <TooltipTrigger
         delay={200}
         render={
-          <Button size="icon-micro" variant="ghost-muted" aria-label="Background policy details">
+          <Button
+            size="icon-micro"
+            variant="ghost-muted"
+            aria-label={t("settings.settingsLayout.backgroundPolicyDetails")}
+          >
             <InfoIcon className="size-3.5" />
           </Button>
         }
@@ -300,8 +305,8 @@ export function SettingsRow({
     source === "environment" && context?.scope.environmentIds.length === 1
       ? (context.environments.find(
           (environment) => environment.environmentId === context.scope.environmentIds[0],
-        )?.label ?? "environment")
-      : "environment";
+        )?.label ?? t("settings.settingsLayout.environment"))
+      : t("settings.settingsLayout.environment");
   const environmentSettingsById = useMemo(
     () =>
       new Map(
@@ -340,8 +345,8 @@ export function SettingsRow({
   const renderedReset = unavailable ? null : isProjectScope && scopedKeys.length > 0 ? (
     source === "project" || source === "mixed" ? (
       <SettingResetButton
-        label={typeof title === "string" ? title : "override"}
-        tooltip="Reset to inherited value"
+        label={typeof title === "string" ? title : t("settings.settingsLayout.overrideFallback")}
+        tooltip={t("settings.settingsLayout.resetToInherited")}
         onClick={() => (onResetOverride ? onResetOverride() : clearOverrides(scopedKeys))}
       />
     ) : null
@@ -376,11 +381,11 @@ export function SettingsRow({
     unavailable && control
       ? inertControl(
           context
-            ? "Reconnect the selected environment to change this setting."
+            ? t("settings.settingsLayout.reconnectEnvironment")
             : PRIMARY_SETTINGS_UNAVAILABLE_MESSAGE,
         )
       : environmentWide && control
-        ? inertControl("Environment-wide setting. Select an environment to change it.")
+        ? inertControl(t("settings.settingsLayout.environmentWideSetting"))
         : control;
   // Server rows get an indicator beside the title that opens the resolution
   // chain per target at every scope; client rows keep a plain status only.
@@ -396,16 +401,19 @@ export function SettingsRow({
       }),
     );
   const inheritance: { state: SettingInheritanceState; summary: string } = mixed
-    ? { state: "mixed", summary: "Mixed across selected environments" }
+    ? { state: "mixed", summary: t("settings.settingsLayout.mixedAcross") }
     : source === "project"
-      ? { state: "overridden", summary: "Overridden for this project" }
+      ? { state: "overridden", summary: t("settings.settingsLayout.overriddenForProject") }
       : source === "t3.json"
-        ? { state: "inherited", summary: "Inherited from the repository's t3.json" }
+        ? { state: "inherited", summary: t("settings.settingsLayout.inheritedFromT3Json") }
         : source === "environment" && scopedKeys.length > 0
-          ? { state: "inherited", summary: `Inherited from ${inheritedFrom}` }
+          ? {
+              state: "inherited",
+              summary: t("settings.settingsLayout.inheritedFrom", { inheritedFrom }),
+            }
           : customized
-            ? { state: "environment", summary: "Set on the environment" }
-            : { state: "default", summary: "Built-in default" };
+            ? { state: "environment", summary: t("settings.settingsLayout.setOnEnvironment") }
+            : { state: "default", summary: t("settings.settingsLayout.builtInDefault") };
   const renderedInheritance =
     context && serverScoped && settingKeys.length > 0 ? (
       <SettingInheritance
@@ -473,7 +481,7 @@ export function SettingsRow({
 
 export function SettingResetButton({
   label,
-  tooltip = "Reset to default",
+  tooltip = t("settings.settingsLayout.resetToDefault"),
   disabled = false,
   onClick,
 }: {
@@ -489,7 +497,7 @@ export function SettingResetButton({
           <Button
             size="icon-micro"
             variant="ghost-muted"
-            aria-label={`Reset ${label} to default`}
+            aria-label={t("settings.settingsLayout.resetAria", { label })}
             disabled={disabled}
             onClick={(event) => {
               event.stopPropagation();

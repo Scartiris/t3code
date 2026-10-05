@@ -1,4 +1,5 @@
 import { useIsFocused } from "@react-navigation/native";
+import { t } from "@t3tools/shared/i18n";
 import { useEvent } from "expo";
 import { useVideoPlayer, VideoView } from "expo-video";
 import { useEffect, useEffectEvent, useRef, useState } from "react";
@@ -31,7 +32,7 @@ function LoadedMediaVideo(props: {
   const loadSource = useEffectEvent(async (signal: AbortSignal) => {
     const uri = props.resolvePlaybackUri ? await props.resolvePlaybackUri() : props.uri;
     if (signal.aborted) return;
-    if (uri === null) throw new Error("Video unavailable");
+    if (uri === null) throw new Error(t("components.mediaVideoPlayer.unavailable"));
     player.pause();
     await player.replaceAsync({ uri, contentType: "progressive" });
     if (!signal.aborted && props.playRequested && active.current) player.play();
@@ -83,19 +84,26 @@ function LoadedMediaVideo(props: {
       />
       {loadState === "error" || (loadState === "complete" && status === "error") ? (
         <View className="absolute inset-0 items-center justify-center gap-2 bg-black px-4">
-          <AppText className="text-center text-sm text-white/80">Video unavailable</AppText>
+          <AppText className="text-center text-sm text-white/80">
+            {t("components.mediaVideoPlayer.unavailable")}
+          </AppText>
           <Pressable
             accessibilityRole="button"
-            accessibilityLabel="Retry video"
+            accessibilityLabel={t("components.mediaVideoPlayer.retryVideo")}
             onPress={() => setAttempt((value) => value + 1)}
             className="min-h-11 justify-center px-4"
           >
-            <AppText className="text-sm text-white">Retry</AppText>
+            <AppText className="text-sm text-white">
+              {t("components.mediaVideoPlayer.retry")}
+            </AppText>
           </Pressable>
         </View>
       ) : loadState === "pending" || status === "loading" ? (
         <View pointerEvents="none" className="absolute inset-0 items-center justify-center">
-          <ActivityIndicator color="#ffffff" accessibilityLabel="Loading video" />
+          <ActivityIndicator
+            color="#ffffff"
+            accessibilityLabel={t("components.mediaVideoPlayer.loadingVideo")}
+          />
         </View>
       ) : null}
     </View>
@@ -138,9 +146,11 @@ function MediaVideoPlayerContent(props: MediaVideoPlayerProps) {
         <MediaActionsMenu media={mediaActions} inModal={props.expanded} style={{ flex: 1 }}>
           <Pressable
             accessibilityRole="button"
-            accessibilityLabel={`Play ${props.name}`}
+            accessibilityLabel={t("components.mediaVideoPlayer.play", { name: props.name })}
             accessibilityHint={
-              mediaActions.actions.length > 0 ? "Touch and hold for media actions" : undefined
+              mediaActions.actions.length > 0
+                ? t("components.mediaVideoPlayer.mediaActionsHint")
+                : undefined
             }
             accessibilityState={{ disabled: props.uri === null || props.unavailable === true }}
             // Stays pressable so the long-press menu still opens on a failed or unsigned tile.
@@ -157,9 +167,14 @@ function MediaVideoPlayerContent(props: MediaVideoPlayerProps) {
               />
             ) : null}
             {props.unavailable ? (
-              <AppText className="text-sm text-white/80">Video unavailable</AppText>
+              <AppText className="text-sm text-white/80">
+                {t("components.mediaVideoPlayer.unavailable")}
+              </AppText>
             ) : props.uri === null ? (
-              <ActivityIndicator color="#ffffff" accessibilityLabel="Loading video" />
+              <ActivityIndicator
+                color="#ffffff"
+                accessibilityLabel={t("components.mediaVideoPlayer.loadingVideo")}
+              />
             ) : (
               <View className="size-12 items-center justify-center rounded-full bg-black/60">
                 <SymbolView name="play" size={28} tintColor="#ffffff" type="monochrome" />

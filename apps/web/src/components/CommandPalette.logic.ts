@@ -1,3 +1,4 @@
+import { t } from "@t3tools/shared/i18n";
 import { threadPullRequestSearchTerms } from "@t3tools/shared/threadPullRequests";
 import type { CommandPaletteLinkedThreads } from "../commandPaletteBus";
 import {
@@ -31,8 +32,11 @@ export function buildLinkedThreadActionItems(
   return input.threads.map((thread) => ({
     kind: "action",
     value: `thread:${input.environmentId}:${thread.id}`,
-    title: thread.title || "Untitled thread",
-    description: thread.archivedAt === null ? "Linked thread" : "Archived thread",
+    title: thread.title || t("keyboard.commandPalette.untitledThread"),
+    description:
+      thread.archivedAt === null
+        ? t("components.commandPalette.linkedThread")
+        : t("components.commandPalette.archivedThread"),
     searchTerms: [input.query, thread.title],
     icon: input.icon,
     run: () => input.runThread({ environmentId: input.environmentId, id: thread.id }),
@@ -259,7 +263,9 @@ export function buildCommandPaletteProjectMetadata(input: {
   const environmentLabels = new Set<string>();
 
   for (const project of input.projects) {
-    const label = input.locationByEnvironmentId.get(project.environmentId)?.label ?? "Remote";
+    const label =
+      input.locationByEnvironmentId.get(project.environmentId)?.label ??
+      t("components.commandPalette.remote");
     searchTerms.push(project.title, project.workspaceRoot, label);
     environmentLabels.add(label);
   }
@@ -347,7 +353,7 @@ export function buildThreadActionItems<TThread extends BuildThreadActionItemsThr
       descriptionParts.push(`#${thread.branch}`);
     }
     if (thread.id === input.activeThreadId) {
-      descriptionParts.push("Current thread");
+      descriptionParts.push(t("components.threadCommandSubtitle.currentThread"));
     }
 
     const leadingContent = input.renderLeadingContent?.(thread);
@@ -470,21 +476,21 @@ export function filterCommandPaletteGroups(input: {
     if (input.projectSearchItems.length > 0) {
       searchableGroups.push({
         value: "projects-search",
-        label: "Projects",
+        label: t("sidebar.projects"),
         items: input.projectSearchItems,
       });
     }
     if (input.settingsSearchItems && input.settingsSearchItems.length > 0) {
       searchableGroups.push({
         value: "settings-search",
-        label: "Settings",
+        label: t("settings.title"),
         items: input.settingsSearchItems,
       });
     }
     if (input.threadSearchItems.length > 0) {
       searchableGroups.push({
         value: "threads-search",
-        label: "Threads",
+        label: t("components.commandPalette.threads"),
         items: input.threadSearchItems,
       });
     }
@@ -559,7 +565,7 @@ export function buildBrowseGroups(input: {
     });
   }
 
-  return [{ value: "directories", label: "Directories", items }];
+  return [{ value: "directories", label: t("components.commandPalette.directories"), items }];
 }
 
 export function filterPinnedBrowseEntries(input: {
@@ -597,12 +603,16 @@ export function buildRootGroups(input: {
 }): CommandPaletteGroup[] {
   const groups: CommandPaletteGroup[] = [];
   if (input.actionItems.length > 0) {
-    groups.push({ value: "actions", label: "Actions", items: input.actionItems });
+    groups.push({
+      value: "actions",
+      label: t("components.commandPalette.actions"),
+      items: input.actionItems,
+    });
   }
   if (input.recentThreadItems.length > 0) {
     groups.push({
       value: "recent-threads",
-      label: "Recent Threads",
+      label: t("components.commandPalette.recentThreads"),
       items: input.recentThreadItems,
     });
   }
@@ -612,12 +622,12 @@ export function buildRootGroups(input: {
 export function getCommandPaletteInputPlaceholder(mode: CommandPaletteMode): string {
   switch (mode) {
     case "root":
-      return "Search commands, projects, and threads...";
+      return t("keyboard.commandPalette.searchPlaceholder");
     case "root-browse":
-      return "Enter project path (e.g. ~/projects/my-app)";
+      return t("components.commandPalette.enterProjectPathPlaceholder");
     case "submenu":
-      return "Search...";
+      return t("components.commandPalette.submenuSearchPlaceholder");
     case "submenu-browse":
-      return "Enter path (e.g. ~/projects/my-app)";
+      return t("components.commandPalette.enterPathPlaceholder");
   }
 }

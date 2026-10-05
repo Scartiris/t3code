@@ -19,6 +19,8 @@ import {
   type SourceControlRepositoryLookupInput,
 } from "@t3tools/contracts";
 
+import { t } from "@t3tools/shared/i18n";
+
 import * as ServerConfig from "../config.ts";
 import { expandHomePathWith } from "../pathExpansion.ts";
 import {
@@ -173,7 +175,7 @@ export const make = Effect.gen(function* () {
       new SourceControlRepositoryError({
         operation: input.operation,
         provider: input.provider,
-        detail: "Choose a source control provider before continuing.",
+        detail: t("sourceControl.sourceControlRepositoryService.providerRequired"),
       }),
     );
   };
@@ -200,7 +202,7 @@ export const make = Effect.gen(function* () {
         return yield* new SourceControlRepositoryError({
           operation: "cloneRepository",
           provider: "unknown",
-          detail: "Choose a destination path before cloning.",
+          detail: t("sourceControl.sourceControlRepositoryService.destinationPathRequired"),
         });
       }
 
@@ -220,7 +222,7 @@ export const make = Effect.gen(function* () {
                 new SourceControlRepositoryError({
                   operation: "cloneRepository",
                   provider: "unknown",
-                  detail: "Destination path already exists and is not a directory.",
+                  detail: t("sourceControl.sourceControlRepositoryService.destinationNotDirectory"),
                   cause,
                 }),
             ),
@@ -229,7 +231,7 @@ export const make = Effect.gen(function* () {
           return yield* new SourceControlRepositoryError({
             operation: "cloneRepository",
             provider: "unknown",
-            detail: "Destination path already exists and is not empty.",
+            detail: t("sourceControl.sourceControlRepositoryService.destinationNotEmpty"),
           });
         }
       } else {
@@ -266,7 +268,7 @@ export const make = Effect.gen(function* () {
       return yield* new SourceControlRepositoryError({
         operation: "cloneRepository",
         provider,
-        detail: "Enter a repository path or clone URL before cloning.",
+        detail: t("sourceControl.sourceControlRepositoryService.repositoryOrUrlRequired"),
       });
     }
 
@@ -323,7 +325,7 @@ export const make = Effect.gen(function* () {
               detail:
                 stderrTail.length > 0
                   ? stderrTail.join(" ")
-                  : "The repository could not be cloned.",
+                  : t("sourceControl.sourceControlRepositoryService.cloneFailed"),
               cause,
             }),
         ),
@@ -378,7 +380,7 @@ export const make = Effect.gen(function* () {
           new SourceControlRepositoryError({
             operation: "discardClone",
             provider: "unknown",
-            detail: "The partial clone could not be removed.",
+            detail: t("sourceControl.sourceControlRepositoryService.partialCloneRemoveFailed"),
             cause,
           }),
       ),

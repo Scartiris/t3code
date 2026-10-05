@@ -1,4 +1,5 @@
 import type { MenuAction } from "@react-native-menu/menu";
+import { t } from "@t3tools/shared/i18n";
 import { useCallback, useMemo } from "react";
 import { NativeStackScreenOptions } from "../../native/StackHeader";
 import { MaterialThreadListToolbar } from "./MaterialThreadListToolbar";
@@ -20,11 +21,11 @@ export function HomeHeader(props: HomeHeaderProps) {
     () => [
       {
         id: "environment",
-        title: "Environment",
+        title: t("home.homeHeader.android.environment"),
         subactions: [
           {
             id: "environment:all",
-            title: "All environments",
+            title: t("home.homeHeader.android.allEnvironments"),
             state: checkedMenuState(props.selectedEnvironmentId === null),
           },
           ...props.environments.map((environment) => ({
@@ -39,11 +40,11 @@ export function HomeHeader(props: HomeHeaderProps) {
         : ([
             {
               id: "project",
-              title: "Project",
+              title: t("home.homeHeader.android.project"),
               subactions: [
                 {
                   id: "project:all",
-                  title: "All projects",
+                  title: t("sidebar.allProjects"),
                   state: checkedMenuState(props.selectedProjectKey === null),
                 },
                 ...props.projects.map((project) => ({

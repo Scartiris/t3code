@@ -2,6 +2,7 @@ import {
   alternateComposerDispatchAction,
   type ActiveTurnComposerAction,
 } from "@t3tools/client-runtime/state/composer-dispatch";
+import { t } from "@t3tools/shared/i18n";
 
 import type { FollowUpBehavior } from "../../lib/followUpBehavior";
 
@@ -17,9 +18,9 @@ export interface ComposerSendPresentation {
 }
 
 const ACTION_LABEL: Record<ActiveTurnComposerAction, string> = {
-  queue: "Queue",
-  steer: "Steer",
-  restart: "Restart",
+  queue: t("threads.threadComposer.queueAction"),
+  steer: t("threads.threadComposer.steerNow"),
+  restart: t("threads.threadComposer.restartTurn"),
 };
 
 /**
@@ -37,7 +38,7 @@ export function resolveComposerSendPresentation(input: {
 }): ComposerSendPresentation {
   if (input.editingQueuedMessage) {
     return {
-      label: "Update queued message",
+      label: t("chat.composerPrimaryActions.updateQueuedMessage"),
       icon: "checkmark",
       action: null,
       alternate: null,
@@ -46,7 +47,9 @@ export function resolveComposerSendPresentation(input: {
   }
   if (!input.running) {
     return {
-      label: input.deliveryDeferred ? "Queue" : "Send",
+      label: input.deliveryDeferred
+        ? t("threads.threadComposer.queueAction")
+        : t("chat.sendMessage"),
       icon: "arrow.up",
       action: null,
       alternate: null,

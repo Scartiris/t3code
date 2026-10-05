@@ -1,5 +1,6 @@
 import * as Effect from "effect/Effect";
 import type { PullRequestCapabilities, PullRequestViewerPermissions } from "@t3tools/contracts";
+import { t } from "@t3tools/shared/i18n";
 
 import * as BitbucketPullRequestApi from "./BitbucketPullRequestApi.ts";
 import {
@@ -366,7 +367,7 @@ export const make = Effect.gen(function* () {
           provider: "bitbucket",
           operation: "setReaction",
           reason: "failed",
-          detail: "Bitbucket does not support reactions.",
+          detail: t("pullRequest.bitbucketPullRequestProvider.reactionsUnsupported"),
         }),
       ),
 

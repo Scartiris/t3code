@@ -1,4 +1,5 @@
 import { GrokSettings, ProviderDriverKind } from "@t3tools/contracts";
+import { t } from "@t3tools/shared/i18n";
 import * as Crypto from "effect/Crypto";
 import * as Effect from "effect/Effect";
 import * as FileSystem from "effect/FileSystem";
@@ -139,7 +140,7 @@ export const GrokDriver: ProviderDriver<GrokSettings, GrokDriverEnv> = {
             new ProviderDriverError({
               driver: DRIVER_KIND,
               instanceId,
-              detail: "Failed to build Grok orchestration adapter.",
+              detail: t("provider.grokDriver.orchestrationAdapterBuildFailed"),
               cause,
             }),
         ),
@@ -193,7 +194,9 @@ export const GrokDriver: ProviderDriver<GrokSettings, GrokDriverEnv> = {
             new ProviderDriverError({
               driver: DRIVER_KIND,
               instanceId,
-              detail: `Failed to build Grok snapshot: ${cause.message ?? String(cause)}`,
+              detail: t("provider.grokDriver.snapshotBuildFailed", {
+                message: cause.message ?? String(cause),
+              }),
               cause,
             }),
         ),
@@ -210,7 +213,7 @@ export const GrokDriver: ProviderDriver<GrokSettings, GrokDriverEnv> = {
                     new ProviderDriverError({
                       driver: DRIVER_KIND,
                       instanceId,
-                      detail: `Failed to discover Grok skills for '${workspaceCwd}'`,
+                      detail: t("provider.grokDriver.skillsDiscoverFailed", { cwd: workspaceCwd }),
                       cause,
                     }),
                 ),

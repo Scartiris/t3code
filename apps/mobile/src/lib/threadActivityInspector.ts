@@ -1,6 +1,7 @@
 import type { V2ItemSupport } from "@t3tools/client-runtime/state/item-support";
 import { toolItemForDisplay } from "@t3tools/client-runtime/work-log/presentation";
 import type { ThreadId } from "@t3tools/contracts";
+import { t } from "@t3tools/shared/i18n";
 import { formatDuration } from "@t3tools/shared/orchestrationTiming";
 import * as DateTime from "effect/DateTime";
 
@@ -79,46 +80,55 @@ export function buildThreadActivityInspector(
   const row = activity.projectedItem;
   const item = row.item;
   const fields: ThreadActivityInspectorField[] = [
-    { label: "Item", value: item.type.replaceAll("_", " ") },
-    { label: "Status", value: item.status.replaceAll("_", " ") },
+    { label: t("threads.threadActivityInspector.item"), value: item.type.replaceAll("_", " ") },
+    { label: t("threads.threadActivityInspector.status"), value: item.status.replaceAll("_", " ") },
   ];
   const duration = durationLabel(item.startedAt, item.completedAt);
-  if (duration) fields.push({ label: "Duration", value: duration });
-  if (row.visibility !== "local") fields.push({ label: "Visibility", value: row.visibility });
-  if (support.run) fields.push({ label: "Run", value: support.run.status });
+  if (duration)
+    fields.push({ label: t("threads.threadActivityInspector.duration"), value: duration });
+  if (row.visibility !== "local")
+    fields.push({ label: t("threads.threadActivityInspector.visibility"), value: row.visibility });
+  if (support.run)
+    fields.push({ label: t("threads.threadActivityInspector.run"), value: support.run.status });
 
   const latestAttempt = support.attempts.at(-1);
   if (latestAttempt) {
     fields.push({
-      label: "Attempt",
+      label: t("threads.threadActivityInspector.attempt"),
       value: `${latestAttempt.attemptOrdinal} · ${latestAttempt.status} · ${latestAttempt.reason.replaceAll("_", " ")}`,
     });
   }
   if (support.node) {
     fields.push({
-      label: "Node",
+      label: t("threads.threadActivityInspector.node"),
       value: `${support.node.kind.replaceAll("_", " ")} · ${support.node.status}`,
     });
   }
   if (support.providerThread) {
     fields.push({
-      label: "Provider thread",
+      label: t("threads.threadActivityInspector.providerThread"),
       value: `${support.providerThread.providerInstanceId} · ${support.providerThread.status}`,
     });
   }
   if (support.providerTurn) {
-    fields.push({ label: "Provider turn", value: support.providerTurn.status });
+    fields.push({
+      label: t("threads.threadActivityInspector.providerTurn"),
+      value: support.providerTurn.status,
+    });
   }
   if (support.providerSession) {
     fields.push({
-      label: "Session",
-      value: `${support.providerSession.status} · ${support.providerSession.model ?? "default model"}`,
+      label: t("threads.threadActivityInspector.session"),
+      value: `${support.providerSession.status} · ${support.providerSession.model ?? t("threads.threadActivityInspector.defaultModel")}`,
     });
-    fields.push({ label: "Working directory", value: support.providerSession.cwd });
+    fields.push({
+      label: t("threads.threadActivityInspector.workingDirectory"),
+      value: support.providerSession.cwd,
+    });
   }
   if (support.runtimeRequest) {
     fields.push({
-      label: "Request",
+      label: t("threads.threadActivityInspector.request"),
       value: `${support.runtimeRequest.status} · ${support.runtimeRequest.responseCapability.type.replaceAll("_", " ")}`,
     });
   }
@@ -130,11 +140,14 @@ export function buildThreadActivityInspector(
   if (support.attempts.length > 1) {
     addBlock(
       blocks,
-      "Attempt history",
+      t("threads.threadActivityInspector.attemptHistory"),
       support.attempts
-        .map(
-          (attempt) =>
-            `Attempt ${attempt.attemptOrdinal} · ${attempt.status} · ${attempt.reason.replaceAll("_", " ")}`,
+        .map((attempt) =>
+          t("threads.threadActivityInspector.attemptLine", {
+            ordinal: attempt.attemptOrdinal,
+            status: attempt.status,
+            reason: attempt.reason.replaceAll("_", " "),
+          }),
         )
         .join("\n"),
     );
@@ -142,12 +155,16 @@ export function buildThreadActivityInspector(
 
   switch (item.type) {
     case "reasoning":
-      addBlock(blocks, "Reasoning", item.text, false);
+      addBlock(blocks, t("threads.threadActivityInspector.reasoning"), item.text, false);
       break;
     case "command_execution":
-      addBlock(blocks, "Command", item.input);
+      addBlock(blocks, t("threads.threadActivityInspector.command"), item.input);
       if (item.exitCode !== undefined) {
-        addBlock(blocks, "Exit", `Process exited with code ${item.exitCode}`);
+        addBlock(
+          blocks,
+          t("threads.threadActivityInspector.exit"),
+          t("chat.v2ItemInspector.processExited", { code: item.exitCode }),
+        );
       }
       break;
     case "file_change":
@@ -159,13 +176,13 @@ export function buildThreadActivityInspector(
       }
       if (item.additions !== undefined || item.deletions !== undefined) {
         fields.push({
-          label: "Changes",
+          label: t("threads.threadActivityInspector.changes"),
           value: `+${item.additions ?? 0} −${item.deletions ?? 0}`,
         });
       }
       break;
     case "file_search":
-      addBlock(blocks, "Query", item.pattern);
+      addBlock(blocks, t("threads.threadActivityInspector.query"), item.pattern);
       for (const result of item.results ?? []) {
         fileLinks.push({
           label: result.preview ? `${result.fileName} — ${result.preview}` : result.fileName,
@@ -175,7 +192,7 @@ export function buildThreadActivityInspector(
       }
       break;
     case "web_search":
-      addBlock(blocks, "Queries", item.patterns?.join("\n"));
+      addBlock(blocks, t("threads.threadActivityInspector.queries"), item.patterns?.join("\n"));
       for (const result of item.results ?? []) {
         if (result.url) {
           webLinks.push({
@@ -184,19 +201,24 @@ export function buildThreadActivityInspector(
           });
         }
         if (result.snippet)
-          addBlock(blocks, result.title ?? "Search result", result.snippet, false);
+          addBlock(
+            blocks,
+            result.title ?? t("chat.v2ItemInspector.searchResult"),
+            result.snippet,
+            false,
+          );
       }
       break;
     case "dynamic_tool":
-      addBlock(blocks, "Input", item.input);
+      addBlock(blocks, t("chat.v2ItemInspector.input"), item.input);
       break;
     case "approval_request":
-      addBlock(blocks, "Prompt", item.prompt, false);
+      addBlock(blocks, t("threads.threadActivityInspector.prompt"), item.prompt, false);
       break;
     case "user_input_request":
       addBlock(
         blocks,
-        "Questions",
+        t("threads.threadActivityInspector.questions"),
         item.questions.map((question) => question.question).join("\n"),
         false,
       );
@@ -204,75 +226,91 @@ export function buildThreadActivityInspector(
     case "checkpoint":
       addBlock(
         blocks,
-        "Files",
+        t("threads.threadActivityInspector.files"),
         item.files
           .map((file) => `${file.path}  +${file.additions} −${file.deletions}  ${file.kind}`)
           .join("\n"),
       );
       break;
     case "subagent":
-      addBlock(blocks, "Prompt", item.prompt, false);
-      addBlock(blocks, "Progress", support.subagent?.progress ?? item.progress, false);
-      addBlock(blocks, "Result", support.subagent?.result ?? item.result, false);
+      addBlock(blocks, t("threads.threadActivityInspector.prompt"), item.prompt, false);
+      addBlock(
+        blocks,
+        t("threads.threadActivityInspector.progress"),
+        support.subagent?.progress ?? item.progress,
+        false,
+      );
+      addBlock(
+        blocks,
+        t("threads.threadActivityInspector.result"),
+        support.subagent?.result ?? item.result,
+        false,
+      );
       if (support.subagent) {
         fields.push({
-          label: "Delegated task",
+          label: t("threads.threadActivityInspector.delegatedTask"),
           value: `${support.subagent.origin.replaceAll("_", " ")} · ${support.subagent.status}`,
         });
       }
       break;
     case "handoff":
-      addBlock(blocks, "Summary", item.summary, false);
+      addBlock(blocks, t("threads.threadActivityInspector.summary"), item.summary, false);
       fields.push({
-        label: "Handoff",
+        label: t("threads.threadActivityInspector.handoff"),
         value: `${item.strategy.replaceAll("_", " ")} · ${support.contextHandoff?.status ?? item.status}`,
       });
       if (support.contextTransfer) {
         fields.push({
-          label: "Transfer",
+          label: t("threads.threadActivityInspector.transfer"),
           value: `${support.contextTransfer.type.replaceAll("_", " ")} · ${support.contextTransfer.status}`,
         });
         if (support.contextTransfer.resolution) {
           fields.push({
-            label: "Context",
+            label: t("threads.threadActivityInspector.context"),
             value: support.contextTransfer.resolution.strategy.replaceAll("_", " "),
           });
         }
       }
       break;
     case "error":
-      addBlock(blocks, "Error", item.failure.message, false);
-      if (item.failure.code) fields.push({ label: "Code", value: item.failure.code });
+      addBlock(blocks, t("threads.threadActivityInspector.error"), item.failure.message, false);
+      if (item.failure.code)
+        fields.push({ label: t("threads.threadActivityInspector.code"), value: item.failure.code });
       if (item.failure.retryable !== null) {
-        fields.push({ label: "Retryable", value: item.failure.retryable ? "yes" : "no" });
+        fields.push({
+          label: t("threads.threadActivityInspector.retryable"),
+          value: item.failure.retryable
+            ? t("threads.threadActivityInspector.yes")
+            : t("threads.threadActivityInspector.no"),
+        });
       }
       break;
     case "proposed_plan":
-      addBlock(blocks, "Plan", item.markdown, false);
+      addBlock(blocks, t("threads.threadActivityInspector.plan"), item.markdown, false);
       break;
     case "todo_list":
       addBlock(
         blocks,
-        "Tasks",
+        t("threads.threadActivityInspector.tasks"),
         item.steps
           .map((step) => `${step.status === "completed" ? "✓" : "○"} ${step.text}`)
           .join("\n"),
         false,
       );
-      addBlock(blocks, "Explanation", item.explanation, false);
+      addBlock(blocks, t("threads.threadActivityInspector.explanation"), item.explanation, false);
       break;
     case "compaction":
-      addBlock(blocks, "Summary", item.summary, false);
+      addBlock(blocks, t("threads.threadActivityInspector.summary"), item.summary, false);
       if (item.beforeTokenCount !== undefined || item.afterTokenCount !== undefined) {
         fields.push({
-          label: "Context tokens",
+          label: t("threads.threadActivityInspector.contextTokens"),
           value: `${item.beforeTokenCount ?? "?"} → ${item.afterTokenCount ?? "?"}`,
         });
       }
       break;
     case "run_interrupt_request":
     case "run_interrupt_result":
-      addBlock(blocks, "Message", item.message, false);
+      addBlock(blocks, t("threads.threadActivityInspector.message"), item.message, false);
       break;
     case "fork":
     case "thread_created":

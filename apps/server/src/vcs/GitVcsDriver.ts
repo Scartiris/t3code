@@ -32,6 +32,7 @@ import {
   type VcsStatusResult,
   type WorktreeSubmodules,
 } from "@t3tools/contracts";
+import { t } from "@t3tools/shared/i18n";
 import {
   makeGitVcsDriverCore,
   PATCH_RENDER_PREFIX_ARGS,
@@ -629,7 +630,7 @@ export const makeVcsDriverShape = Effect.fn("makeGitVcsDriverShape")(function* (
                 command: "git ls-files",
                 cwd,
                 exitCode: result.exitCode,
-                detail: result.stderr.trim() || "git ls-files failed",
+                detail: result.stderr.trim() || t("vcs.gitVcsDriver.lsFilesFailed"),
               }),
             ),
       ),
@@ -655,7 +656,7 @@ export const makeVcsDriverShape = Effect.fn("makeGitVcsDriverShape")(function* (
           command: "git remote -v",
           cwd,
           exitCode: result.exitCode,
-          detail: result.stderr.trim() || "git remote -v failed",
+          detail: result.stderr.trim() || t("vcs.gitVcsDriver.listRemotesFailed"),
         });
       }
 
@@ -712,7 +713,7 @@ export const makeVcsDriverShape = Effect.fn("makeGitVcsDriverShape")(function* (
           command: "git check-ignore",
           cwd,
           exitCode: result.exitCode,
-          detail: result.stderr.trim() || "git check-ignore failed",
+          detail: result.stderr.trim() || t("vcs.gitVcsDriver.checkIgnoreFailed"),
         });
       }
 
@@ -936,7 +937,7 @@ export const makeVcsDriverShape = Effect.fn("makeGitVcsDriverShape")(function* (
                   command: "git read-tree",
                   cwd: input.cwd,
                   exitCode: 1,
-                  detail: "Cannot rebuild a checkpoint index for non-cone sparse checkout.",
+                  detail: t("vcs.gitVcsDriver.sparseCheckoutIndexRebuild"),
                 });
               }
             }
@@ -1036,7 +1037,7 @@ export const makeVcsDriverShape = Effect.fn("makeGitVcsDriverShape")(function* (
             command: "git write-tree",
             cwd: input.cwd,
             exitCode: 0,
-            detail: "git write-tree returned an empty tree oid.",
+            detail: t("vcs.gitVcsDriver.writeTreeEmptyOid"),
           });
         }
 
@@ -1054,7 +1055,7 @@ export const makeVcsDriverShape = Effect.fn("makeGitVcsDriverShape")(function* (
             command: "git commit-tree",
             cwd: input.cwd,
             exitCode: 0,
-            detail: "git commit-tree returned an empty commit oid.",
+            detail: t("vcs.gitVcsDriver.commitTreeEmptyOid"),
           });
         }
 
@@ -1106,7 +1107,7 @@ export const makeVcsDriverShape = Effect.fn("makeGitVcsDriverShape")(function* (
               command: "git restore",
               cwd: input.cwd,
               exitCode: 0,
-              detail: `Could not recreate the checkpoint workspace: ${cause.message}`,
+              detail: t("vcs.gitVcsDriver.recreateWorkspaceFailed", { message: cause.message }),
             }),
         ),
       );
@@ -1131,7 +1132,7 @@ export const makeVcsDriverShape = Effect.fn("makeGitVcsDriverShape")(function* (
             command: "git clean",
             cwd: input.cwd,
             exitCode: cleaned.exitCode,
-            detail: cleaned.stderr.trim() || "Could not clean the checkpoint workspace.",
+            detail: cleaned.stderr.trim() || t("vcs.gitVcsDriver.cleanWorkspaceFailed"),
           });
       }
 
@@ -1174,7 +1175,7 @@ export const makeVcsDriverShape = Effect.fn("makeGitVcsDriverShape")(function* (
               command: "git diff",
               cwd: input.cwd,
               exitCode: 1,
-              detail: "Checkpoint ref is unavailable for diff operation.",
+              detail: t("vcs.gitVcsDriver.checkpointRefUnavailableForDiff"),
             });
           }
           fromRevision = headCommit;
@@ -1206,7 +1207,7 @@ export const makeVcsDriverShape = Effect.fn("makeGitVcsDriverShape")(function* (
           command: "git diff",
           cwd: input.cwd,
           exitCode: result.exitCode,
-          detail: result.stderr.trim() || "Checkpoint ref is unavailable for diff operation.",
+          detail: result.stderr.trim() || t("vcs.gitVcsDriver.checkpointRefUnavailableForDiff"),
         });
       }
 

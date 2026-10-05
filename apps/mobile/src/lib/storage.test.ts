@@ -1,4 +1,5 @@
 import { EnvironmentId } from "@t3tools/contracts";
+import { t } from "@t3tools/shared/i18n";
 import { beforeEach, describe, expect, it, vi } from "vite-plus/test";
 
 const mocks = vi.hoisted(() => {
@@ -148,7 +149,10 @@ describe("mobile connection storage", () => {
       operation: "read",
       key: "t3code.connections",
       cause,
-      message: "Mobile secure storage operation read failed for key t3code.connections.",
+      message: t("persistence.mobileSecureStorage.operationFailed", {
+        operation: "read",
+        key: "t3code.connections",
+      }),
     });
   });
 
@@ -163,7 +167,7 @@ describe("mobile connection storage", () => {
         _tag: "MobileStorageDecodeError",
         key: "t3code.connections",
         cause: expect.any(SyntaxError),
-        message: "Failed to decode mobile storage value for key t3code.connections.",
+        message: t("persistence.mobileStorage.decodeFailed", { key: "t3code.connections" }),
       }),
     );
 

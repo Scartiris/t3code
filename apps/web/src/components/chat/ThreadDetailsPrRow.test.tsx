@@ -1,4 +1,5 @@
 import { EnvironmentId, type PullRequestCheck } from "@t3tools/contracts";
+import { t } from "@t3tools/shared/i18n";
 import { act, cloneElement, type ReactElement, type ReactNode } from "react";
 import { create, type ReactTestRenderer } from "react-test-renderer";
 import { afterEach, expect, it, vi } from "vite-plus/test";
@@ -95,7 +96,7 @@ it("requires a new merge click after passing checks become pending and pass agai
     act(() => {
       renderer.root
         .findAllByType("button")
-        .find((button) => button.children.includes("Merge"))!
+        .find((button) => button.children.includes(t("chat.threadDetailsPrRow.merge")))!
         .props.onClick();
     });
   const dialogs = () => renderer.root.findAllByProps({ role: "alertdialog" });

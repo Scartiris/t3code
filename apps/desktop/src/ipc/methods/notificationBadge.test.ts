@@ -2,6 +2,7 @@ import * as Effect from "effect/Effect";
 import { beforeEach, expect, vi } from "vite-plus/test";
 import { it } from "@effect/vitest";
 import { HostProcessPlatform } from "@t3tools/shared/hostProcess";
+import { t } from "@t3tools/shared/i18n";
 
 const native = vi.hoisted(() => ({
   setBadgeCount: vi.fn(),
@@ -53,7 +54,7 @@ it("sets and clears the Windows taskbar overlay", () => {
   applyNotificationBadge("win32", badge);
   expect(native.setOverlayIcon).toHaveBeenLastCalledWith(
     native.image,
-    "2 threads with new notifications",
+    t("ipc.notificationBadge.newNotifications", { count: 2 }),
   );
   applyNotificationBadge("win32", { count: 0, image: null });
   expect(native.setOverlayIcon).toHaveBeenLastCalledWith(null, "");

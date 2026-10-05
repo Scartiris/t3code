@@ -1,5 +1,6 @@
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it, vi } from "vite-plus/test";
+import { t } from "@t3tools/shared/i18n";
 
 import { DiffCommentAnnotation } from "./DiffCommentAnnotation";
 
@@ -21,9 +22,9 @@ describe("DiffCommentAnnotation", () => {
     expect(markup).not.toContain("font-mono");
     expect(markup).not.toContain("Local comment");
     expect(markup).not.toContain("on +78");
-    expect(markup).toContain("⌘/Ctrl Enter to send");
-    expect(markup).toContain("Add a comment…");
-    expect(markup).toContain(">Comment</button>");
+    expect(markup).toContain(t("diffs.diffCommentAnnotation.submitShortcutHint"));
+    expect(markup).toContain(t("diffs.diffCommentAnnotation.commentPlaceholder"));
+    expect(markup).toContain(`>${t("diffs.diffCommentAnnotation.submitComment")}</button>`);
     expect(markup).toContain("autofocus");
     // The comment box is the standard small Textarea, not a bespoke surface.
     expect(markup).toMatch(/<span[^>]*data-size="sm"[^>]*data-slot="textarea-control"/);
@@ -44,7 +45,7 @@ describe("DiffCommentAnnotation", () => {
       />,
     );
 
-    expect(markup).toContain("Add a comment…");
+    expect(markup).toContain(t("diffs.diffCommentAnnotation.commentPlaceholder"));
     expect(markup).toContain(">Add to review</button>");
     expect(markup.match(/<button[^>]*disabled[^>]*>Add to review<\/button>/)).not.toBeNull();
     expect(markup.match(/<button[^>]*disabled[^>]*>Add to agent<\/button>/)).not.toBeNull();
@@ -64,7 +65,7 @@ describe("DiffCommentAnnotation", () => {
     expect(markup).not.toContain("chat-composer-glass");
     expect(markup).not.toContain("on +78");
     expect(markup).toContain("Please keep this branch explicit.");
-    expect(markup).toContain('aria-label="Delete comment"');
+    expect(markup).toContain(`aria-label="${t("diffs.diffCommentAnnotation.deleteComment")}"`);
     expect(markup).toContain("border-s-2");
     expect(markup).toContain("bg-primary/[0.045]");
     expect(markup).toContain("lucide-message-circle");

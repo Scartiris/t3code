@@ -1,4 +1,5 @@
 import { ScreenScrollView as ScrollView } from "../../components/ScreenScrollView";
+import { t } from "@t3tools/shared/i18n";
 import Constants from "expo-constants";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Alert, Pressable, View } from "react-native";
@@ -20,7 +21,7 @@ export function SettingsAboutRouteScreen() {
   const insets = useSafeAreaInsets();
 
   return (
-    <SettingsScreen title="About T3 Code">
+    <SettingsScreen title={t("settings.settingsAboutRouteScreen.title")}>
       <ScrollView
         contentInsetAdjustmentBehavior="automatic"
         showsVerticalScrollIndicator={false}
@@ -67,7 +68,8 @@ function AppSettingsSection() {
       // apply immediately instead of prompting.
       await runAppUpdateCheck({
         applyMode: "immediate",
-        onFailure: (message) => Alert.alert("Update failed", message),
+        onFailure: (message) =>
+          Alert.alert(t("settings.settingsAboutRouteScreen.updateFailedTitle"), message),
         onStateChange: setUpdateState,
       });
     } finally {
@@ -86,17 +88,17 @@ function AppSettingsSection() {
 
   const statusLabel =
     updateState === "checking"
-      ? "Checking…"
+      ? t("settings.settingsAboutRouteScreen.checking")
       : updateState === "downloading"
-        ? "Downloading…"
+        ? t("settings.settingsAboutRouteScreen.downloading")
         : // "ready" appears only when this check joined an in-flight background-mode
           // check; that download installs at the next backgrounding.
           updateState === "ready"
-          ? "Update ready"
+          ? t("settings.settingsAboutRouteScreen.updateReady")
           : updateState === "restarting"
-            ? "Restarting…"
+            ? t("settings.settingsAboutRouteScreen.restarting")
             : updateState === "current"
-              ? "Up to date"
+              ? t("settings.settingsAboutRouteScreen.upToDate")
               : null;
 
   const versionRow = (
@@ -108,7 +110,9 @@ function AppSettingsSection() {
         type="monochrome"
         weight="regular"
       />
-      <Text className="flex-1 text-lg text-foreground">Version</Text>
+      <Text className="flex-1 text-lg text-foreground">
+        {t("settings.settingsAboutRouteScreen.version")}
+      </Text>
       <View className="items-end">
         <Text className="text-lg text-foreground-muted">{versionLabel}</Text>
         {statusLabel ? (
@@ -119,18 +123,32 @@ function AppSettingsSection() {
   );
 
   return (
-    <SettingsSection title="App">
-      <SettingsRow icon="internaldrive" label="Client Storage" target="SettingsClientStorage" />
-      <SettingsRow icon="stethoscope" label="Diagnostics" target="SettingsDiagnostics" />
+    <SettingsSection title={t("settings.settingsAboutRouteScreen.app")}>
+      <SettingsRow
+        icon="internaldrive"
+        label={t("settings.settingsAboutRouteScreen.clientStorage")}
+        target="SettingsClientStorage"
+      />
+      <SettingsRow
+        icon="stethoscope"
+        label={t("settings.option.diagnostics")}
+        target="SettingsDiagnostics"
+      />
       <SettingsRow
         icon="doc.on.doc"
-        label="Open source licenses"
+        label={t("settings.settingsAboutRouteScreen.openSourceLicenses")}
         target="SettingsOpenSourceLicenses"
       />
-      <SettingsRow icon="doc.text" label="Legal" fullScreenTarget="SettingsLegal" />
+      <SettingsRow
+        icon="doc.text"
+        label={t("settings.settingsAboutRouteScreen.legal")}
+        fullScreenTarget="SettingsLegal"
+      />
       {updateCheckAvailable ? (
         <Pressable
-          accessibilityLabel={`Version ${versionLabel}`}
+          accessibilityLabel={t("settings.settingsAboutRouteScreen.versionAccessibilityLabel", {
+            version: versionLabel,
+          })}
           accessibilityRole="text"
           disabled={busy}
           onPress={handleVersionPress}

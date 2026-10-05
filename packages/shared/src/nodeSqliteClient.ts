@@ -6,6 +6,7 @@
  */
 import * as NodeSqlite from "node:sqlite";
 
+import { t } from "@t3tools/shared/i18n";
 import * as Cache from "effect/Cache";
 import * as Duration from "effect/Duration";
 import * as Effect from "effect/Effect";
@@ -45,7 +46,10 @@ export class UnsupportedNodeSqliteVersionError extends Schema.TaggedError<Unsupp
   },
 ) {
   override get message(): string {
-    return `Node.js ${this.nodeVersion} is missing required node:sqlite APIs. Upgrade to ${this.requirement}.`;
+    return t("sqlite.nodeSqliteClient.versionUnsupported", {
+      nodeVersion: this.nodeVersion,
+      requirement: this.requirement,
+    });
   }
 }
 
@@ -54,7 +58,7 @@ export class UnsupportedNodeSqliteOperationError extends Schema.TaggedError<Unsu
   {},
 ) {
   override get message(): string {
-    return "Node SQLite does not support executeStream.";
+    return t("sqlite.nodeSqliteClient.executeStreamUnsupported");
   }
 }
 
@@ -103,7 +107,7 @@ const make = Effect.fn("makeWithDatabase")(function* (
       catch: (cause) =>
         new SqlError({
           reason: classifySqliteError(cause, {
-            message: "Failed to open database",
+            message: t("sqlite.nodeSqliteClient.openFailed"),
             operation: "open",
           }),
         }),
@@ -115,7 +119,7 @@ const make = Effect.fn("makeWithDatabase")(function* (
         catch: (cause) =>
           new SqlError({
             reason: classifySqliteError(cause, {
-              message: "Failed to close database",
+              message: t("sqlite.nodeSqliteClient.closeFailed"),
               operation: "close",
             }),
           }),
@@ -139,7 +143,7 @@ const make = Effect.fn("makeWithDatabase")(function* (
         catch: (cause) =>
           new SqlError({
             reason: classifySqliteError(cause, {
-              message: "Failed to prepare statement",
+              message: t("sqlite.nodeSqliteClient.prepareFailed"),
               operation: "prepare",
             }),
           }),
@@ -169,7 +173,7 @@ const make = Effect.fn("makeWithDatabase")(function* (
           return Effect.fail(
             new SqlError({
               reason: classifySqliteError(cause, {
-                message: "Failed to execute statement",
+                message: t("sqlite.nodeSqliteClient.executeFailed"),
                 operation: "execute",
               }),
             }),
@@ -202,7 +206,7 @@ const make = Effect.fn("makeWithDatabase")(function* (
             catch: (cause) =>
               new SqlError({
                 reason: classifySqliteError(cause, {
-                  message: "Failed to execute statement",
+                  message: t("sqlite.nodeSqliteClient.executeFailed"),
                   operation: "execute",
                 }),
               }),
@@ -217,7 +221,7 @@ const make = Effect.fn("makeWithDatabase")(function* (
             catch: (cause) =>
               new SqlError({
                 reason: classifySqliteError(cause, {
-                  message: "Failed to reset statement result mode",
+                  message: t("sqlite.nodeSqliteClient.resetResultModeFailed"),
                   operation: "resetResultMode",
                 }),
               }),

@@ -1,4 +1,5 @@
 import type { OrchestrationV2ProviderFailureClass } from "@t3tools/contracts";
+import { t } from "@t3tools/shared/i18n";
 import { memo } from "react";
 import { Alert, AlertAction, AlertDescription } from "../ui/alert";
 import { Button } from "../ui/button";
@@ -60,8 +61,8 @@ export const ThreadErrorBanner = memo(function ThreadErrorBanner({
         <AlertDescription>
           {chatGptUsageLimit ? (
             <div className="space-y-1">
-              <p className="font-medium">ChatGPT usage limit reached</p>
-              <p>Review your usage settings in ChatGPT to continue.</p>
+              <p className="font-medium">{t("chat.threadErrorBanner.chatGptUsageLimitReached")}</p>
+              <p>{t("chat.threadErrorBanner.reviewChatGptUsage")}</p>
             </div>
           ) : (
             <Tooltip>
@@ -76,7 +77,12 @@ export const ThreadErrorBanner = memo(function ThreadErrorBanner({
           <AlertAction>
             {chatGptUsageLimit ? <ChatGptUsageButton variant="default" size="sm" /> : null}
             {onDismiss ? (
-              <Button variant="ghost" size="icon-xs" aria-label="Dismiss error" onClick={onDismiss}>
+              <Button
+                variant="ghost"
+                size="icon-xs"
+                aria-label={t("chat.threadErrorBanner.dismissError")}
+                onClick={onDismiss}
+              >
                 <XIcon />
               </Button>
             ) : null}

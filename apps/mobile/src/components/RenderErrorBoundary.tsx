@@ -1,6 +1,7 @@
 import { Component, type ReactNode } from "react";
 import { ScrollView, View } from "react-native";
 
+import { t } from "@t3tools/shared/i18n";
 import { AppText as Text } from "./AppText";
 import { MaterialButton } from "./MaterialButton";
 import { copyTextWithHaptic } from "../lib/copyTextWithHaptic";
@@ -28,9 +29,11 @@ function errorDetails(error: unknown, componentStack?: string): string {
   try {
     description = error instanceof Error ? (error.stack ?? error.message) : String(error);
   } catch {
-    description = "Unknown render error";
+    description = t("components.renderErrorBoundary.unknownRenderError");
   }
-  return componentStack ? `${description}\nComponent stack:\n${componentStack}` : description;
+  return componentStack
+    ? `${description}\n${t("components.renderErrorBoundary.componentStack")}\n${componentStack}`
+    : description;
 }
 
 /** A failed subtree remounts on retry or when its identifying inputs change. */
@@ -88,7 +91,7 @@ export function RenderFailureView(
     readonly exit?: { readonly label: string; readonly onPress: () => void };
   },
 ) {
-  const title = props.title ?? "This screen couldn't be displayed";
+  const title = props.title ?? t("components.renderErrorBoundary.title");
   return (
     <ScrollView
       className="flex-1 bg-screen"
@@ -101,15 +104,20 @@ export function RenderFailureView(
         {title}
       </Text>
       <Text className="text-center text-sm text-foreground-muted">
-        Try again. If it keeps happening, copy the details for a bug report.
+        {t("components.renderErrorBoundary.hint")}
       </Text>
       <Text selectable className="text-center font-mono text-xs text-danger-foreground">
         {props.details.split("\n", 1)[0]?.slice(0, 300)}
       </Text>
       <View className="w-full max-w-xs gap-2">
-        <MaterialButton label="Try again" onPress={props.retry} tone="primary" fullWidth />
         <MaterialButton
-          label="Copy details"
+          label={t("components.renderErrorBoundary.tryAgain")}
+          onPress={props.retry}
+          tone="primary"
+          fullWidth
+        />
+        <MaterialButton
+          label={t("components.renderErrorBoundary.copyDetails")}
           onPress={() => copyTextWithHaptic(props.details, { target: "error details" })}
           fullWidth
         />

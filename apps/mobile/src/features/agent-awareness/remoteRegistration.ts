@@ -21,6 +21,7 @@ import {
   settleAsyncResult,
   squashAtomCommandFailure,
 } from "@t3tools/client-runtime/state/runtime";
+import { t } from "@t3tools/shared/i18n";
 
 import type { SavedRemoteConnection } from "../../lib/connection";
 import { runtime } from "../../lib/runtime";
@@ -67,7 +68,9 @@ export class AgentAwarenessOperationError extends Schema.TaggedError<AgentAwaren
   },
 ) {
   override get message(): string {
-    return `Agent awareness operation ${this.operation} failed.`;
+    return t("agentAwareness.remoteRegistration.operationFailed", {
+      operation: this.operation,
+    });
   }
 }
 
@@ -535,7 +538,7 @@ function armAgentAwarenessLiveActivityForLocalWorkNow(input: {
     const activity = startAgentLiveActivity(
       {
         title: "T3 Code",
-        subtitle: "Agent work in progress",
+        subtitle: t("agentAwareness.remoteRegistration.agentWorkInProgress"),
         activeCount: 1,
         updatedAt: nowIso,
         activities: [
@@ -546,7 +549,7 @@ function armAgentAwarenessLiveActivityForLocalWorkNow(input: {
             threadTitle: input.threadTitle,
             modelTitle: "",
             phase: "starting",
-            status: "Connecting",
+            status: t("agentAwareness.remoteRegistration.statusConnecting"),
             updatedAt: nowIso,
             deepLink: "/",
           },
@@ -781,7 +784,9 @@ function registerDevice(
         deviceId,
         label:
           Constants.deviceName?.trim() ||
-          (Platform.OS === "android" ? "Android device" : "iOS device"),
+          (Platform.OS === "android"
+            ? t("agentAwareness.remoteRegistration.androidDevice")
+            : t("agentAwareness.remoteRegistration.iosDevice")),
         ...(Platform.OS === "android"
           ? { platform: "android" as const, androidApiLevel: Number(Platform.Version) }
           : { platform: "ios" as const, iosMajorVersion: iosMajorVersion() }),

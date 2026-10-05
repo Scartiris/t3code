@@ -2,6 +2,7 @@
 import * as NodePath from "node:path";
 import { lock } from "proper-lockfile";
 import { ProviderSetupError, type ProviderInstanceId } from "@t3tools/contracts";
+import { t } from "@t3tools/shared/i18n";
 import * as Deferred from "effect/Deferred";
 import * as Effect from "effect/Effect";
 
@@ -18,7 +19,7 @@ export const withChatGptSessionLock = <A, E, R>(
     new ProviderSetupError({
       instanceId,
       operation: "credential-lock",
-      detail: "Could not lock the ChatGPT connection for an update. Try again.",
+      detail: t("provider.codexChatGptSessionLock.lockFailed"),
     });
   return Effect.scoped(
     Effect.gen(function* () {

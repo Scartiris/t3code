@@ -1,4 +1,5 @@
 import { assert, describe, it } from "@effect/vitest";
+import { t } from "@t3tools/shared/i18n";
 import * as Effect from "effect/Effect";
 import { beforeEach, vi } from "vite-plus/test";
 
@@ -73,7 +74,7 @@ describe("ElectronUpdater", () => {
       assert.instanceOf(error, ElectronUpdater.ElectronUpdaterCheckForUpdatesError);
       assert.equal(error.channel, "beta");
       assert.strictEqual(error.cause, cause);
-      assert.equal(error.message, "Electron updater failed to check for updates on channel beta.");
+      assert.equal(error.message, t("electron.electronUpdater.checkFailed", { channel: "beta" }));
       assert.notInclude(error.message, cause.message);
     }).pipe(Effect.provide(ElectronUpdater.layer)),
   );
@@ -92,7 +93,7 @@ describe("ElectronUpdater", () => {
       assert.strictEqual(error.cause, cause);
       assert.equal(
         error.message,
-        "Electron updater failed to download the update on channel nightly.",
+        t("electron.electronUpdater.downloadFailed", { channel: "nightly" }),
       );
       assert.notInclude(error.message, cause.message);
     }).pipe(Effect.provide(ElectronUpdater.layer)),
@@ -130,7 +131,11 @@ describe("ElectronUpdater", () => {
       assert.strictEqual(error.cause, cause);
       assert.equal(
         error.message,
-        "Electron updater failed to quit and install the update on channel alpha (silent: true, force run after: false).",
+        t("electron.electronUpdater.quitAndInstallFailed", {
+          channel: "alpha",
+          silent: "true",
+          forceRunAfter: "false",
+        }),
       );
       assert.notInclude(error.message, cause.message);
       assert.deepEqual(autoUpdaterMock.quitAndInstall.mock.calls, [[true, false]]);

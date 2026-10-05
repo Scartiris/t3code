@@ -6,6 +6,7 @@ import type {
   PullRequestRef,
   ScopedThreadRef,
 } from "@t3tools/contracts";
+import { t } from "@t3tools/shared/i18n";
 import { ChevronDownIcon } from "lucide-react";
 import { useState } from "react";
 
@@ -50,7 +51,9 @@ function LazyChecksBody({
   if (detailQuery.data === null) {
     return (
       <p className="text-muted-foreground text-xs">
-        {detailQuery.isPending ? "Loading checks…" : "No checks reported"}
+        {detailQuery.isPending
+          ? t("pullRequest.pullRequestChecksPopover.loading")
+          : t("pullRequest.pullRequestChecksPopover.noChecks")}
       </p>
     );
   }
@@ -70,7 +73,11 @@ function ChecksBody({
   const canCollapse = attention.length + running.length > 0 && completed.length > 0;
   const visibleChecks = [...attention, ...running, ...(showAll || !canCollapse ? completed : [])];
   if (checks.length === 0) {
-    return <p className="text-muted-foreground text-xs">No checks reported</p>;
+    return (
+      <p className="text-muted-foreground text-xs">
+        {t("pullRequest.pullRequestChecksPopover.noChecks")}
+      </p>
+    );
   }
   return (
     <>
@@ -98,11 +105,14 @@ function ChecksBody({
                     if (!check.url) return;
                     void openLink(check.url).catch((error: unknown) => {
                       console.error(error);
-                      toastManager.add({ type: "error", title: "Unable to open check details" });
+                      toastManager.add({
+                        type: "error",
+                        title: t("pullRequest.pullRequestChecksPopover.openFailed"),
+                      });
                     });
                   }}
                 >
-                  Details
+                  {t("pullRequest.pullRequestChecksPopover.details")}
                 </button>
               )}
             </li>
@@ -116,7 +126,9 @@ function ChecksBody({
           aria-expanded={showAll}
           onClick={() => setShowAll(!showAll)}
         >
-          {showAll ? "Show less" : "Show all"}
+          {showAll
+            ? t("pullRequest.pullRequestChecksPopover.showLess")
+            : t("pullRequest.pullRequestChecksPopover.showAll")}
         </Button>
       ) : null}
     </>
@@ -166,8 +178,12 @@ export function PullRequestChecksPopover({
         nativeButton={variant === "count"}
         aria-label={
           variant === "count"
-            ? `Open checks: ${summary ?? presentation.label}`
-            : `Checks: ${presentation.label}`
+            ? t("pullRequest.pullRequestChecksPopover.openChecks", {
+                label: summary ?? presentation.label,
+              })
+            : t("pullRequest.pullRequestChecksPopover.checksLabel", {
+                label: presentation.label,
+              })
         }
         render={
           variant === "count" ? (
@@ -199,7 +215,7 @@ export function PullRequestChecksPopover({
         {summary === null ? null : <p className="mb-2 text-muted-foreground text-xs">{summary}</p>}
         {stale ? (
           <p className="text-muted-foreground text-xs">
-            Check details are out of date. Refresh the pull request to update them.
+            {t("pullRequest.pullRequestChecksPopover.stale")}
           </p>
         ) : checks !== undefined ? (
           <ChecksBody checks={checks} threadRef={threadRef} />

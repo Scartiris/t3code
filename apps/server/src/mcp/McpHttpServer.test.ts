@@ -4,6 +4,7 @@ import { expect, it } from "@effect/vitest";
 import { NodeHttpServer } from "@effect/platform-node";
 import * as NodeServices from "@effect/platform-node/NodeServices";
 import { EnvironmentId, PreviewTabId, ProviderInstanceId, ThreadId } from "@t3tools/contracts";
+import { t } from "@t3tools/shared/i18n";
 import * as Deferred from "effect/Deferred";
 import * as Effect from "effect/Effect";
 import * as FileSystem from "effect/FileSystem";
@@ -161,7 +162,10 @@ it.effect.each([{}, { includeImage: false }])(
             Effect.provideService(McpSchema.McpServerClient, client),
           );
 
-        const message = "Preview automation snapshot failed on client mcp-failure-client.";
+        const message = t("previewErrors.previewAutomation.failedOnClient", {
+          operation: "snapshot",
+          clientId: "mcp-failure-client",
+        });
         expect(snapshot.isError).toBe(true);
         expect(snapshot.content).toEqual([
           { type: "text", text: `Preview snapshot failed: ${message}` },
@@ -179,10 +183,16 @@ it.effect.each([{}, { includeImage: false }])(
 );
 
 it.effect.each([
-  { args: {}, advice: "No active preview tab was found for snapshot. Call preview_open first." },
+  {
+    args: {},
+    advice: t("previewErrors.previewAutomation.tabNotFoundWithoutTabId", { operation: "snapshot" }),
+  },
   {
     args: { tabId: alternateTabId },
-    advice: `Preview tab ${alternateTabId} was not found for snapshot. Omit tabId to use the current tab, or call preview_open.`,
+    advice: t("previewErrors.previewAutomation.tabNotFoundExplicit", {
+      operation: "snapshot",
+      tabId: alternateTabId,
+    }),
   },
 ])("tells the agent to open a tab when the snapshot has none $args", ({ args, advice }) =>
   Effect.scoped(
@@ -220,7 +230,10 @@ it.effect("tells the agent how to fall back when no desktop app can run the snap
     expect(snapshot.isError).toBe(true);
     const [text] = snapshot.content;
     expect(text?.type === "text" ? text.text : "").toContain(
-      "use a headless browser from the shell",
+      t("previewErrors.previewAutomation.noAvailableHost", {
+        operation: "snapshot",
+        environmentId,
+      }),
     );
     expect(snapshot.structuredContent).toMatchObject({
       error: { _tag: "PreviewAutomationNoAvailableHostError" },
@@ -459,7 +472,12 @@ it.effect(
         );
       expect(denied.isError).toBe(true);
       expect(denied.content).toEqual([
-        { type: "text", text: "MCP credential does not grant the pull-requests capability." },
+        {
+          type: "text",
+          text: t("previewErrors.previewAutomation.capabilityUnavailable", {
+            capability: "pull-requests",
+          }),
+        },
       ]);
     }).pipe(Effect.provide(PullRequestsTestLayer)),
 );

@@ -13,6 +13,7 @@
  * @module provider/Drivers/ClaudeDriver
  */
 import { ClaudeSettings, ProviderDriverKind } from "@t3tools/contracts";
+import { t } from "@t3tools/shared/i18n";
 import * as Cache from "effect/Cache";
 import * as Duration from "effect/Duration";
 import * as Crypto from "effect/Crypto";
@@ -181,7 +182,7 @@ export const ClaudeDriver: ProviderDriver<ClaudeSettings, ClaudeDriverEnv> = {
             new ProviderDriverError({
               driver: DRIVER_KIND,
               instanceId,
-              detail: "Failed to build Claude orchestration adapter.",
+              detail: t("provider.claudeDriver.orchestrationAdapterBuildFailed"),
               cause,
             }),
         ),
@@ -267,7 +268,9 @@ export const ClaudeDriver: ProviderDriver<ClaudeSettings, ClaudeDriverEnv> = {
             new ProviderDriverError({
               driver: DRIVER_KIND,
               instanceId,
-              detail: `Failed to build Claude snapshot: ${cause.message ?? String(cause)}`,
+              detail: t("provider.claudeDriver.snapshotBuildFailed", {
+                message: cause.message ?? String(cause),
+              }),
               cause,
             }),
         ),
@@ -306,7 +309,7 @@ export const ClaudeDriver: ProviderDriver<ClaudeSettings, ClaudeDriverEnv> = {
                 detail:
                   cause._tag === "ClaudeResetCreditError"
                     ? cause.message
-                    : "Claude could not redeem the reset.",
+                    : t("provider.claudeDriver.resetRedeemFailed"),
                 cause,
               }),
           ),
@@ -327,8 +330,7 @@ export const ClaudeDriver: ProviderDriver<ClaudeSettings, ClaudeDriverEnv> = {
                 return yield* new ProviderDriverError({
                   driver: DRIVER_KIND,
                   instanceId,
-                  detail:
-                    "The reset was applied, but Claude could not confirm the new limits. Refresh to check.",
+                  detail: t("provider.claudeDriver.resetLimitsUnconfirmed"),
                 });
               }
             }),

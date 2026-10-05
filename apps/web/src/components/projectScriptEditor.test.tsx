@@ -1,3 +1,4 @@
+import { t } from "@t3tools/shared/i18n";
 import * as Cause from "effect/Cause";
 import { AsyncResult } from "effect/unstable/reactivity";
 import { act, StrictMode, type ReactNode } from "react";
@@ -123,7 +124,7 @@ describe("project action editor save lifecycle", () => {
     expect(renderer!.root.findByType("fieldset").props.disabled).toBe(true);
     const cancel = renderer!.root
       .findAllByType("button")
-      .find((button) => button.children.includes("Cancel"))!;
+      .find((button) => button.children.includes(t("action.cancel")))!;
     expect(cancel.props.disabled).not.toBe(true);
 
     await act(async () => {
@@ -228,7 +229,7 @@ describe("project action editor save lifecycle", () => {
       if (exit === "cancel") {
         renderer!.root
           .findAllByType("button")
-          .find((button) => button.children.includes("Cancel"))!
+          .find((button) => button.children.includes(t("action.cancel")))!
           .props.onClick();
       } else {
         renderer!.unmount();

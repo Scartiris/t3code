@@ -1,4 +1,5 @@
 import deviceStreamScript from "@t3tools/mobile-device-stream";
+import { t } from "@t3tools/shared/i18n";
 import {
   useEffect,
   useEffectEvent,
@@ -105,7 +106,7 @@ function DeviceStreamDocumentView({
   };
   // The shared transport owns video timeouts once the document acknowledges startup.
   const bootstrapTimedOut = useEffectEvent(() =>
-    fail("Device viewer could not start. Reconnect to try again."),
+    fail(t("devices.deviceStreamWebView.viewerStartFailed")),
   );
   useEffect(() => {
     if (started) return;
@@ -144,7 +145,7 @@ function DeviceStreamDocumentView({
   const processTerminated = () => {
     if (!active.current || failed.current) return;
     void onInputConnected(false);
-    if (!onRecoverProcess()) fail("Device viewer stopped. Reconnect to try again.");
+    if (!onRecoverProcess()) fail(t("devices.deviceStreamWebView.viewerStopped"));
   };
   return (
     <View className="flex-1" style={{ backgroundColor: background }}>
@@ -159,8 +160,8 @@ function DeviceStreamDocumentView({
         contentInsetAdjustmentBehavior="never"
         setSupportMultipleWindows={false}
         style={{ flex: 1, backgroundColor: background }}
-        onError={() => fail("Device viewer could not load. Reconnect to try again.")}
-        onHttpError={() => fail("Device viewer could not load. Reconnect to try again.")}
+        onError={() => fail(t("devices.deviceStreamWebView.viewerLoadFailed"))}
+        onHttpError={() => fail(t("devices.deviceStreamWebView.viewerLoadFailed"))}
         onContentProcessDidTerminate={processTerminated}
         onRenderProcessGone={processTerminated}
         onShouldStartLoadWithRequest={(request) =>
@@ -174,7 +175,8 @@ function DeviceStreamDocumentView({
           else if (message?.type === "retry") onRetry();
           else if (message?.type === "status") {
             setStarted(true);
-            if (message.status === "error") fail(message.detail ?? "Device stream failed.");
+            if (message.status === "error")
+              fail(message.detail ?? t("devices.deviceStreamWebView.streamFailed"));
             else {
               setStatus(message.status);
               if (message.status === "streaming") onStreaming();
@@ -192,7 +194,7 @@ function DeviceStreamDocumentView({
             accessibilityLiveRegion="polite"
             className="text-center text-sm text-foreground-muted"
           >
-            {status === "error" ? error : "Connecting to device..."}
+            {status === "error" ? error : t("devices.deviceStreamWebView.connecting")}
           </AppText>
           {status === "error" ? (
             <Pressable
@@ -200,7 +202,9 @@ function DeviceStreamDocumentView({
               className="rounded-full border border-secondary-border bg-secondary px-6 py-3"
               onPress={onRetry}
             >
-              <AppText className="text-secondary-foreground">Reconnect</AppText>
+              <AppText className="text-secondary-foreground">
+                {t("devices.deviceStreamWebView.reconnect")}
+              </AppText>
             </Pressable>
           ) : null}
         </View>

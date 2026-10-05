@@ -17,6 +17,7 @@ import {
 import { causeErrorTag } from "@t3tools/shared/observability";
 import { resolveSpawnCommand } from "@t3tools/shared/shell";
 import { compareSemverVersions } from "@t3tools/shared/semver";
+import { t } from "@t3tools/shared/i18n";
 import * as DateTime from "effect/DateTime";
 import * as Effect from "effect/Effect";
 import * as Stream from "effect/Stream";
@@ -200,7 +201,7 @@ export function buildInitialPiProviderSnapshot(
           version: null,
           status: "warning",
           auth: { status: "unknown" },
-          message: "Pi is disabled in T3 Code settings.",
+          message: t("provider.piProvider.piDisabled"),
         },
       });
     }
@@ -214,7 +215,7 @@ export function buildInitialPiProviderSnapshot(
         version: null,
         status: "warning",
         auth: { status: "unknown" },
-        message: "Checking Pi CLI availability...",
+        message: t("provider.piProvider.checkingCli"),
       },
     });
   });
@@ -239,7 +240,7 @@ export const checkPiProviderStatus = Effect.fn("checkPiProviderStatus")(function
         version: null,
         status: "warning",
         auth: { status: "unknown" },
-        message: "Pi is disabled in T3 Code settings.",
+        message: t("provider.piProvider.piDisabled"),
       },
     });
   }
@@ -263,8 +264,8 @@ export const checkPiProviderStatus = Effect.fn("checkPiProviderStatus")(function
         status: "error",
         auth: { status: "unknown" },
         message: isCommandMissingCause(error)
-          ? "Pi CLI (`pi`) is not installed or not on PATH. Install with `npm install -g @earendil-works/pi-coding-agent`."
-          : "Failed to execute Pi CLI health check.",
+          ? t("provider.piProvider.cliMissing")
+          : t("provider.piProvider.healthCheckFailed"),
       },
     });
   }
@@ -280,7 +281,7 @@ export const checkPiProviderStatus = Effect.fn("checkPiProviderStatus")(function
         version: null,
         status: "error",
         auth: { status: "unknown" },
-        message: "Pi CLI is installed but timed out while running `pi --version`.",
+        message: t("provider.piProvider.versionProbeTimedOut"),
       },
     });
   }
@@ -298,7 +299,7 @@ export const checkPiProviderStatus = Effect.fn("checkPiProviderStatus")(function
         version,
         status: "error",
         auth: { status: "unknown" },
-        message: "Pi CLI is installed but failed to run.",
+        message: t("provider.piProvider.cliRunFailed"),
       },
     });
   }
@@ -314,7 +315,9 @@ export const checkPiProviderStatus = Effect.fn("checkPiProviderStatus")(function
         version: null,
         status: "error",
         auth: { status: "unknown" },
-        message: `T3 Code could not determine the Pi version. Pi ${MINIMUM_PI_VERSION} or newer is required.`,
+        message: t("provider.piProvider.versionUndetermined", {
+          minimumVersion: MINIMUM_PI_VERSION,
+        }),
       },
     });
   }
@@ -388,8 +391,7 @@ export const checkPiProviderStatus = Effect.fn("checkPiProviderStatus")(function
         version,
         status: "ready",
         auth: { status: "unknown" },
-        message:
-          "Pi is available, but model and command discovery needs interactive input. The live session will handle it.",
+        message: t("provider.piProvider.discoveryNeedsInput"),
       },
     });
   }
@@ -411,8 +413,7 @@ export const checkPiProviderStatus = Effect.fn("checkPiProviderStatus")(function
       ...(discovery.authenticated
         ? {}
         : {
-            message:
-              "Pi has no usable models. Run `pi` in a terminal and use /login, or configure an API key in ~/.pi/agent.",
+            message: t("provider.piProvider.noUsableModels"),
           }),
     },
   });

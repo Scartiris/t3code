@@ -1,4 +1,5 @@
 import { MessageId, type ProviderUploadFeedbackResult } from "@t3tools/contracts";
+import { t } from "@t3tools/shared/i18n";
 
 import {
   isAtomCommandInterrupted,
@@ -33,14 +34,19 @@ export function codexFeedbackNotice(submission: CodexFeedbackSubmission) {
     case "interrupted":
       return null;
     case "uploading":
-      return { title: "Sending feedback to OpenAI...", description: undefined };
+      return { title: t("threadFeedback.threadFeedback.sending"), description: undefined };
     case "sent":
       return {
-        title: "Feedback sent to OpenAI",
-        description: `Thread ID: ${submission.feedbackId}`,
+        title: t("threadFeedback.threadFeedback.sent"),
+        description: t("threadFeedback.threadFeedback.threadIdLabel", {
+          feedbackId: submission.feedbackId,
+        }),
       };
     case "failed":
-      return { title: "Could not send feedback to OpenAI", description: submission.errorMessage };
+      return {
+        title: t("threadFeedback.threadFeedback.sendFailed"),
+        description: submission.errorMessage,
+      };
   }
 }
 
@@ -72,10 +78,12 @@ export function codexFeedbackMessage(
     role === "user"
       ? submission.command
       : submission.status === "sent"
-        ? `Feedback sent to OpenAI.\n\nThread ID: \`${submission.feedbackId}\``
+        ? t("threadFeedback.threadFeedback.sentWithId", { feedbackId: submission.feedbackId })
         : submission.status === "failed"
-          ? `Could not send feedback to OpenAI.\n\n${submission.errorMessage}`
-          : "Sending feedback to OpenAI...";
+          ? t("threadFeedback.threadFeedback.sendFailedWithError", {
+              errorMessage: submission.errorMessage,
+            })
+          : t("threadFeedback.threadFeedback.sending");
 
   return {
     id: role === "user" ? submission.id : MessageId.make(`${submission.id}:feedback`),
@@ -111,7 +119,7 @@ export async function submitCodexFeedback<E>(input: {
     input.onUpdate({
       ...input.submission,
       status: "failed",
-      errorMessage: error instanceof Error ? error.message : "An error occurred.",
+      errorMessage: error instanceof Error ? error.message : t("error.generic"),
     });
   }
 

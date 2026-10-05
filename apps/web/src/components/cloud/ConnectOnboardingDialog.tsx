@@ -1,5 +1,6 @@
 import { useAuth } from "@clerk/react";
 import { AuthAdministrativeScopes, AuthRelayWriteScope } from "@t3tools/contracts";
+import { t } from "@t3tools/shared/i18n";
 import { useEffect, useRef, useState } from "react";
 
 import {
@@ -191,10 +192,10 @@ function ConfiguredConnectOnboardingDialog() {
     if (!ok) return;
     toastManager.add({
       type: "success",
-      title: "T3 Connect enabled",
+      title: t("cloud.connectOnboardingDialog.enabledToastTitle"),
       description: exposeEnvironment
-        ? "This environment is available to your other devices through T3 Connect."
-        : "This environment publishes agent activity to your mobile clients.",
+        ? t("cloud.connectOnboardingDialog.enabledToastEnvironmentDescription")
+        : t("cloud.connectOnboardingDialog.enabledToastActivityDescription"),
     });
     setStep("devices");
   };
@@ -210,13 +211,8 @@ function ConfiguredConnectOnboardingDialog() {
     >
       <WizardPopup>
         <WizardHeader
-          title="Set up T3 Connect"
-          description={
-            <>
-              Mesh your devices together — publish this environment and connect the rest, all in one
-              place.
-            </>
-          }
+          title={t("cloud.connectOnboardingDialog.setupTitle")}
+          description={t("cloud.connectOnboardingDialog.setupDescription")}
         >
           {steps.length > 1 ? (
             <WizardSteps
@@ -251,25 +247,27 @@ function ConfiguredConnectOnboardingDialog() {
                 checked={dontShowAgain}
                 onCheckedChange={(checked) => setDontShowAgain(checked === true)}
               />
-              Don&apos;t show this again
+              {t("cloud.connectOnboardingDialog.dontShowAgain")}
             </label>
           }
         >
           {step === "publish" ? (
             <>
               <Button variant="ghost" disabled={isApplying} onClick={() => setStep("devices")}>
-                Not now
+                {t("cloud.connectOnboardingDialog.notNow")}
               </Button>
               <Button
                 disabled={isApplying || (controller.linkState.isPending && linkStateData === null)}
                 onClick={() => void applyPublishSelection()}
               >
-                {isApplying ? "Enabling…" : "Continue"}
+                {isApplying
+                  ? t("cloud.connectOnboardingDialog.enabling")
+                  : t("cloud.connectOnboardingDialog.continue")}
               </Button>
             </>
           ) : (
             <Button disabled={isApplying} onClick={complete}>
-              Done
+              {t("cloud.connectOnboardingDialog.done")}
             </Button>
           )}
         </WizardFooter>
@@ -279,8 +277,8 @@ function ConfiguredConnectOnboardingDialog() {
 }
 
 const STEP_LABELS: Record<OnboardingStep, string> = {
-  publish: "Publish",
-  devices: "Connect devices",
+  publish: t("cloud.connectOnboardingDialog.stepPublish"),
+  devices: t("cloud.connectOnboardingDialog.stepConnectDevices"),
 };
 
 function PublishStep({
@@ -302,15 +300,15 @@ function PublishStep({
     <div className="space-y-3">
       <div className="rounded-lg border">
         <OnboardingToggleRow
-          title="Publish this environment"
-          description="Make this environment available to your other devices through T3 Connect."
+          title={t("cloud.connectOnboardingDialog.publishEnvironmentTitle")}
+          description={t("cloud.connectOnboardingDialog.publishEnvironmentDescription")}
           checked={exposeEnvironment}
           disabled={disabled}
           onCheckedChange={onExposeEnvironmentChange}
         />
         <OnboardingToggleRow
-          title="Publish agent activity"
-          description="Send activity from this environment to your mobile clients for push notifications and Live Activities."
+          title={t("cloud.connectOnboardingDialog.publishActivityTitle")}
+          description={t("cloud.connectOnboardingDialog.publishActivityDescription")}
           checked={publishAgentActivity}
           disabled={disabled}
           onCheckedChange={onPublishAgentActivityChange}
@@ -365,8 +363,7 @@ function DevicesStep() {
         showSavedEnvironments
         empty={
           <p className="px-4 py-6 text-center text-sm text-muted-foreground">
-            No other environments are published to your account yet. Publish one from another device
-            and it will show up here.
+            {t("cloud.connectOnboardingDialog.noOtherEnvironments")}
           </p>
         }
       />

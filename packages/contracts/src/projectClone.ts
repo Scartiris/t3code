@@ -1,3 +1,4 @@
+import { t } from "@t3tools/i18n";
 import * as Schema from "effect/Schema";
 
 import { IsoDateTime, NonNegativeInt, ProjectId, TrimmedNonEmptyString } from "./baseSchemas.ts";
@@ -90,15 +91,15 @@ export type ProjectCloneActionResult = typeof ProjectCloneActionResult.Type;
 function projectCloneStageLabel(stage: ProjectCloneStage): string {
   switch (stage) {
     case "connecting":
-      return "Connecting";
+      return t("project.projectClone.stageConnecting");
     case "counting":
-      return "Counting objects";
+      return t("project.projectClone.stageCounting");
     case "receiving":
-      return "Receiving objects";
+      return t("project.projectClone.stageReceiving");
     case "resolving":
-      return "Resolving deltas";
+      return t("project.projectClone.stageResolving");
     case "checkout":
-      return "Checking out files";
+      return t("project.projectClone.stageCheckout");
   }
 }
 

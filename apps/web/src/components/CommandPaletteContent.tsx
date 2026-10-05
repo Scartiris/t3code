@@ -1,3 +1,4 @@
+import { t } from "@t3tools/shared/i18n";
 import { ArrowDownIcon, ArrowUpIcon } from "lucide-react";
 import { type ComponentProps, type ReactNode, useLayoutEffect, useRef } from "react";
 
@@ -27,7 +28,7 @@ type CommandPaletteContentProps = Omit<ComponentProps<typeof Command>, "children
  */
 export function CommandPaletteContent({
   children,
-  escapeLabel = "Close",
+  escapeLabel = t("components.commandPaletteContent.close"),
   footerActionLabel,
   footerTrailing,
   inputAccessory,
@@ -73,7 +74,7 @@ export function CommandPaletteContent({
               <Kbd>
                 <ArrowDownIcon />
               </Kbd>
-              <span>Navigate</span>
+              <span>{t("components.commandPaletteContent.navigate")}</span>
             </KbdGroup>
             {footerActionLabel !== undefined ? (
               <KbdGroup>
@@ -84,7 +85,7 @@ export function CommandPaletteContent({
             {showBackHint ? (
               <KbdGroup>
                 <Kbd>Backspace</Kbd>
-                <span>Back</span>
+                <span>{t("sidebar.back")}</span>
               </KbdGroup>
             ) : null}
             <KbdGroup>

@@ -10,6 +10,7 @@ import yamlLanguage from "@shikijs/langs/yaml";
 import githubDarkDefault from "@shikijs/themes/github-dark-default";
 import githubLightDefault from "@shikijs/themes/github-light-default";
 import { getFiletypeFromFileName } from "@pierre/diffs/utils/getFiletypeFromFileName";
+import { t } from "@t3tools/shared/i18n";
 import * as Schema from "effect/Schema";
 
 import {
@@ -31,7 +32,10 @@ export class ReviewHighlighterEngineInitializationError extends Schema.TaggedErr
   },
 ) {
   override get message(): string {
-    return `Failed to initialize the ${this.attemptedEngine} review highlighter with ${this.preferredEngine} preferred.`;
+    return t("review.shikiReviewHighlighter.initializationFailed", {
+      attemptedEngine: this.attemptedEngine,
+      preferredEngine: this.preferredEngine,
+    });
   }
 }
 

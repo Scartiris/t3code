@@ -11,6 +11,7 @@ import {
 import { formatGeneratedBranchName, sanitizeFeatureBranchName } from "@t3tools/shared/git";
 import { getModelSelectionStringOptionValue } from "@t3tools/shared/model";
 import { extractJsonObject } from "@t3tools/shared/schemaJson";
+import { t } from "@t3tools/shared/i18n";
 
 import * as ServerConfig from "../config.ts";
 import { resolveAttachmentPath } from "../attachmentStore.ts";
@@ -189,7 +190,7 @@ export const makeOpenCodeTextGeneration = Effect.fn("makeOpenCodeTextGeneration"
     if (!parsedModel) {
       return yield* new TextGenerationError({
         operation: input.operation,
-        detail: "OpenCode model selection must use the 'provider/model' format.",
+        detail: t("textGeneration.openCodeTextGeneration.malformedModelSelection"),
       });
     }
 
@@ -351,7 +352,7 @@ export const makeOpenCodeTextGeneration = Effect.fn("makeOpenCodeTextGeneration"
           Effect.fail(
             new TextGenerationError({
               operation: input.operation,
-              detail: "OpenCode returned invalid structured output.",
+              detail: t("textGeneration.openCodeTextGeneration.invalidStructuredOutput"),
               cause,
             }),
           ),

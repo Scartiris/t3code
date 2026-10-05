@@ -3,6 +3,7 @@ import { useAtomValue } from "@effect/atom-react";
 import type { EnvironmentThreadShell } from "@t3tools/client-runtime/state/shell";
 import { effectiveSnoozed } from "@t3tools/client-runtime/state/thread-settled";
 import { sortInboxThreadsByReturn } from "@t3tools/client-runtime/state/thread-inbox";
+import { t } from "@t3tools/shared/i18n";
 import { type ReactNode, useEffect, useMemo, useRef, useState } from "react";
 import { Animated, FlatList, Modal, Pressable, View } from "react-native";
 import { Gesture, GestureDetector, GestureHandlerRootView } from "react-native-gesture-handler";
@@ -34,6 +35,12 @@ const ROW_HEIGHT = 56;
 const HEADER_HEIGHT = 48;
 const keyOf = (thread: EnvironmentThreadShell) => scopedThreadKey(thread.environmentId, thread.id);
 type Section = "pinned" | "active" | "snoozed" | "settled";
+const SECTION_LABEL_KEYS = {
+  pinned: "threads.threadArrangementSheet.sectionPinned",
+  active: "threads.threadArrangementSheet.sectionActive",
+  snoozed: "threads.threadArrangementSheet.sectionSnoozed",
+  settled: "threads.threadArrangementSheet.sectionSettled",
+} as const;
 type Destination = Exclude<ThreadMoveDestination, string>;
 type Row = {
   key: string;
@@ -113,13 +120,17 @@ function DragHandle(props: {
         collapsable={false}
         accessible
         accessibilityRole="adjustable"
-        accessibilityLabel={`Reorder ${props.title}`}
-        accessibilityHint="Move up and Move down reorder within this section. Other actions move between sections."
+        accessibilityLabel={t("threads.threadArrangementSheet.reorder", { title: props.title })}
+        accessibilityHint={t("threads.threadArrangementSheet.dragHandleHint")}
         accessibilityState={{ disabled: props.disabled }}
         accessibilityActions={[
           ...props.sectionActions,
-          ...(props.canMoveUp ? [{ name: "decrement", label: "Move up" }] : []),
-          ...(props.canMoveDown ? [{ name: "increment", label: "Move down" }] : []),
+          ...(props.canMoveUp
+            ? [{ name: "decrement", label: t("threads.threadArrangementSheet.moveUp") }]
+            : []),
+          ...(props.canMoveDown
+            ? [{ name: "increment", label: t("threads.threadArrangementSheet.moveDown") }]
+            : []),
         ]}
         onAccessibilityAction={({ nativeEvent }) => {
           if (props.disabled) return;
@@ -381,17 +392,21 @@ export function ThreadArrangementSheet(props: { onClose: () => void }) {
           style={{ paddingTop: insets.top, paddingBottom: insets.bottom }}
         >
           <View className="flex-row items-center justify-between gap-3 px-5 py-3">
-            <Text className="flex-1 text-xl font-t3-semibold">Arrange threads</Text>
+            <Text className="flex-1 text-xl font-t3-semibold">
+              {t("threads.threadArrangementSheet.title")}
+            </Text>
             <Pressable
               accessibilityRole="button"
               onPress={props.onClose}
               className="min-h-11 justify-center px-3"
             >
-              <Text className="text-base text-primary-text">Done</Text>
+              <Text className="text-base text-primary-text">
+                {t("threads.threadArrangementSheet.done")}
+              </Text>
             </Pressable>
           </View>
           <Text className="px-5 pb-3 text-sm text-foreground-muted">
-            Drag to reorder, pin, or settle. Changes save when you drop.
+            {t("threads.threadArrangementSheet.hint")}
           </Text>
           <View
             onLayout={(event) => {
@@ -526,8 +541,7 @@ export function ThreadArrangementSheet(props: { onClose: () => void }) {
                         }}
                       >
                         <Text className="text-sm font-t3-semibold text-foreground-muted">
-                          {item.section[0]!.toUpperCase() + item.section.slice(1)} (
-                          {sections[item.section].length})
+                          {t(SECTION_LABEL_KEYS[item.section])} ({sections[item.section].length})
                         </Text>
                       </Pressable>
                     )}

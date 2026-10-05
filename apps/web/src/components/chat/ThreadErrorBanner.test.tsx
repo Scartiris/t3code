@@ -1,3 +1,4 @@
+import { t } from "@t3tools/shared/i18n";
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vite-plus/test";
 
@@ -78,7 +79,7 @@ describe("ThreadErrorBanner", () => {
     );
 
     expect(markup).toContain('role="alert"');
-    expect(markup).toContain('aria-label="Dismiss error"');
+    expect(markup).toContain(`aria-label="${t("chat.threadErrorBanner.dismissError")}"`);
     expect(markup).not.toContain("controlAlignment");
     expect(markup).toContain("flex gap-2 items-start");
     expect(markup).toContain("min-h-7 pt-1 sm:min-h-6 sm:pt-0.5");

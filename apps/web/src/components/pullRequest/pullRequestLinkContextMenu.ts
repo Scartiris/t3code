@@ -1,4 +1,5 @@
 import type { ContextMenuItem } from "@t3tools/contracts";
+import { t } from "@t3tools/shared/i18n";
 
 import { writeTextToClipboard } from "~/hooks/useCopyToClipboard";
 import { readLocalApi } from "~/localApi";
@@ -9,22 +10,22 @@ export type PullRequestLinkContextMenuAction = "copy-link" | "open-external";
 
 /** Named for the host rather than "externally": the point is where you will land. */
 const OPEN_ON_HOST_LABELS: Partial<Record<string, string>> = {
-  github: "Open on GitHub",
-  gitlab: "Open on GitLab",
-  forgejo: "Open on Forgejo",
-  bitbucket: "Open on Bitbucket",
-  "azure-devops": "Open on Azure DevOps",
+  github: t("pullRequest.pullRequestLinkContextMenu.openOnGitHub"),
+  gitlab: t("pullRequest.pullRequestLinkContextMenu.openOnGitLab"),
+  forgejo: t("pullRequest.pullRequestLinkContextMenu.openOnForgejo"),
+  bitbucket: t("pullRequest.pullRequestLinkContextMenu.openOnBitbucket"),
+  "azure-devops": t("pullRequest.pullRequestLinkContextMenu.openOnAzureDevOps"),
 };
 
 export const openOnHostLabel = (provider: string): string =>
-  OPEN_ON_HOST_LABELS[provider] ?? "Open on host";
+  OPEN_ON_HOST_LABELS[provider] ?? t("pullRequest.pullRequestLinkContextMenu.openOnHost");
 
 /** Copy first: it is the reason to right-click a number rather than click it. */
 function pullRequestLinkContextMenuItems(
   openLabel: string,
 ): readonly ContextMenuItem<PullRequestLinkContextMenuAction>[] {
   return [
-    { id: "copy-link", label: "Copy link", icon: "copy" },
+    { id: "copy-link", label: t("pullRequest.pullRequestLinkContextMenu.copyLink"), icon: "copy" },
     { id: "open-external", label: openLabel },
   ];
 }
@@ -63,7 +64,10 @@ export async function showPullRequestLinkContextMenu({
   } catch {
     toastManager.add({
       type: "error",
-      title: action === "copy-link" ? "Could not copy the link" : "Could not open the link",
+      title:
+        action === "copy-link"
+          ? t("pullRequest.pullRequestLinkContextMenu.copyLinkFailed")
+          : t("pullRequest.pullRequestLinkContextMenu.openLinkFailed"),
     });
   }
 }

@@ -1,5 +1,6 @@
 import type { EnvironmentId, ServerConfig, ServerSelfUpdateCapability } from "@t3tools/contracts";
 import type { ServerUpdateState } from "@t3tools/client-runtime/state/server";
+import { t } from "@t3tools/shared/i18n";
 import { compareSemverVersions, parseSemver } from "@t3tools/shared/semver";
 import * as Schema from "effect/Schema";
 
@@ -80,7 +81,7 @@ export function resolveVersionMismatch(
   return {
     clientVersion: normalizedClientVersion,
     serverVersion: normalizedServerVersion,
-    hint: "Version mismatch. Try syncing the client and server to the same T3 Code version.",
+    hint: t("web.versionSkew.mismatchHint"),
   };
 }
 
@@ -120,7 +121,9 @@ export function manualServerUpdateCommand(targetVersion: string): string {
 }
 
 export function serverUpdateGuidance(capability: ServerSelfUpdateCapability): string {
-  return capability === "desktop-managed" ? "Update the desktop app" : "Update to stay in sync";
+  return capability === "desktop-managed"
+    ? t("web.versionSkew.updateDesktopApp")
+    : t("web.versionSkew.updateToStayInSync");
 }
 
 export function buildVersionMismatchDismissalKey(
@@ -187,5 +190,5 @@ export function appendVersionMismatchHint(
   if (!mismatch) {
     return normalizedMessage;
   }
-  return `${normalizedMessage} Hint: ${mismatch.hint}`;
+  return `${normalizedMessage}${t("web.versionSkew.hintPrefix")}${mismatch.hint}`;
 }

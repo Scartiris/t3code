@@ -7,6 +7,7 @@ import {
   type ServerProviderUpdatedPayload,
   type ServerProviderUpdateState,
 } from "@t3tools/contracts";
+import { t } from "@t3tools/shared/i18n";
 import { resolveSpawnCommand } from "@t3tools/shared/shell";
 import * as Cause from "effect/Cause";
 import * as Context from "effect/Context";
@@ -127,7 +128,10 @@ const runProviderMaintenanceCommandWithSpawner = Effect.fn("ProviderMaintenanceR
           Effect.mapError(
             (cause) =>
               new ProviderMaintenanceCommandError({
-                message: cause instanceof Error ? cause.message : "Update command failed to run.",
+                message:
+                  cause instanceof Error
+                    ? cause.message
+                    : t("provider.providerMaintenanceRunner.updateCommandNotRun"),
                 cause,
               }),
           ),
@@ -184,12 +188,12 @@ function commandOutput(result: ProviderMaintenanceCommandResult): string | null 
 
 function failureMessage(result: ProviderMaintenanceCommandResult): string {
   if (result.timedOut) {
-    return "Update timed out.";
+    return t("provider.providerMaintenanceRunner.updateTimedOut");
   }
   if (result.exitCode !== null && result.exitCode !== 0) {
     return `Update command exited with code ${result.exitCode}.`;
   }
-  return "Update command failed.";
+  return t("provider.providerMaintenanceRunner.updateCommandFailed");
 }
 
 function isOutdatedProvider(provider: ServerProvider | undefined): boolean {
@@ -326,7 +330,7 @@ export const make = Effect.fn("ProviderMaintenanceRunner.make")(function* () {
     if (!update) {
       return yield* new ServerProviderUpdateError({
         provider,
-        reason: "This provider does not support one-click updates.",
+        reason: t("provider.providerMaintenanceRunner.oneClickUpdatesUnsupported"),
       });
     }
 
@@ -341,7 +345,7 @@ export const make = Effect.fn("ProviderMaintenanceRunner.make")(function* () {
         status: "queued",
         startedAt: null,
         finishedAt: null,
-        message: "Waiting for another provider update to finish.",
+        message: t("provider.providerMaintenanceRunner.waitingForOtherUpdate"),
       }),
     ).pipe(Effect.asVoid);
 
@@ -360,7 +364,7 @@ export const make = Effect.fn("ProviderMaintenanceRunner.make")(function* () {
                 status: "running",
                 startedAt,
                 finishedAt: null,
-                message: "Updating provider.",
+                message: t("provider.providerMaintenanceRunner.updatingProvider"),
               }),
             );
 
@@ -415,8 +419,8 @@ export const make = Effect.fn("ProviderMaintenanceRunner.make")(function* () {
                   finishedAt: yield* nowIso,
                   message:
                     targetVersion !== undefined
-                      ? "This version is no longer recommended or this installer cannot install a specific version. Refresh provider settings."
-                      : "The latest provider version is incompatible with this T3 Code release. Review provider settings.",
+                      ? t("provider.providerMaintenanceRunner.versionNoLongerRecommended")
+                      : t("provider.providerMaintenanceRunner.latestVersionIncompatible"),
                 }),
               );
             }
@@ -469,7 +473,7 @@ export const make = Effect.fn("ProviderMaintenanceRunner.make")(function* () {
                   ? "Update command completed, but T3 Code could not verify the provider version."
                   : stillOutdated
                     ? "Update command completed, but T3 Code still detects an outdated provider version."
-                    : "Provider updated.",
+                    : t("provider.providerMaintenanceRunner.providerUpdated"),
                 output: commandOutput(result),
               }),
             );
@@ -485,7 +489,10 @@ export const make = Effect.fn("ProviderMaintenanceRunner.make")(function* () {
                 status: "failed",
                 startedAt,
                 finishedAt: yield* nowIso,
-                message: failure instanceof Error ? failure.message : "Update command failed.",
+                message:
+                  failure instanceof Error
+                    ? failure.message
+                    : t("provider.providerMaintenanceRunner.updateCommandFailed"),
                 output: null,
               }),
             );

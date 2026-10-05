@@ -12,6 +12,7 @@ import {
   PROJECT_CLONE_ERROR_MAX_LENGTH,
   SourceControlRepositoryError,
 } from "@t3tools/contracts";
+import { t } from "@t3tools/shared/i18n";
 import * as Cause from "effect/Cause";
 import * as Context from "effect/Context";
 import * as DateTime from "effect/DateTime";
@@ -302,7 +303,7 @@ export const make = Effect.gen(function* () {
         return yield* new SourceControlRepositoryError({
           operation: "cloneRepository",
           provider: input.provider ?? "unknown",
-          detail: "A clone into this destination is already in progress.",
+          detail: t("project.projectCloneTracker.destinationInProgress"),
         });
       }
       // Everything after the claim runs to completion even if the requesting
@@ -457,8 +458,8 @@ export const rejectCommandsDuringClone = (
     return yield* new OrchestrationDispatchCommandError({
       message:
         clone.phase === "running"
-          ? "The repository is still being cloned."
-          : "The repository was not cloned. Retry the clone first.",
+          ? t("project.projectCloneTracker.repositoryStillCloning")
+          : t("project.projectCloneTracker.repositoryNotCloned"),
     });
   });
 
@@ -473,7 +474,7 @@ function describeCloneFailure(cause: Cause.Cause<unknown>): string {
   if (isSourceControlRepositoryError(error)) return error.detail;
   return error instanceof Error && error.message.trim().length > 0
     ? error.message
-    : "The repository could not be cloned.";
+    : t("project.projectCloneTracker.cloneFailed");
 }
 
 export const layer = Layer.effect(ProjectCloneTracker, make);

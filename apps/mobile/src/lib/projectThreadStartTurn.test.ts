@@ -6,6 +6,7 @@ import {
   ThreadId,
 } from "@t3tools/contracts";
 import { serializeAssistantCitation } from "@t3tools/shared/assistantCitations";
+import { t } from "@t3tools/shared/i18n";
 import { describe, expect, it } from "vite-plus/test";
 
 import {
@@ -16,7 +17,7 @@ import {
 describe("project thread title", () => {
   it("keeps ordinary titles and the empty-prompt fallback", () => {
     expect(deriveThreadTitleFromPrompt("  Fix\n the parser  ")).toBe("Fix the parser");
-    expect(deriveThreadTitleFromPrompt(" \n ")).toBe("New thread");
+    expect(deriveThreadTitleFromPrompt(" \n ")).toBe(t("components.chatView.newThread"));
   });
 
   it("derives attachment-only titles from prepared image metadata", () => {

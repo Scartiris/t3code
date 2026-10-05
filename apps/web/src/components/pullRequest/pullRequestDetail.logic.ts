@@ -26,6 +26,7 @@ import {
   type ThreadPullRequestLink,
   type VcsRef,
 } from "@t3tools/contracts";
+import { t } from "@t3tools/shared/i18n";
 import {
   legacyThreadPullRequestKey,
   resolveThreadCurrentPullRequestLink,
@@ -38,9 +39,9 @@ import { reviewCommentContextId } from "~/lib/composerContextRecords";
 import { removeInlineContextReference } from "~/lib/composerContextReferences";
 
 export const PULL_REQUEST_MERGE_METHOD_LABELS: Record<PullRequestMergeMethod, string> = {
-  merge: "Merge",
-  squash: "Squash and merge",
-  rebase: "Rebase and merge",
+  merge: t("pullRequest.pullRequestDetail.mergeMethodMerge"),
+  squash: t("pullRequest.pullRequestDetail.mergeMethodSquash"),
+  rebase: t("pullRequest.pullRequestDetail.mergeMethodRebase"),
 };
 
 /** Old environments keep their existing actions; new ones must finish stack discovery first. */
@@ -270,14 +271,14 @@ export function threadPullRequestPanelTarget(thread: {
 export function pullRequestHandoffLabels(inThisThread: boolean) {
   return inThisThread
     ? {
-        fixFinding: "Fix in this thread",
-        fixCheck: "Fix in this thread",
-        fixFindings: "Fix findings in this thread",
+        fixFinding: t("pullRequest.pullRequestDetail.fixInThisThread"),
+        fixCheck: t("pullRequest.pullRequestDetail.fixInThisThread"),
+        fixFindings: t("pullRequest.pullRequestDetail.fixFindingsInThisThread"),
       }
     : {
-        fixFinding: "Fix in a thread",
-        fixCheck: "Fix",
-        fixFindings: "Fix findings in a thread",
+        fixFinding: t("pullRequest.pullRequestReviewAnnotation.fixInAThread"),
+        fixCheck: t("pullRequest.pullRequestDetail.fix"),
+        fixFindings: t("pullRequest.pullRequestDetail.fixFindingsInAThread"),
       };
 }
 
@@ -374,7 +375,7 @@ export function classifyPullRequestChecks(
  * what a reader does next.
  */
 export function describePullRequestChecks(checks: ReadonlyArray<PullRequestCheck>): string {
-  if (checks.length === 0) return "No checks reported";
+  if (checks.length === 0) return t("pullRequest.pullRequestPresentation.noChecksReported");
   const failed = checks.filter(
     (check) => check.status === "failure" || check.status === "cancelled",
   ).length;
@@ -382,13 +383,33 @@ export function describePullRequestChecks(checks: ReadonlyArray<PullRequestCheck
   const actionRequired = checks.filter((check) => check.status === "action-required").length;
   const passed = checks.filter((check) => check.status === "success").length;
   const parts: string[] = [];
-  if (pending > 0) parts.push(`${pending} of ${checks.length} running`);
-  if (actionRequired > 0) parts.push(`${actionRequired} of ${checks.length} awaiting action`);
+  if (pending > 0) {
+    parts.push(
+      t("pullRequest.pullRequestDetail.checksRunning", {
+        count: pending,
+        total: checks.length,
+      }),
+    );
+  }
+  if (actionRequired > 0) {
+    parts.push(
+      t("pullRequest.pullRequestDetail.checksAwaitingAction", {
+        count: actionRequired,
+        total: checks.length,
+      }),
+    );
+  }
   if (failed > 0) {
-    parts.push(parts.length > 0 ? `${failed} failed` : `${failed} of ${checks.length} failing`);
+    parts.push(
+      parts.length > 0
+        ? t("pullRequest.pullRequestDetail.checksFailed", { count: failed })
+        : t("pullRequest.pullRequestDetail.checksFailing", { count: failed, total: checks.length }),
+    );
   }
   if (parts.length === 0) {
-    return passed === checks.length ? "All checks passed" : `${passed} of ${checks.length} passing`;
+    return passed === checks.length
+      ? t("pullRequest.pullRequestPresentation.allChecksPassed")
+      : t("pullRequest.pullRequestDetail.checksPassing", { count: passed, total: checks.length });
   }
   return parts.join(" · ");
 }
@@ -639,7 +660,7 @@ export function buildPullRequestTimeline(
       id: "created",
       at: detail.createdAt,
       kind: "opened" as const,
-      title: "opened this pull request",
+      title: t("pullRequest.pullRequestDetail.timelineOpened"),
       body: null,
       markdown: false,
       url: null,
@@ -655,7 +676,7 @@ export function buildPullRequestTimeline(
       id: commit.oid,
       at: commit.committedDate,
       kind: "commit" as const,
-      title: `Commit ${commit.oid.slice(0, 7)}`,
+      title: t("pullRequest.pullRequestDetail.timelineCommit", { oid: commit.oid.slice(0, 7) }),
       body: commit.messageHeadline || null,
       markdown: false,
       url: null,
@@ -671,7 +692,10 @@ export function buildPullRequestTimeline(
       id: comment.id,
       at: comment.createdAt,
       kind: comment.kind === "review" ? ("review" as const) : ("comment" as const),
-      title: comment.kind === "review" ? "reviewed" : "commented",
+      title:
+        comment.kind === "review"
+          ? t("pullRequest.pullRequestDetail.timelineReviewed")
+          : t("pullRequest.pullRequestDetail.timelineCommented"),
       body: visibleBody(comment.body),
       markdown: true,
       url: comment.url,
@@ -689,7 +713,7 @@ export function buildPullRequestTimeline(
             id: "merged",
             at: detail.mergedAt,
             kind: "merged" as const,
-            title: "Pull request merged",
+            title: t("pullRequest.pullRequestDetail.timelineMerged"),
             body: null,
             markdown: false,
             url: null,
@@ -709,7 +733,7 @@ export function buildPullRequestTimeline(
             id: "closed",
             at: detail.closedAt,
             kind: "closed" as const,
-            title: "Pull request closed",
+            title: t("pullRequest.pullRequestDetail.timelineClosed"),
             body: null,
             markdown: false,
             url: null,
@@ -752,16 +776,22 @@ function reviewThreadContext(
   pullRequestNumber: number,
 ): ReviewCommentContext {
   const lineIndex = Math.max(0, (thread.line ?? 1) - 1);
+  // A left-side line numbers the file before the change, so the same number means another line.
+  const lineSuffix =
+    thread.side === "left" ? t("pullRequest.pullRequestDetail.rangeBeforeChange") : "";
   return {
     id: `pull-request-finding:${thread.id}`,
     sectionId: `pull-request:${pullRequestNumber}`,
-    sectionTitle: `PR #${pullRequestNumber} review`,
+    sectionTitle: t("pullRequest.pullRequestCodeTab.reviewSectionTitle", {
+      number: pullRequestNumber,
+    }),
     filePath: thread.path,
     startIndex: lineIndex,
     endIndex: lineIndex,
-    // A left-side line numbers the file before the change, so the same number means another line.
     rangeLabel:
-      thread.line === null ? "file" : `L${thread.line}${thread.side === "left" ? " (before)" : ""}`,
+      thread.line === null
+        ? t("pullRequest.pullRequestDetail.rangeWholeFile")
+        : `L${thread.line}${lineSuffix}`,
     // Bot bookkeeping lives in HTML comments and would otherwise eat the length bound before
     // the finding itself got any of it.
     text: bounded(

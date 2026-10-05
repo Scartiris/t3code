@@ -1,4 +1,5 @@
 import type { EnvironmentId, UsageLimitsReport } from "@t3tools/contracts";
+import { t } from "@t3tools/shared/i18n";
 import { limitsNotice } from "@t3tools/shared/usageLimits";
 import { GaugeIcon } from "lucide-react";
 
@@ -31,9 +32,9 @@ function AccountSummary({ account }: { readonly account: UsageLimitsReport["acco
         <RedactedSensitiveText
           key={label}
           value={label}
-          ariaLabel="Toggle account label visibility"
-          revealTooltip="Click to reveal account"
-          hideTooltip="Click to hide account"
+          ariaLabel={t("chat.composerUsageLimits.toggleAccountLabel")}
+          revealTooltip={t("chat.composerUsageLimits.revealAccount")}
+          hideTooltip={t("chat.composerUsageLimits.hideAccount")}
           className="max-w-full truncate align-bottom font-sans text-xs leading-normal"
         />
       ) : (
@@ -56,16 +57,16 @@ export function usageLimitsBannerItem(
   const summary = single ? (
     <AccountSummary account={single} />
   ) : (
-    `${report.accounts.length} accounts`
+    t("chat.composerUsageLimits.accountCount", { count: report.accounts.length })
   );
   return {
     id,
     variant: "info",
     priority: "notice",
     icon: <GaugeIcon />,
-    title: "Usage limits",
+    title: t("chat.composerUsageLimits.usageLimits"),
     description: summary,
-    dismissLabel: "Dismiss usage limits",
+    dismissLabel: t("chat.composerUsageLimits.dismissUsageLimits"),
     onDismiss,
     children: <UsageLimitsBannerBody report={report} environmentId={environmentId} />,
   };
@@ -112,7 +113,7 @@ function UsageLimitsBannerBody({
                   className="self-start"
                   onClick={() => void ensureLocalApi().shell.openExternal(externalUsage.url)}
                 >
-                  Manage usage
+                  {t("chat.composerUsageLimits.manageUsage")}
                 </Button>
               ) : null}
               {resetCreditInput && account.limits.resetCredits ? (

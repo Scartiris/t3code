@@ -8,6 +8,7 @@ import {
   defaultInstanceIdForDriver,
   ProviderDriverKind,
 } from "@t3tools/contracts";
+import { t } from "@t3tools/shared/i18n";
 import { HostProcessEnvironment } from "@t3tools/shared/hostProcess";
 import { resolveSelfInvocation, type SelfInvocation } from "@t3tools/shared/nodeRuntime";
 import * as Crypto from "effect/Crypto";
@@ -319,7 +320,7 @@ export const AcpRegistryAdapterV2Driver: ProviderAdapterDriver<
             new ProviderAdapterDriverCreateError({
               driver: ACP_REGISTRY_PROVIDER,
               instanceId: input.instanceId,
-              detail: "Failed to create ACP Registry adapter.",
+              detail: t("orchestration-v2.acpRegistryAdapterV2.adapterCreateFailed"),
               cause,
             }),
         ),

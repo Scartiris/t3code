@@ -1,4 +1,5 @@
 import { ProviderDriverKind, ProviderInstanceId, type ServerProvider } from "@t3tools/contracts";
+import { t } from "@t3tools/shared/i18n";
 import { describe, expect, it } from "vite-plus/test";
 
 import { getProviderSummary, getProviderVersionAdvisoryPresentation } from "./providerStatus";
@@ -20,7 +21,7 @@ const provider: ServerProvider = {
 describe("getProviderSummary", () => {
   it("reports ready providers with unknown authentication as available", () => {
     expect(getProviderSummary({ ...provider, auth: { status: "unknown" } })).toEqual({
-      headline: "Available",
+      headline: t("settings.providerStatus.available"),
       detail: null,
     });
   });
@@ -33,7 +34,7 @@ describe("getProviderSummary", () => {
         message: "The provider process failed to start.",
       }),
     ).toEqual({
-      headline: "Unavailable",
+      headline: t("settings.providerStatus.unavailable"),
       detail: "The provider process failed to start.",
     });
   });
@@ -46,7 +47,7 @@ describe("getProviderSummary", () => {
         message: "The provider version is unsupported.",
       }),
     ).toEqual({
-      headline: "Needs attention",
+      headline: t("settings.providerStatus.needsAttention"),
       detail: "The provider version is unsupported.",
     });
   });
@@ -60,13 +61,15 @@ describe("getProviderSummary", () => {
         message: "Run codex login.",
       }),
     ).toEqual({
-      headline: "Not authenticated",
+      headline: t("settings.providerStatus.notAuthenticated"),
       detail: "Run codex login.",
     });
   });
 
   it("treats a disabled provider status as disabled even before its enabled flag updates", () => {
-    expect(getProviderSummary({ ...provider, status: "disabled" }).headline).toBe("Disabled");
+    expect(getProviderSummary({ ...provider, status: "disabled" }).headline).toBe(
+      t("settings.providerStatus.disabled"),
+    );
   });
 });
 
@@ -117,7 +120,7 @@ it("shows compatibility in the version popover even when the installed version i
     recommendedVersion: "1.9.0",
   };
   expect(getProviderVersionAdvisoryPresentation(advisory, compatibility)).toEqual({
-    title: "Known broken version",
+    title: t("settings.providerStatus.knownBrokenVersion"),
     detail: compatibility.message,
     updateCommand: null,
     emphasis: "strong",
@@ -132,8 +135,8 @@ it("shows compatibility in the version popover even when the installed version i
       message: null,
     }),
   ).toEqual({
-    title: "Limited support",
-    detail: "Use >=2.1.0 for full support.",
+    title: t("settings.providerStatus.limitedSupport"),
+    detail: t("settings.providerStatus.useForFullSupport", { recommendation: ">=2.1.0" }),
     updateCommand: null,
     emphasis: "normal",
     targetVersion: null,
@@ -151,7 +154,9 @@ describe("provider status copy", () => {
     } as ServerProvider;
 
     expect(getProviderSummary(provider)).toEqual({
-      headline: "Not authenticated · Company login",
+      headline: t("settings.providerStatus.notAuthenticatedWithLabel", {
+        authLabel: "Company login",
+      }),
       detail: "Complete this authentication method on the server.",
     });
   });

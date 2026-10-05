@@ -4,6 +4,7 @@ import {
   sourceControlRepositorySelector,
 } from "@t3tools/shared/sourceControl";
 import { normalizeGitRemoteUrl } from "@t3tools/shared/git";
+import { t } from "@t3tools/shared/i18n";
 import * as Cache from "effect/Cache";
 import * as Clock from "effect/Clock";
 import * as Context from "effect/Context";
@@ -272,9 +273,9 @@ export class PullRequestService extends Context.Service<
 
 /** What a verdict is called when refusing it, so the sentence reads as an action. */
 const VERDICT_LABELS: Record<PullRequestReviewVerdict, string> = {
-  comment: "review",
-  approve: "approve",
-  "request-changes": "request changes on",
+  comment: t("pullRequest.pullRequestService.verdictComment"),
+  approve: t("pullRequest.pullRequestService.verdictApprove"),
+  "request-changes": t("pullRequest.pullRequestService.verdictRequestChanges"),
 };
 
 /**
@@ -284,23 +285,17 @@ const VERDICT_LABELS: Record<PullRequestReviewVerdict, string> = {
  */
 const ACTION_ACCESS_REFUSALS: Record<PullRequestAction, string> = {
   merge: "You need write access on this repository to merge.",
-  ready:
-    "You need write access on this repository, or to have opened this change request, to mark it ready for review.",
-  draft:
-    "You need write access on this repository, or to have opened this change request, to return it to a draft.",
-  close:
-    "You need write access on this repository, or to have opened this change request, to close it.",
-  "update-branch":
-    "You need write access on this repository, or to have opened this change request, to update its branch.",
-  reopen:
-    "You need write access on this repository, or to have opened this change request, to reopen it.",
+  ready: t("pullRequest.pullRequestService.writeAccessToMarkReady"),
+  draft: t("pullRequest.pullRequestService.writeAccessToReturnToDraft"),
+  close: t("pullRequest.pullRequestService.writeAccessToClose"),
+  "update-branch": t("pullRequest.pullRequestService.writeAccessToUpdateBranch"),
+  reopen: t("pullRequest.pullRequestService.writeAccessToReopen"),
   "enable-auto-merge":
     "You need write access on this repository to have it merged for you once it is ready.",
   "disable-auto-merge":
     "You need write access on this repository to stop it being merged for you once it is ready.",
-  revert: "You need write access on this repository to open a revert pull request.",
-  "approve-workflows":
-    "You need write access on this repository to approve workflows from a fork pull request.",
+  revert: t("pullRequest.pullRequestService.writeAccessToRevert"),
+  "approve-workflows": t("pullRequest.pullRequestService.writeAccessToApproveWorkflows"),
 };
 
 /**
@@ -731,7 +726,7 @@ export const make = Effect.gen(function* () {
         (error) =>
           new PullRequestOperationError({
             operation: "listProjects",
-            detail: "The project list could not be read.",
+            detail: t("pullRequest.pullRequestService.projectListUnreadable"),
             cause: error,
           }),
       ),
@@ -849,7 +844,7 @@ export const make = Effect.gen(function* () {
           return Effect.fail(
             new PullRequestOperationError({
               operation: "resolveRepository",
-              detail: "The change request does not belong to the selected project.",
+              detail: t("pullRequest.pullRequestService.changeRequestNotInProject"),
             }),
           );
         }
@@ -1196,7 +1191,7 @@ export const make = Effect.gen(function* () {
           searchesOnHost: false,
           projectCount,
           configured: false,
-          detail: "This host cannot be browsed here yet.",
+          detail: t("pullRequest.pullRequestService.hostNotBrowsable"),
         })),
       ];
 
@@ -1525,7 +1520,7 @@ export const make = Effect.gen(function* () {
       const rejected = () =>
         new PullRequestOperationError({
           operation: "routeIdentity",
-          detail: "The GitHub account could not be verified before starting the operation.",
+          detail: t("pullRequest.pullRequestService.gitHubAccountUnverified"),
         });
       const project = yield* requireProject(input).pipe(Effect.mapError(rejected));
       const api = project.api.kind === "github" ? registry.get("github") : null;
@@ -1562,7 +1557,7 @@ export const make = Effect.gen(function* () {
     if (!identity.viewer.trim() || !identity.accountId.trim()) {
       return yield* new PullRequestOperationError({
         operation: "routeIdentity",
-        detail: "The signed-in account could not be verified.",
+        detail: t("pullRequest.pullRequestService.signedInAccountUnverified"),
       });
     }
     return {
@@ -1800,7 +1795,7 @@ export const make = Effect.gen(function* () {
             return Effect.fail(
               new PullRequestOperationError({
                 operation: "threadComments",
-                detail: "This host does not page review thread comments.",
+                detail: t("pullRequest.pullRequestService.threadCommentsNotPaged"),
               }),
             );
           }
@@ -1833,7 +1828,7 @@ export const make = Effect.gen(function* () {
           : Effect.fail(
               new PullRequestOperationError({
                 operation: "diff",
-                detail: "This host cannot provide a diff for a change request.",
+                detail: t("pullRequest.pullRequestService.hostCannotProvideDiff"),
               }),
             ),
       ),
@@ -1857,7 +1852,7 @@ export const make = Effect.gen(function* () {
           : Effect.fail(
               new PullRequestOperationError({
                 operation: "diffFileContents",
-                detail: "This host cannot expand unchanged pull request lines.",
+                detail: t("pullRequest.pullRequestService.hostCannotExpandUnchangedLines"),
               }),
             );
       }),
@@ -1913,7 +1908,7 @@ export const make = Effect.gen(function* () {
           return Effect.fail(
             new PullRequestOperationError({
               operation: "runAction",
-              detail: "This stack action is not supported or has no expected head revision.",
+              detail: t("pullRequest.pullRequestService.stackActionUnsupported"),
             }),
           );
         }
@@ -1923,7 +1918,9 @@ export const make = Effect.gen(function* () {
           return Effect.fail(
             new PullRequestOperationError({
               operation: "runAction",
-              detail: `This host cannot ${input.action} a change request.`,
+              detail: t("pullRequest.pullRequestService.hostCannotPerformAction", {
+                action: input.action,
+              }),
             }),
           );
         }
@@ -1937,7 +1934,9 @@ export const make = Effect.gen(function* () {
           return Effect.fail(
             new PullRequestOperationError({
               operation: "runAction",
-              detail: `This host cannot merge with the ${input.mergeMethod} strategy.`,
+              detail: t("pullRequest.pullRequestService.hostCannotMergeWithStrategy", {
+                method: input.mergeMethod,
+              }),
             }),
           );
         }
@@ -1950,7 +1949,9 @@ export const make = Effect.gen(function* () {
           return Effect.fail(
             new PullRequestOperationError({
               operation: "runAction",
-              detail: `This host cannot update a branch by ${input.updateMethod}.`,
+              detail: t("pullRequest.pullRequestService.hostCannotUpdateBranchBy", {
+                method: input.updateMethod,
+              }),
             }),
           );
         }
@@ -2038,7 +2039,7 @@ export const make = Effect.gen(function* () {
           return Effect.fail(
             new PullRequestOperationError({
               operation: "comment",
-              detail: "This host cannot post a comment on a change request.",
+              detail: t("pullRequest.pullRequestService.hostCannotComment"),
             }),
           );
         }
@@ -2048,8 +2049,7 @@ export const make = Effect.gen(function* () {
               return Effect.fail(
                 new PullRequestOperationError({
                   operation: "comment",
-                  detail:
-                    "You need write access on this repository to comment on a change request.",
+                  detail: t("pullRequest.pullRequestService.writeAccessToComment"),
                 }),
               );
             }
@@ -2146,10 +2146,14 @@ export const make = Effect.gen(function* () {
         // The surface hides what a host cannot do, and this refuses it as well: a request that
         // reached here anyway must not be handed to a provider that never claimed it.
         if (!review.verdicts.includes(input.verdict)) {
-          return refuse(`This host cannot ${VERDICT_LABELS[input.verdict]} a change request.`);
+          return refuse(
+            t("pullRequest.pullRequestService.hostCannotPerformVerdict", {
+              verdict: VERDICT_LABELS[input.verdict],
+            }),
+          );
         }
         if (input.comments.length > 0 && !review.inlineComment) {
-          return refuse("This host cannot comment on a line of a change request.");
+          return refuse(t("pullRequest.pullRequestService.hostCannotCommentOnLine"));
         }
         // A verdict with nothing attached to it is a request every host rejects, and doing so
         // here says which of the two is missing rather than reporting the host's refusal.
@@ -2158,21 +2162,19 @@ export const make = Effect.gen(function* () {
           input.body.trim().length === 0 &&
           input.comments.length === 0
         ) {
-          return refuse("A review needs a summary or at least one comment.");
+          return refuse(t("pullRequest.pullRequestService.reviewNeedsSummaryOrComment"));
         }
         return viewerPermissionsOf(project, input, "submitReview").pipe(
           Effect.flatMap((viewer): Effect.Effect<void, PullRequestError> => {
             if (!viewer.verdicts.includes(input.verdict)) {
               return refuse(
-                `You need write access on this repository to ${
-                  VERDICT_LABELS[input.verdict]
-                } a change request.`,
+                t("pullRequest.pullRequestService.writeAccessToPerformVerdict", {
+                  verdict: VERDICT_LABELS[input.verdict],
+                }),
               );
             }
             if (input.comments.length > 0 && !viewer.comment) {
-              return refuse(
-                "You need write access on this repository to comment on a line of a change request.",
-              );
+              return refuse(t("pullRequest.pullRequestService.writeAccessToCommentOnLine"));
             }
             return project.api
               .submitReview({
@@ -2195,7 +2197,7 @@ export const make = Effect.gen(function* () {
       ? Effect.fail(
           new PullRequestOperationError({
             operation: "replyToThread",
-            detail: "A reply cannot be empty.",
+            detail: t("pullRequest.pullRequestService.replyCannotBeEmpty"),
           }),
         )
       : requireProject(input)
@@ -2205,7 +2207,7 @@ export const make = Effect.gen(function* () {
           return Effect.fail(
             new PullRequestOperationError({
               operation: "replyToThread",
-              detail: "This host cannot reply to a review conversation.",
+              detail: t("pullRequest.pullRequestService.hostCannotReply"),
             }),
           );
         }
@@ -2215,8 +2217,7 @@ export const make = Effect.gen(function* () {
               return Effect.fail(
                 new PullRequestOperationError({
                   operation: "replyToThread",
-                  detail:
-                    "You need write access on this repository to reply to a review conversation.",
+                  detail: t("pullRequest.pullRequestService.writeAccessToReply"),
                 }),
               );
             }
@@ -2242,7 +2243,7 @@ export const make = Effect.gen(function* () {
           return Effect.fail(
             new PullRequestOperationError({
               operation: "setThreadResolution",
-              detail: "This host cannot resolve a review conversation.",
+              detail: t("pullRequest.pullRequestService.hostCannotResolveThread"),
             }),
           );
         }
@@ -2284,7 +2285,7 @@ export const make = Effect.gen(function* () {
           return Effect.fail(
             new PullRequestOperationError({
               operation: "setReaction",
-              detail: "This host has no reactions.",
+              detail: t("pullRequest.pullRequestService.hostHasNoReactions"),
             }),
           );
         }
@@ -2770,7 +2771,7 @@ export const make = Effect.gen(function* () {
             (cause) =>
               new PullRequestOperationError({
                 operation: "cache",
-                detail: "Could not encode PR cache data.",
+                detail: t("pullRequest.pullRequestService.cacheEncodeFailed"),
                 cause,
               }),
           ),

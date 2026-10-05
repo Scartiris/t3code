@@ -6,6 +6,7 @@ import { pipe } from "effect/Function";
 import * as Result from "effect/Result";
 
 import type { EnvironmentId, ThreadId } from "@t3tools/contracts";
+import { t } from "@t3tools/shared/i18n";
 import {
   buildReviewCommentTarget,
   clearReviewCommentTarget,
@@ -79,7 +80,9 @@ export function useReviewCommentSelectionController(input: {
       activeCommentTarget.startIndex !== activeCommentTarget.endIndex
     ) {
       return {
-        title: `Comment on ${formatReviewSelectedRangeLabel(activeCommentTarget)}`,
+        title: t("review.useReviewCommentSelectionController.commentOn", {
+          label: formatReviewSelectedRangeLabel(activeCommentTarget),
+        }),
         onOpenComment: openReviewCommentSheet,
       };
     }
@@ -89,7 +92,7 @@ export function useReviewCommentSelectionController(input: {
       pendingNativeCommentSelection.sectionTitle === selectedSection?.title
     ) {
       return {
-        title: "Select range end",
+        title: t("review.useReviewCommentSelectionController.selectRangeEnd"),
         onOpenComment: null,
       };
     }

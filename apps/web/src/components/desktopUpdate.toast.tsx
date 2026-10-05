@@ -1,3 +1,4 @@
+import { t } from "@t3tools/shared/i18n";
 import type { DesktopBridge, DesktopUpdateState } from "@t3tools/contracts";
 import { ArrowRightIcon } from "lucide-react";
 
@@ -18,7 +19,10 @@ export async function openDesktopUpdateReleaseNotes(
   } catch {
     // Surface rejected IPC calls through the same user-visible fallback.
   }
-  toastManager.add({ type: "error", title: "Unable to open release notes" });
+  toastManager.add({
+    type: "error",
+    title: t("components.desktopUpdateToast.releaseNotesFailed"),
+  });
 }
 
 function ReleaseNotesLink({
@@ -36,7 +40,7 @@ function ReleaseNotesLink({
       }}
       type="button"
     >
-      Read more
+      {t("components.desktopUpdateToast.readMore")}
       <ArrowRightIcon
         aria-hidden
         className="ml-1 inline size-3 -rotate-45 align-[-0.125em]"
@@ -53,10 +57,10 @@ export function showDesktopUpdateDownloadedToast(
   const releaseUrl = getDesktopUpdateReleaseUrl(getDesktopUpdateDownloadedVersion(state));
   toastManager.add({
     type: "success",
-    title: "Update downloaded",
+    title: t("components.desktopUpdateToast.updateDownloaded"),
     description: (
       <>
-        Restart the app from the update button to install it.
+        {t("components.desktopUpdateToast.restartToInstall")}
         {releaseUrl ? <ReleaseNotesLink releaseUrl={releaseUrl} shell={shell} /> : null}
       </>
     ),

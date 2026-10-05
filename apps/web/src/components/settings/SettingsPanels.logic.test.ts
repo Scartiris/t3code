@@ -6,6 +6,7 @@ import {
   type ProviderInstanceConfig,
 } from "@t3tools/contracts";
 import { getBackgroundActivityPresetSettings } from "@t3tools/shared/backgroundActivitySettings";
+import { t } from "@t3tools/shared/i18n";
 import * as Duration from "effect/Duration";
 import { describe, expect, it } from "vite-plus/test";
 import {
@@ -29,7 +30,7 @@ describe("typography settings restore", () => {
         fontSizeInterface: 18,
         fontFamilyCode: "Fira Code",
       }),
-    ).toEqual(["Interface font", "Code font"]);
+    ).toEqual([t("settings.option.interfaceFont"), t("settings.option.codeFont")]);
   });
 });
 
@@ -161,7 +162,12 @@ describe("formatDiagnosticsDescription", () => {
         otlpMetricsEnabled: true,
         otlpMetricsUrl: "http://localhost:4318/v1/metrics",
       }),
-    ).toBe("Local trace file. Exporting OTEL to http://localhost:4318/v1/{traces,metrics}.");
+    ).toBe(
+      t("settings.settingsPanels.diagnosticsOtelExportCollapsed", {
+        mode: t("settings.settingsPanels.diagnosticsLocalTraceFile"),
+        url: "http://localhost:4318/v1/{traces,metrics}",
+      }),
+    );
   });
 
   it("keeps separate trace and metric URLs when their base paths differ", () => {
@@ -174,7 +180,11 @@ describe("formatDiagnosticsDescription", () => {
         otlpMetricsUrl: "http://localhost:9000/v1/metrics",
       }),
     ).toBe(
-      "Local trace file. Exporting OTEL traces to http://localhost:4318/v1/traces and metrics to http://localhost:9000/v1/metrics.",
+      t("settings.settingsPanels.diagnosticsOtelExportAll", {
+        mode: t("settings.settingsPanels.diagnosticsLocalTraceFile"),
+        tracesUrl: "http://localhost:4318/v1/traces",
+        metricsUrl: "http://localhost:9000/v1/metrics",
+      }),
     );
   });
 
@@ -185,7 +195,7 @@ describe("formatDiagnosticsDescription", () => {
         otlpTracesEnabled: false,
         otlpMetricsEnabled: false,
       }),
-    ).toBe("Local trace file.");
+    ).toBe("本地跟踪文件。");
   });
 });
 
@@ -274,14 +284,14 @@ describe("getChangedBrowserSettingLabels", () => {
         browserAutoShowFloatingPreview: !DEFAULT_UNIFIED_SETTINGS.browserAutoShowFloatingPreview,
       }),
     ).toEqual([
-      "Browser viewport",
-      "Browser zoom",
-      "Browser appearance",
-      "Recording frame rate",
-      "Recording key presses",
-      "Recording mouse presses",
-      "Open links in",
-      "Floating preview",
+      t("settings.option.browserDefaultViewport"),
+      t("settings.option.browserDefaultZoom"),
+      t("settings.option.browserDefaultAppearance"),
+      t("settings.option.browserRecordingFrameRate"),
+      t("settings.settingsPanels.recordingKeyPresses"),
+      t("settings.settingsPanels.recordingMousePresses"),
+      t("settings.option.openLinksIn"),
+      t("settings.option.browserAutoShowFloatingPreview"),
     ]);
   });
 });

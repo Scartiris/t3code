@@ -1,3 +1,4 @@
+import { t } from "@t3tools/shared/i18n";
 import { RefreshIcon } from "~/components/ui/refresh-icon";
 
 import type { ReactNode } from "react";
@@ -57,7 +58,7 @@ export function ClerkUserProfileRefreshButton({
       onClick={onClick}
     >
       <RefreshIcon aria-hidden="true" size="sm" refreshing={isPending} />
-      Refresh
+      {t("clerk.clerkUserProfilePage.refresh")}
     </Button>
   );
 }

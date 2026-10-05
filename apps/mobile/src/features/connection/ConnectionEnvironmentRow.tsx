@@ -3,6 +3,7 @@ import { SymbolView } from "../../components/AppSymbol";
 import { connectionStatusText } from "@t3tools/client-runtime/connection";
 import type { AtomCommandResult } from "@t3tools/client-runtime/state/runtime";
 import { type EnvironmentId, resolveEnvironmentMachineKind } from "@t3tools/contracts";
+import { t } from "@t3tools/shared/i18n";
 import { useAtomValue } from "@effect/atom-react";
 import * as Cause from "effect/Cause";
 import { AsyncResult } from "effect/unstable/reactivity";
@@ -23,7 +24,7 @@ import { ConnectionStatusDot } from "./ConnectionStatusDot";
 
 function connectionStatusLabel(environment: ConnectedEnvironmentSummary): string | null {
   if (!environment.isEnabled && environment.connectionState !== "unsupported") {
-    return "Off";
+    return t("connection.connectionEnvironmentRow.off");
   }
   return connectionStatusText({
     phase: environment.connectionState,
@@ -71,8 +72,10 @@ export function ConnectionEnvironmentRow(props: {
     }
     const error = Cause.squash(result.cause);
     Alert.alert(
-      "Could not update environment",
-      error instanceof Error ? error.message : "The environment could not be updated.",
+      t("connection.connectionEnvironmentRow.updateFailedTitle"),
+      error instanceof Error
+        ? error.message
+        : t("connection.connectionEnvironmentRow.updateFailedBody"),
     );
   }, [label, url, props]);
 
@@ -82,7 +85,11 @@ export function ConnectionEnvironmentRow(props: {
         className="flex-row items-center gap-3 px-4 py-3.5 active:opacity-70"
         accessibilityRole="button"
         accessibilityLabel={
-          props.opensDetails ? `Manage ${props.environment.environmentLabel}` : undefined
+          props.opensDetails
+            ? t("connection.connectionEnvironmentRow.manageLabel", {
+                environmentLabel: props.environment.environmentLabel,
+              })
+            : undefined
         }
         onPress={props.onToggle}
       >
@@ -156,15 +163,15 @@ export function ConnectionEnvironmentRow(props: {
         >
           {props.environment.isRelayManaged ? (
             <Text className="text-sm text-foreground-muted">
-              Managed by T3 Connect. Tunnel details update automatically.
+              {t("connection.connectionEnvironmentRow.relayManaged")}
             </Text>
           ) : (
             <>
               <ConnectionFormField
-                label="Label"
+                label={t("connection.connectionEnvironmentRow.labelField")}
                 autoCapitalize="words"
                 autoCorrect={false}
-                placeholder="My MacBook"
+                placeholder={t("connection.connectionEnvironmentRow.labelPlaceholder")}
                 value={label}
                 onChangeText={setLabel}
               />
@@ -186,7 +193,7 @@ export function ConnectionEnvironmentRow(props: {
               {props.environment.isRelayManaged ? null : (
                 <View className="flex-1">
                   <MaterialButton
-                    label="Save"
+                    label={t("action.save")}
                     tone="primary"
                     fullWidth
                     onPress={() => {
@@ -196,14 +203,14 @@ export function ConnectionEnvironmentRow(props: {
                 </View>
               )}
               <MaterialIconButton
-                accessibilityLabel="Reconnect environment"
+                accessibilityLabel={t("connection.connectionEnvironmentRow.reconnect")}
                 icon="arrow.clockwise"
                 variant="tonal"
                 disabled={!enabled}
                 onPress={() => props.onReconnect(props.environment.environmentId)}
               />
               <MaterialIconButton
-                accessibilityLabel="Remove environment"
+                accessibilityLabel={t("connection.connectionEnvironmentRow.remove")}
                 icon="trash"
                 variant="danger"
                 onPress={() => props.onRemove(props.environment.environmentId)}
@@ -223,7 +230,7 @@ export function ConnectionEnvironmentRow(props: {
                     type="monochrome"
                   />
                   <Text className="text-xs font-t3-bold tracking-[0.8px] uppercase text-primary-foreground">
-                    Save
+                    {t("action.save")}
                   </Text>
                 </Pressable>
               )}

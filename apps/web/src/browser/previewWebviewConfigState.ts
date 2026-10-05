@@ -4,6 +4,7 @@ import type {
   DesktopPreviewWebviewConfig,
   EnvironmentId,
 } from "@t3tools/contracts";
+import { t } from "@t3tools/shared/i18n";
 import * as Effect from "effect/Effect";
 import * as Option from "effect/Option";
 import * as Schema from "effect/Schema";
@@ -19,7 +20,9 @@ export class PreviewWebviewBridgeUnavailableError extends Schema.TaggedError<Pre
   { environmentId: Schema.String },
 ) {
   override get message(): string {
-    return `Desktop preview configuration is unavailable for environment "${this.environmentId}".`;
+    return t("browser.previewWebviewConfigState.desktopPreviewConfigUnavailable", {
+      environmentId: this.environmentId,
+    });
   }
 }
 
@@ -31,7 +34,9 @@ export class PreviewWebviewConfigLoadError extends Schema.TaggedError<PreviewWeb
   },
 ) {
   override get message(): string {
-    return `Failed to load desktop preview configuration for environment "${this.environmentId}".`;
+    return t("browser.previewWebviewConfigState.desktopPreviewConfigLoadFailed", {
+      environmentId: this.environmentId,
+    });
   }
 }
 

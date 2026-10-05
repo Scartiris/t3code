@@ -1,4 +1,5 @@
 import { MessageId, ProjectId, ThreadId } from "@t3tools/contracts";
+import { t } from "@t3tools/shared/i18n";
 import { type CxOptions, cx } from "class-variance-authority";
 import * as Encoding from "effect/Encoding";
 import { extendTailwindMerge } from "tailwind-merge";
@@ -26,12 +27,12 @@ export function normalizeSearchText(value: string): string {
 
 export function getLocalFileManagerName(platform: string): string {
   if (isMacPlatform(platform)) {
-    return "Finder";
+    return t("web.utils.finder");
   }
   if (isWindowsPlatform(platform)) {
-    return "File Explorer";
+    return t("web.utils.fileExplorer");
   }
-  return "Files";
+  return t("web.utils.files");
 }
 
 export function randomUUID(): string {

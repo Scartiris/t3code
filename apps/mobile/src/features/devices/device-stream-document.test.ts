@@ -1,4 +1,5 @@
 import * as NodeVM from "node:vm";
+import { t } from "@t3tools/shared/i18n";
 import { describe, expect, it, vi } from "vite-plus/test";
 
 import { deviceStreamDocument, deviceStreamMessage } from "./device-stream-document";
@@ -35,7 +36,7 @@ describe("native device stream document", () => {
     expect(JSON.parse(postMessage.mock.calls[0]![0] as string)).toEqual({
       type: "status",
       status: "error",
-      detail: "Device viewer stopped unexpectedly.",
+      detail: t("devices.deviceStreamDocument.viewerStoppedUnexpectedly"),
     });
   });
 

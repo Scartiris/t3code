@@ -13,6 +13,7 @@ import * as Schedule from "effect/Schedule";
 
 import { createModelCapabilities } from "@t3tools/shared/model";
 import { compareSemverVersions } from "@t3tools/shared/semver";
+import { t } from "@t3tools/shared/i18n";
 import {
   buildServerProvider,
   COMPACT_SLASH_COMMAND,
@@ -100,7 +101,7 @@ function formatOpenCodeProbeError(input: {
 
     return {
       installed: true,
-      message: detail ?? "Failed to connect to the configured OpenCode server.",
+      message: t("provider.openCodeProvider.connectFailed"),
     };
   }
 
@@ -114,16 +115,14 @@ function formatOpenCodeProbeError(input: {
   if (lower.includes("quarantine")) {
     return {
       installed: true,
-      message:
-        "macOS is blocking the OpenCode binary (quarantine). Run `xattr -d com.apple.quarantine $(which opencode)` to fix this.",
+      message: t("provider.openCodeProvider.quarantinedBinary"),
     };
   }
 
   if (lower.includes("invalid code signature") || lower.includes("corrupted")) {
     return {
       installed: true,
-      message:
-        "macOS killed the OpenCode process due to an invalid code signature. The binary may be corrupted — try reinstalling OpenCode.",
+      message: t("provider.openCodeProvider.invalidCodeSignature"),
     };
   }
 
@@ -357,8 +356,8 @@ export const makePendingOpenCodeProvider = (
           auth: { status: "unknown" },
           message:
             openCodeSettings.serverUrl.trim().length > 0
-              ? "OpenCode is disabled in T3 Code settings. A server URL is configured."
-              : "OpenCode is disabled in T3 Code settings.",
+              ? t("provider.openCodeProvider.openCodeDisabledWithServerUrl")
+              : t("provider.openCodeProvider.openCodeDisabled"),
         },
       });
     }
@@ -373,7 +372,7 @@ export const makePendingOpenCodeProvider = (
         version: null,
         status: "warning",
         auth: { status: "unknown" },
-        message: "OpenCode provider status has not been checked in this session yet.",
+        message: t("provider.openCodeProvider.statusNotChecked"),
       },
     });
   });
@@ -562,9 +561,12 @@ const checkOpenCode2 = Effect.fn("checkOpenCode2")(function* (
       result.value.length > 0
         ? probe(
             "ready",
-            `OpenCode ${version} lists ${result.value.length} model${result.value.length === 1 ? "" : "s"}.`,
+            t("provider.openCodeProvider.modelsListed", {
+              version,
+              count: result.value.length,
+            }),
           )
-        : probe("warning", "OpenCode 2 is running, but it did not list any models yet."),
+        : probe("warning", t("provider.openCodeProvider.noModelsListed")),
   });
 });
 
@@ -630,8 +632,8 @@ export const checkOpenCodeProviderStatus = Effect.fn("checkOpenCodeProviderStatu
         status: "warning",
         auth: { status: "unknown" },
         message: isExternalServer
-          ? "OpenCode is disabled in T3 Code settings. A server URL is configured."
-          : "OpenCode is disabled in T3 Code settings.",
+          ? t("provider.openCodeProvider.openCodeDisabledWithServerUrl")
+          : t("provider.openCodeProvider.openCodeDisabled"),
       },
     });
   }
@@ -738,10 +740,15 @@ export const checkOpenCodeProviderStatus = Effect.fn("checkOpenCodeProviderStatu
       },
       message:
         connectedCount > 0
-          ? `${connectedCount} upstream provider${connectedCount === 1 ? "" : "s"} connected through ${isExternalServer ? "the configured OpenCode server" : "OpenCode"}.`
+          ? t("provider.openCodeProvider.upstreamProvidersConnected", {
+              count: connectedCount,
+              source: isExternalServer
+                ? t("provider.openCodeProvider.configuredServerSource")
+                : "OpenCode",
+            })
           : isExternalServer
-            ? "Connected to the configured OpenCode server, but it did not report any connected upstream providers."
-            : "OpenCode is available, but it did not report any connected upstream providers.",
+            ? t("provider.openCodeProvider.noUpstreamProvidersConfiguredServer")
+            : t("provider.openCodeProvider.noUpstreamProviders"),
     },
   });
 });

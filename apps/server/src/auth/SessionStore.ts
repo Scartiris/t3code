@@ -9,6 +9,7 @@ import {
   type ClientSurface,
   type ServerAuthSessionMethod,
 } from "@t3tools/contracts";
+import { t } from "@t3tools/shared/i18n";
 import * as Context from "effect/Context";
 import * as Crypto from "effect/Crypto";
 import * as DateTime from "effect/DateTime";
@@ -506,7 +507,7 @@ export const make = Effect.gen(function* () {
         scopes: AuthAdministrativeScopes,
         method: "browser-session-cookie",
         client: {
-          label: "Reusable dev token",
+          label: t("auth.sessionStore.reusableDevTokenLabel"),
           ipAddress: null,
           userAgent: null,
           deviceType: "unknown",

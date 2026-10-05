@@ -1,3 +1,4 @@
+import { t } from "@t3tools/shared/i18n";
 import * as Notifications from "expo-notifications";
 import * as Effect from "effect/Effect";
 import * as Schema from "effect/Schema";
@@ -15,7 +16,7 @@ export class NotificationPermissionReadError extends Schema.TaggedError<Notifica
   },
 ) {
   override get message(): string {
-    return "Failed to read notification permissions.";
+    return t("agentAwareness.notificationPermissions.readFailed");
   }
 }
 
@@ -26,7 +27,7 @@ export class NotificationPermissionRequestError extends Schema.TaggedError<Notif
   },
 ) {
   override get message(): string {
-    return "Failed to request notification permissions.";
+    return t("agentAwareness.notificationPermissions.requestFailed");
   }
 }
 

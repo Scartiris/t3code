@@ -6,6 +6,7 @@ import {
   type ProviderInstanceConfig,
   type ProviderInstanceConfigMap,
 } from "@t3tools/contracts";
+import { t } from "@t3tools/shared/i18n";
 import * as Context from "effect/Context";
 import * as Effect from "effect/Effect";
 import * as Exit from "effect/Exit";
@@ -108,7 +109,7 @@ export const layerFromProviderInstanceRegistry: Layer.Layer<
                       return yield* new ProviderSetupError({
                         instanceId,
                         operation: "session",
-                        detail: "This provider's sign-in is changing. Try again after it finishes.",
+                        detail: t("orchestration-v2.providerAdapterRegistry.signInChanging"),
                       });
                   }
                   let admitted: Effect.Effect<
@@ -243,7 +244,7 @@ const createAdapterEntryFromConfigEntry = Effect.fn(
     return yield* new ProviderAdapterDriverCreateError({
       driver: input.entry.driver,
       instanceId: input.instanceId,
-      detail: "Unknown provider driver.",
+      detail: t("orchestration-v2.providerAdapterRegistry.unknownProviderDriver"),
     });
   }
 
@@ -254,7 +255,7 @@ const createAdapterEntryFromConfigEntry = Effect.fn(
         new ProviderAdapterDriverCreateError({
           driver: input.entry.driver,
           instanceId: input.instanceId,
-          detail: "Invalid provider instance config.",
+          detail: t("orchestration-v2.providerAdapterRegistry.invalidProviderConfig"),
           cause,
         }),
     ),

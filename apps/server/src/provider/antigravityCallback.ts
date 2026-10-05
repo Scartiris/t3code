@@ -2,6 +2,7 @@
 import * as NodeHttp from "node:http";
 
 import { ProviderSetupError, type ProviderInstanceId } from "@t3tools/contracts";
+import { t } from "@t3tools/shared/i18n";
 import * as Effect from "effect/Effect";
 
 export interface AntigravityPendingCallback {
@@ -19,11 +20,11 @@ export const validateAntigravityCallbackUrl = Effect.fn("validateAntigravityCall
     const invalid = (detail: string) =>
       new ProviderSetupError({ instanceId, operation: "complete", detail });
     if (callbackUrl.length > 16_384) {
-      return yield* invalid("The sign-in response URL is too long.");
+      return yield* invalid(t("provider.antigravityCallback.signInResponseUrlTooLong"));
     }
     const callback = yield* Effect.try({
       try: () => new URL(callbackUrl),
-      catch: () => invalid("Paste the complete redirect URL from the Google sign-in page."),
+      catch: () => invalid(t("provider.antigravityCallback.pasteCompleteRedirectUrl")),
     });
     const expected = new URL(pending.redirectUri);
     if (
@@ -35,11 +36,11 @@ export const validateAntigravityCallbackUrl = Effect.fn("validateAntigravityCall
       callback.password !== "" ||
       callback.hash !== ""
     ) {
-      return yield* invalid("This redirect URL does not belong to the current sign-in.");
+      return yield* invalid(t("provider.antigravityCallback.redirectUrlNotCurrentSignIn"));
     }
     const states = callback.searchParams.getAll("state");
     if (states.length !== 1 || states[0] !== pending.state) {
-      return yield* invalid("This redirect URL does not belong to the current sign-in.");
+      return yield* invalid(t("provider.antigravityCallback.redirectUrlNotCurrentSignIn"));
     }
     const codes = callback.searchParams.getAll("code");
     const errors = callback.searchParams.getAll("error");
@@ -49,14 +50,14 @@ export const validateAntigravityCallbackUrl = Effect.fn("validateAntigravityCall
         (errors.length === 1 && Boolean(errors[0]) && codes.length === 0)
       )
     ) {
-      return yield* invalid("The redirect URL must contain one Google sign-in response.");
+      return yield* invalid(t("provider.antigravityCallback.redirectUrlNeedsOneResponse"));
     }
     const issuers = callback.searchParams.getAll("iss");
     if (
       issuers.length > 1 ||
       (issuers.length === 1 && issuers[0] !== "https://accounts.google.com")
     ) {
-      return yield* invalid("The redirect URL is not a Google sign-in response.");
+      return yield* invalid(t("provider.antigravityCallback.redirectUrlNotGoogleResponse"));
     }
     return callback;
   },
@@ -72,7 +73,7 @@ export const forwardAntigravityCallback = (
       new ProviderSetupError({
         instanceId,
         operation: "complete",
-        detail: "Could not deliver the sign-in response. Start sign-in again.",
+        detail: t("provider.antigravityCallback.signInResponseDeliveryFailed"),
       });
     let response: NodeHttp.IncomingMessage | undefined;
     const request = NodeHttp.request(
@@ -108,7 +109,7 @@ export const forwardAntigravityCallback = (
           new ProviderSetupError({
             instanceId,
             operation: "complete",
-            detail: "The sign-in response timed out. Start sign-in again.",
+            detail: t("provider.antigravityCallback.signInResponseTimedOut"),
           }),
         ),
     }),

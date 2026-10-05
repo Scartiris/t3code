@@ -1,4 +1,5 @@
 import type { DesktopSshEnvironmentTarget, EnvironmentId } from "@t3tools/contracts";
+import { t } from "@t3tools/shared/i18n";
 import { resolveRemotePairingTarget } from "@t3tools/shared/remote";
 import * as Context from "effect/Context";
 import * as Effect from "effect/Effect";
@@ -78,7 +79,10 @@ const resolvePairingTarget = Effect.fn("clientRuntime.connection.onboarding.reso
       catch: (cause) =>
         new ConnectionBlockedError({
           reason: "configuration",
-          detail: cause instanceof Error ? cause.message : "The pairing details are invalid.",
+          detail:
+            cause instanceof Error
+              ? cause.message
+              : t("connectionOnboarding.onboarding.pairingDetailsInvalid"),
         }),
     });
   },
@@ -171,7 +175,7 @@ export const prepareBearerConnectionUpdate = Effect.fn(
   ) {
     return yield* new ConnectionBlockedError({
       reason: "configuration",
-      detail: "Only saved bearer environments can be edited.",
+      detail: t("connectionOnboarding.onboarding.onlySavedBearerEnvironmentsEditable"),
     });
   }
 
@@ -179,7 +183,7 @@ export const prepareBearerConnectionUpdate = Effect.fn(
   if (Option.isNone(credential) || !isBearerCredential(credential.value)) {
     return yield* new ConnectionBlockedError({
       reason: "authentication",
-      detail: "The saved bearer credential is unavailable.",
+      detail: t("connectionOnboarding.onboarding.savedBearerCredentialUnavailable"),
     });
   }
 
@@ -187,7 +191,7 @@ export const prepareBearerConnectionUpdate = Effect.fn(
   if (label === "") {
     return yield* new ConnectionBlockedError({
       reason: "configuration",
-      detail: "Environment label cannot be empty.",
+      detail: t("connectionOnboarding.onboarding.labelCannotBeEmpty"),
     });
   }
   const httpBaseUrl = yield* Effect.try({
@@ -195,7 +199,10 @@ export const prepareBearerConnectionUpdate = Effect.fn(
     catch: (cause) =>
       new ConnectionBlockedError({
         reason: "configuration",
-        detail: cause instanceof Error ? cause.message : "The environment URL is invalid.",
+        detail:
+          cause instanceof Error
+            ? cause.message
+            : t("connectionOnboarding.onboarding.environmentUrlInvalid"),
       }),
   });
   const connectionId = entry.target.connectionId;

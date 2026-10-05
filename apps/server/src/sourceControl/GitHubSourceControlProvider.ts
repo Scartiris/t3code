@@ -3,6 +3,7 @@ import * as DateTime from "effect/DateTime";
 import * as Effect from "effect/Effect";
 import * as Option from "effect/Option";
 import { SourceControlProviderError, type ChangeRequest } from "@t3tools/contracts";
+import { t } from "@t3tools/shared/i18n";
 
 import * as GitHubCli from "./GitHubCli.ts";
 import { findAuthenticatedGitHubAccount, parseGitHubAuthStatus } from "./gitHubAuthStatus.ts";
@@ -70,7 +71,7 @@ function parseGitHubAuth(input: SourceControlAuthProbeInput) {
       host: failedAccount?.host,
       detail:
         failedAccount?.error ??
-        "Run `gh auth login` to authenticate GitHub CLI with an active account.",
+        t("sourceControl.gitHubSourceControlProvider.authenticateWithGhLoginActiveAccount"),
     });
   }
 
@@ -79,8 +80,7 @@ function parseGitHubAuth(input: SourceControlAuthProbeInput) {
   if (input.exitCode !== 0 && output.includes("unknown flag: --json")) {
     return providerAuth({
       status: "unknown",
-      detail:
-        "GitHub CLI is too old to report sign-in status. Update `gh` to 2.81.0 or newer (for example `brew upgrade gh`) and rescan.",
+      detail: t("sourceControl.gitHubSourceControlProvider.cliTooOldForAuthStatus"),
     });
   }
 
@@ -88,14 +88,18 @@ function parseGitHubAuth(input: SourceControlAuthProbeInput) {
     return providerAuth({
       status: "unauthenticated",
       host,
-      detail: firstSafeAuthLine(output) ?? "Run `gh auth login` to authenticate GitHub CLI.",
+      detail:
+        firstSafeAuthLine(output) ??
+        t("sourceControl.gitHubSourceControlProvider.authenticateWithGhLogin"),
     });
   }
 
   return providerAuth({
     status: "unknown",
     host,
-    detail: firstSafeAuthLine(output) ?? "GitHub CLI auth status could not be parsed.",
+    detail:
+      firstSafeAuthLine(output) ??
+      t("sourceControl.gitHubSourceControlProvider.authStatusUnparsable"),
   });
 }
 
@@ -107,8 +111,7 @@ export const discovery = {
   versionArgs: ["--version"],
   authArgs: ["auth", "status", "--json", "hosts"],
   parseAuth: parseGitHubAuth,
-  installHint:
-    "Install the GitHub command-line tool (`gh`) via https://cli.github.com/ or your package manager (for example `brew install gh`).",
+  installHint: t("sourceControl.gitHubSourceControlProvider.installHint"),
 } satisfies SourceControlCliDiscoverySpec;
 
 export const make = Effect.gen(function* () {

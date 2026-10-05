@@ -1,5 +1,6 @@
 import { DESKTOP_PREVIEW_RECORDING_CAPTURE_TRIGGER } from "@t3tools/contracts";
 import type { DesktopPreviewRecordingArtifact, ScopedThreadRef } from "@t3tools/contracts";
+import { t } from "@t3tools/shared/i18n";
 import { useAtomValue } from "@effect/atom-react";
 import * as Schema from "effect/Schema";
 import { Atom } from "effect/unstable/reactivity";
@@ -19,7 +20,7 @@ export class BrowserRecordingUnavailableError extends Schema.TaggedError<Browser
   },
 ) {
   override get message(): string {
-    return `Browser recording is unavailable for tab ${this.tabId}.`;
+    return t("browser.browserRecording.unavailable", { tabId: this.tabId });
   }
 }
 
@@ -31,7 +32,10 @@ export class BrowserRecordingConflictError extends Schema.TaggedError<BrowserRec
   },
 ) {
   override get message(): string {
-    return `Cannot record tab ${this.requestedTabId} while tab ${this.activeTabId} is already being recorded.`;
+    return t("browser.browserRecording.conflict", {
+      requestedTabId: this.requestedTabId,
+      activeTabId: this.activeTabId,
+    });
   }
 }
 
@@ -42,7 +46,7 @@ export class BrowserRecordingStartCancelledError extends Schema.TaggedError<Brow
   },
 ) {
   override get message(): string {
-    return `Browser recording start was cancelled for tab ${this.tabId}.`;
+    return t("browser.browserRecording.startCancelled", { tabId: this.tabId });
   }
 }
 
@@ -51,7 +55,7 @@ export class BrowserRecordingFormatUnavailableError extends Schema.TaggedError<B
   { tabId: Schema.String },
 ) {
   override get message(): string {
-    return `MediaRecorder did not report an output format for tab ${this.tabId}.`;
+    return t("browser.browserRecording.formatUnavailable", { tabId: this.tabId });
   }
 }
 
@@ -63,7 +67,10 @@ export class BrowserRecordingCaptureTimeoutError extends Schema.TaggedError<Brow
   },
 ) {
   override get message(): string {
-    return `Browser recording media capture for tab ${this.tabId} did not settle within ${this.timeoutMs}ms.`;
+    return t("browser.browserRecording.captureTimeout", {
+      tabId: this.tabId,
+      timeoutMs: this.timeoutMs,
+    });
   }
 }
 
@@ -86,7 +93,10 @@ export class BrowserRecordingOperationError extends Schema.TaggedError<BrowserRe
   },
 ) {
   override get message(): string {
-    return `Browser recording operation ${this.operation} failed for tab ${this.tabId}.`;
+    return t("browser.browserRecording.operationFailed", {
+      operation: this.operation,
+      tabId: this.tabId,
+    });
   }
 }
 

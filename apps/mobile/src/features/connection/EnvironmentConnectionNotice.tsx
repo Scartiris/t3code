@@ -4,6 +4,7 @@ import {
   type EnvironmentConnectionPresentation,
 } from "@t3tools/client-runtime/connection";
 import { SymbolView } from "../../components/AppSymbol";
+import { t } from "@t3tools/shared/i18n";
 import { ActivityIndicator, Pressable, View } from "react-native";
 
 import { AppText as Text } from "../../components/AppText";
@@ -11,17 +12,17 @@ import { AppText as Text } from "../../components/AppText";
 function noticeTitle(phase: EnvironmentConnectionPhase, environmentLabel: string): string {
   switch (phase) {
     case "offline":
-      return "You are offline";
+      return t("connection.environmentConnectionNotice.offline");
     case "connecting":
-      return `Connecting to ${environmentLabel}...`;
+      return t("connection.environmentConnectionNotice.connecting", { environmentLabel });
     case "reconnecting":
-      return `Reconnecting to ${environmentLabel}...`;
+      return t("connection.environmentConnectionNotice.reconnecting", { environmentLabel });
     case "unsupported":
-      return "Client not supported";
+      return t("connection.environmentConnectionNotice.unsupported");
     case "error":
-      return `${environmentLabel} is unavailable`;
+      return t("connection.environmentConnectionNotice.unavailable", { environmentLabel });
     case "available":
-      return `${environmentLabel} is disconnected`;
+      return t("connection.environmentConnectionNotice.disconnected", { environmentLabel });
     case "connected":
       return "";
   }
@@ -33,20 +34,22 @@ function noticeDetail(
   error: string | null,
 ): string {
   if (error) {
-    return phase === "reconnecting" ? `The app will keep retrying automatically. ${error}` : error;
+    return phase === "reconnecting"
+      ? t("connection.environmentConnectionNotice.retryingWithError", { error })
+      : error;
   }
 
   switch (phase) {
     case "offline":
-      return `Cached data remains available. The ${resourceName} will load when your connection returns.`;
+      return t("connection.environmentConnectionNotice.offlineDetail", { resourceName });
     case "connecting":
     case "reconnecting":
-      return `The ${resourceName} will load as soon as the environment is ready.`;
+      return t("connection.environmentConnectionNotice.pendingDetail", { resourceName });
     case "unsupported":
-      return "Use compatible versions of the app and server to connect.";
+      return t("connection.environmentConnectionNotice.unsupportedDetail");
     case "available":
     case "error":
-      return `Reconnect the environment to load the ${resourceName}.`;
+      return t("connection.environmentConnectionNotice.reconnectDetail", { resourceName });
     case "connected":
       return "";
   }
@@ -91,7 +94,9 @@ export function EnvironmentConnectionNotice(props: {
             className="mt-1 rounded-full bg-subtle px-4 py-2.5 active:opacity-70"
             onPress={props.onRetry}
           >
-            <Text className="text-sm font-t3-bold text-foreground">Retry now</Text>
+            <Text className="text-sm font-t3-bold text-foreground">
+              {t("connection.environmentConnectionNotice.retryNow")}
+            </Text>
           </Pressable>
         ) : null}
       </View>

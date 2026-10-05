@@ -1,4 +1,5 @@
 import { EnvironmentId } from "@t3tools/contracts";
+import { t } from "@t3tools/shared/i18n";
 import * as NodeAssert from "node:assert/strict";
 import { describe, expect, it } from "vite-plus/test";
 
@@ -66,7 +67,7 @@ describe("buildFileContextMenuItems", () => {
     });
 
     expect(items.map((item) => item.id)).toEqual(["open", "reveal-in-folder", "open-with"]);
-    expect(items[0]).toMatchObject({ label: "Open" });
+    expect(items[0]).toMatchObject({ label: t("web.fileContextMenu.open") });
     expect(items[1]).toMatchObject({ label: "Reveal in Finder" });
     const openWith = items[2];
     NodeAssert.ok(openWith);

@@ -1,3 +1,4 @@
+import { t } from "@t3tools/shared/i18n";
 import { describe, expect, it } from "vite-plus/test";
 
 import { resolvePullRequestConflict, resolvePullRequestState } from "./pullRequestPresentation";
@@ -9,28 +10,28 @@ describe("resolvePullRequestState", () => {
       "open",
       { state: "open", isDraft: false },
       PullRequestGlyph.pullRequest,
-      "Open",
+      t("pullRequest.pullRequestIcons.stateOpen"),
       "text-emerald-600 dark:text-emerald-300/90",
     ],
     [
       "draft",
       { state: "open", isDraft: true },
       PullRequestGlyph.draft,
-      "Draft",
+      t("pullRequest.pullRequestIcons.stateDraft"),
       "text-zinc-500 dark:text-zinc-400/80",
     ],
     [
       "closed",
       { state: "closed", isDraft: false },
       PullRequestGlyph.closed,
-      "Closed",
+      t("pullRequest.pullRequestIcons.stateClosed"),
       "text-red-600 dark:text-red-300/90",
     ],
     [
       "merged",
       { state: "merged", isDraft: false },
       PullRequestGlyph.merged,
-      "Merged",
+      t("pullRequest.pullRequestIcons.stateMerged"),
       "text-violet-600 dark:text-violet-300/90",
     ],
   ] as const)(
@@ -47,14 +48,14 @@ describe("resolvePullRequestState", () => {
   it("keeps a merged pull request merged when stale draft metadata is also present", () => {
     expect(resolvePullRequestState({ state: "merged", isDraft: true })).toMatchObject({
       Icon: PullRequestGlyph.merged,
-      label: "Merged",
+      label: t("pullRequest.pullRequestIcons.stateMerged"),
     });
   });
 
   it("keeps a closed pull request closed when stale draft metadata is also present", () => {
     expect(resolvePullRequestState({ state: "closed", isDraft: true })).toMatchObject({
       Icon: PullRequestGlyph.closed,
-      label: "Closed",
+      label: t("pullRequest.pullRequestIcons.stateClosed"),
     });
   });
 
@@ -68,11 +69,11 @@ describe("resolvePullRequestState", () => {
 
     expect(resolvePullRequestState(input)).toMatchObject({
       Icon: PullRequestGlyph.pullRequest,
-      label: "Open",
+      label: t("pullRequest.pullRequestIcons.stateOpen"),
     });
     expect(resolvePullRequestConflict(input)).toMatchObject({
       Icon: PullRequestGlyph.conflicting,
-      label: "Conflicts with main",
+      label: t("pullRequest.pullRequestPresentation.conflictsWith", { branch: "main" }),
       toneClassName: "text-destructive",
     });
   });
@@ -118,7 +119,7 @@ describe("resolvePullRequestConflict", () => {
       }),
     ).toEqual({
       Icon: PullRequestGlyph.conflicting,
-      label: "Conflicts with main",
+      label: t("pullRequest.pullRequestPresentation.conflictsWith", { branch: "main" }),
       toneClassName: "text-destructive",
     });
   });
@@ -132,7 +133,7 @@ describe("resolvePullRequestConflict", () => {
       }),
     ).toEqual({
       Icon: PullRequestGlyph.conflicting,
-      label: "Has conflicts",
+      label: t("pullRequest.pullRequestPresentation.hasConflicts"),
       toneClassName: "text-destructive",
     });
   });

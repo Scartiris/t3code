@@ -1,4 +1,5 @@
 import { upgradeLegacyContextMessage } from "@t3tools/shared/composerContextLegacy";
+import { t } from "@t3tools/shared/i18n";
 import { buildProjectThreadStartTurnInput } from "./projectThreadStartTurn";
 import {
   ProjectId,
@@ -105,7 +106,7 @@ describe("mobile composer context", () => {
           contextId: ComposerContextId.make(`preview-${index}`),
         })),
       }),
-    ).toContain("too much context");
+    ).toContain(t("threads.composerContext.draftContextTooLarge"));
   });
 
   it("blocks over-limit recovery drafts until enough context has been removed", () => {
@@ -113,7 +114,9 @@ describe("mobile composer context", () => {
       ...terminal,
       contextId: ComposerContextId.make(`terminal-${index}`),
     }));
-    expect(composerContextSendBlockReason({ version: 1, records })).toContain("at most 200");
+    expect(composerContextSendBlockReason({ version: 1, records })).toContain(
+      t("threads.composerContext.maxContextItems", { count: 200 }),
+    );
     expect(
       composerContextSendBlockReason({ version: 1, records: records.slice(0, 200) }),
     ).toBeNull();

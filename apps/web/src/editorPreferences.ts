@@ -1,4 +1,5 @@
 import { EDITORS, EditorId, EnvironmentId } from "@t3tools/contracts";
+import { t } from "@t3tools/shared/i18n";
 import {
   mapAtomCommandResult,
   type AtomCommandFailure,
@@ -21,7 +22,7 @@ export class PreferredEditorEnvironmentRequiredError extends Schema.TaggedError<
   },
 ) {
   override get message(): string {
-    return `Cannot open ${this.targetPath} because no environment is selected.`;
+    return t("web.editorPreferences.environmentRequired", { targetPath: this.targetPath });
   }
 }
 
@@ -34,7 +35,10 @@ export class PreferredEditorUnavailableError extends Schema.TaggedError<Preferre
   },
 ) {
   override get message(): string {
-    return `No available editor can open ${this.targetPath} in environment ${this.environmentId}.`;
+    return t("web.editorPreferences.noEditorAvailable", {
+      targetPath: this.targetPath,
+      environmentId: this.environmentId,
+    });
   }
 }
 

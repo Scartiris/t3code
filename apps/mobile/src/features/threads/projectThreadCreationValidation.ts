@@ -1,4 +1,5 @@
 import { EnvironmentId, ProjectId } from "@t3tools/contracts";
+import { t } from "@t3tools/shared/i18n";
 import * as Schema from "effect/Schema";
 
 export class ProjectThreadTaskRequiredError extends Schema.TaggedError<ProjectThreadTaskRequiredError>()(
@@ -10,7 +11,7 @@ export class ProjectThreadTaskRequiredError extends Schema.TaggedError<ProjectTh
   },
 ) {
   override get message(): string {
-    return "Enter a task before starting the thread.";
+    return t("threads.projectThreadCreationValidation.taskRequired");
   }
 }
 
@@ -22,7 +23,7 @@ export class ProjectThreadBaseBranchRequiredError extends Schema.TaggedError<Pro
   },
 ) {
   override get message(): string {
-    return "Select a base branch before creating a worktree.";
+    return t("threads.projectThreadCreationValidation.baseBranchRequired");
   }
 }
 

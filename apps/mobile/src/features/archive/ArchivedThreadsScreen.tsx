@@ -8,6 +8,7 @@ import {
   type EnvironmentMachineKind,
   resolveEnvironmentMachineKind,
 } from "@t3tools/contracts";
+import { t } from "@t3tools/shared/i18n";
 import { useNavigation } from "@react-navigation/native";
 import { ScreenHeader } from "../../components/ScreenHeader";
 import { SymbolView } from "../../components/AppSymbol";
@@ -54,31 +55,31 @@ function ArchivedThreadsHeader(props: {
   const hasCustomFilter = props.selectedEnvironmentId !== null || props.sortOrder !== "newest";
   return (
     <ScreenHeader
-      title="Archived threads"
+      title={t("archive.archivedThreadsScreen.title")}
       sidebar={false}
       onBack={() => navigation.goBack()}
       search={{
         value: props.searchQuery,
         onChangeText: props.onSearchQueryChange,
-        placeholder: "Search archived threads",
-        compactPlaceholder: "Search",
+        placeholder: t("archive.archivedThreadsScreen.searchPlaceholder"),
+        compactPlaceholder: t("sidebar.search"),
         mode: "inline",
         compactToolbar: width < 700,
       }}
       menus={[
         {
-          title: "Archived thread options",
+          title: t("archive.archivedThreadsScreen.optionsTitle"),
           icon: hasCustomFilter
             ? "line.3.horizontal.decrease.circle.fill"
             : "line.3.horizontal.decrease.circle",
           items: [
             {
               id: "environment",
-              title: "Environment",
+              title: t("archive.archivedThreadsScreen.environment"),
               items: [
                 {
                   id: "environment:all",
-                  title: "All environments",
+                  title: t("archive.archivedThreadsScreen.allEnvironments"),
                   selected: props.selectedEnvironmentId === null,
                   onPress: () => props.onEnvironmentChange(null),
                 },
@@ -92,17 +93,17 @@ function ArchivedThreadsHeader(props: {
             },
             {
               id: "sort",
-              title: "Sort by archived date",
+              title: t("archive.archivedThreadsScreen.sortByArchivedDate"),
               items: [
                 {
                   id: "sort:newest",
-                  title: "Newest first",
+                  title: t("archive.archivedThreadsScreen.newestFirst"),
                   selected: props.sortOrder === "newest",
                   onPress: () => props.onSortOrderChange("newest"),
                 },
                 {
                   id: "sort:oldest",
-                  title: "Oldest first",
+                  title: t("archive.archivedThreadsScreen.oldestFirst"),
                   selected: props.sortOrder === "oldest",
                   onPress: () => props.onSortOrderChange("oldest"),
                 },
@@ -112,7 +113,7 @@ function ArchivedThreadsHeader(props: {
               ? [
                   {
                     id: "refresh",
-                    title: "Refresh archived threads",
+                    title: t("archive.archivedThreadsScreen.refresh"),
                     onPress: props.onRefresh,
                   },
                 ]
@@ -214,9 +215,11 @@ function ArchivedThreadRow(props: {
       onSwipeableClose={props.onSwipeableClose}
       onSwipeableWillOpen={props.onSwipeableWillOpen}
       primaryAction={{
-        accessibilityLabel: `Unarchive ${props.thread.title}`,
+        accessibilityLabel: t("archive.archivedThreadsScreen.unarchiveAria", {
+          title: props.thread.title,
+        }),
         icon: "arrow.uturn.backward",
-        label: "Unarchive",
+        label: t("archive.archivedThreadsScreen.unarchive"),
         onPress: props.onUnarchive,
       }}
       simultaneousWith={props.simultaneousSwipeGesture}
@@ -274,11 +277,13 @@ function ArchiveError(props: { readonly message: string; readonly onRetry: () =>
   return (
     <View className="rounded-[20px] border border-danger-border bg-danger p-4">
       <Text className="text-base font-t3-bold text-danger-foreground">
-        Could not load every archive
+        {t("archive.archivedThreadsScreen.errorTitle")}
       </Text>
       <Text className="mt-1 text-sm text-foreground-muted">{props.message}</Text>
       <Pressable className="mt-3 self-start active:opacity-60" onPress={props.onRetry}>
-        <Text className="text-sm font-t3-bold text-danger-foreground">Try again</Text>
+        <Text className="text-sm font-t3-bold text-danger-foreground">
+          {t("archive.archivedThreadsScreen.retry")}
+        </Text>
       </Pressable>
     </View>
   );
@@ -391,7 +396,9 @@ export function ArchivedThreadsScreen(props: {
       return (
         <View className="items-center py-16">
           <ActivityIndicator colorClassName="accent-icon" />
-          <Text className="mt-3 text-sm text-foreground-muted">Loading archive...</Text>
+          <Text className="mt-3 text-sm text-foreground-muted">
+            {t("archive.archivedThreadsScreen.loading")}
+          </Text>
         </View>
       );
     }
@@ -400,10 +407,14 @@ export function ArchivedThreadsScreen(props: {
       <EmptyState
         detail={
           isFiltered
-            ? "Try another search or environment."
-            : "Threads you archive will appear here."
+            ? t("archive.archivedThreadsScreen.noMatchDetail")
+            : t("archive.archivedThreadsScreen.emptyDetail")
         }
-        title={isFiltered ? "No matching threads" : "No archived threads"}
+        title={
+          isFiltered
+            ? t("archive.archivedThreadsScreen.noMatches")
+            : t("archive.archivedThreadsScreen.empty")
+        }
       />
     );
   }, [isFiltered, isInitialLoad]);

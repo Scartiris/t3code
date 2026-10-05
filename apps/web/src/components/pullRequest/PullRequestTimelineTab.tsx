@@ -6,6 +6,7 @@ import type {
   PullRequestRef,
   ScopedThreadRef,
 } from "@t3tools/contracts";
+import { t } from "@t3tools/shared/i18n";
 import {
   ChevronDownIcon,
   ExternalLinkIcon,
@@ -166,7 +167,7 @@ function OpenOnHostButton({ url, onOpen }: { url: string | null; onOpen: (url: s
       size="icon-xs"
       variant="ghost-muted"
       className="-mr-1 -mt-1 shrink-0"
-      aria-label="Open activity on host"
+      aria-label={t("pullRequest.pullRequestTimelineTab.openActivityOnHost")}
       onClick={() => onOpen(url)}
     >
       <ExternalLinkIcon className="size-3" />
@@ -205,7 +206,10 @@ function ConversationCard({
     });
     setSaving(false);
     if (result._tag === "Failure") {
-      toastManager.add({ type: "error", title: "Could not save the comment" });
+      toastManager.add({
+        type: "error",
+        title: t("pullRequest.pullRequestTimelineTab.commentSaveFailed"),
+      });
       return;
     }
     setEditing(false);
@@ -235,7 +239,7 @@ function ConversationCard({
           {editable !== null && !editing ? (
             <PullRequestEditButton
               className="-mt-1"
-              aria-label="Edit comment"
+              aria-label={t("pullRequest.pullRequestTimelineTab.editComment")}
               onClick={() => setEditing(true)}
             />
           ) : null}
@@ -260,7 +264,7 @@ function ConversationCard({
             cwd={cwd}
             environmentId={reactions.environmentId}
             threadRef={reactions.threadRef}
-            label="Edit comment"
+            label={t("pullRequest.pullRequestTimelineTab.editComment")}
             saving={saving}
             onSave={(body) => void save(body)}
             onCancel={() => setEditing(false)}
@@ -326,11 +330,15 @@ function ConversationGroup({
           >
             <span className="min-w-0 flex-1">
               <span className="block text-xs font-semibold">
-                {events.length.toLocaleString()} {events.length === 1 ? "comment" : "comments"}
+                {t("pullRequest.pullRequestTimelineTab.commentCount", {
+                  count: events.length.toLocaleString(),
+                })}
               </span>
               <span className="block truncate text-3xs text-muted-foreground">
-                {actors.length.toLocaleString()} {actors.length === 1 ? "author" : "authors"} ·{" "}
-                {formatRelativeTimeLabel(first.at)}
+                {t("pullRequest.pullRequestTimelineTab.authorCount", {
+                  count: actors.length.toLocaleString(),
+                })}{" "}
+                · {formatRelativeTimeLabel(first.at)}
               </span>
             </span>
             <ChevronDownIcon
@@ -377,7 +385,7 @@ function CommitEvent({
     <button
       type="button"
       className="group relative mb-5 block w-full cursor-pointer rounded-sm pl-12 text-left outline-none [contain-intrinsic-block-size:48px] [content-visibility:auto] focus-visible:ring-2 focus-visible:ring-ring"
-      aria-label={`View commit ${event.id}`}
+      aria-label={t("pullRequest.pullRequestTimelineTab.viewCommit", { oid: event.id })}
       onClick={() => onOpen(event.id)}
     >
       <ActorTimelineMarker
@@ -387,7 +395,7 @@ function CommitEvent({
       <div className="flex min-w-0 items-center gap-2.5 py-1.5">
         <div className="min-w-0 flex-1">
           <div className="truncate text-xs font-semibold text-foreground transition-colors group-hover:text-primary">
-            {event.body ?? "Untitled commit"}
+            {event.body ?? t("pullRequest.pullRequestTimelineTab.untitledCommit")}
           </div>
           <div className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-0.5 text-3xs text-muted-foreground">
             <code className="font-mono">{event.id.slice(0, 7)}</code>
@@ -411,16 +419,16 @@ function LifecycleEvent({ event }: { event: PullRequestTimelineEvent }) {
     event.kind === "opened"
       ? {
           icon: <PullRequestGlyph.pullRequest className="size-3.5" />,
-          label: "Pull request opened",
+          label: t("pullRequest.pullRequestTimelineTab.pullRequestOpened"),
         }
       : event.kind === "merged"
         ? {
             icon: <PullRequestGlyph.merged className="size-3.5" />,
-            label: "Pull request merged",
+            label: t("pullRequest.pullRequestTimelineTab.pullRequestMerged"),
           }
         : {
             icon: <PullRequestGlyph.closed className="size-3.5" />,
-            label: "Pull request closed",
+            label: t("pullRequest.pullRequestTimelineTab.pullRequestClosed"),
           };
 
   return (
@@ -492,7 +500,11 @@ function ReviewVerdictEvent({
                 }
               >
                 {pullRequestReviewOutcomeLabel(outcome)}
-                {stale ? <span className="sr-only">, before the latest commits</span> : null}
+                {stale ? (
+                  <span className="sr-only">
+                    {t("pullRequest.pullRequestTimelineTab.beforeLatestCommits")}
+                  </span>
+                ) : null}
               </TooltipTrigger>
               <TooltipPopup>{pullRequestReviewOutcomeStaleLabel(outcome)}</TooltipPopup>
             </Tooltip>
@@ -619,7 +631,7 @@ export function PullRequestTimelineTab({
         {events.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-16 text-center text-muted-foreground">
             <PullRequestGlyph.pullRequest className="mb-2 size-5" />
-            <p className="text-xs">No activity yet.</p>
+            <p className="text-xs">{t("pullRequest.pullRequestTimelineTab.noActivityYet")}</p>
           </div>
         ) : null}
       </div>

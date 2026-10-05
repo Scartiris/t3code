@@ -3,6 +3,7 @@ import * as FileSystem from "effect/FileSystem";
 import * as Schema from "effect/Schema";
 import * as Result from "effect/Result";
 import { SourceControlProviderError } from "@t3tools/contracts";
+import { t } from "@t3tools/shared/i18n";
 import * as VcsProcess from "../vcs/VcsProcess.ts";
 import * as ForgejoCli from "./ForgejoCli.ts";
 import * as SourceControlProvider from "./SourceControlProvider.ts";
@@ -35,7 +36,7 @@ export const discovery = {
         })
       : providerAuth({
           status: "unauthenticated",
-          detail: "Run `tea login add` to authenticate a Forgejo or Gitea server.",
+          detail: t("sourceControl.forgejoSourceControlProvider.authenticateWithTeaLogin"),
         });
   },
   refineUnknownRemote: (input) => {
@@ -49,8 +50,7 @@ export const discovery = {
       );
     return login ? { kind: "forgejo", name: "Forgejo / Gitea", baseUrl: login.url } : null;
   },
-  installHint:
-    "Install `fj` 0.6 or later from https://codeberg.org/forgejo-contrib/forgejo-cli and run `fj --host <server-url> auth add-token`, or install `tea` 0.16 or later from https://gitea.com/gitea/tea and run `tea login add` for each Forgejo or Gitea server.",
+  installHint: t("sourceControl.forgejoSourceControlProvider.cliInstallHint"),
 } satisfies SourceControlCliDiscoverySpec;
 
 export const makeDiscovery = Effect.gen(function* () {
@@ -97,7 +97,9 @@ export const makeDiscovery = Effect.gen(function* () {
             Result.isFailure(credentials)
               ? providerAuth({
                   status: "unknown",
-                  detail: "Could not read fj authentication storage. Authenticate again with fj.",
+                  detail: t(
+                    "sourceControl.forgejoSourceControlProvider.authenticationStorageUnreadable",
+                  ),
                 })
               : login && result.exitCode === 0
                 ? providerAuth({
@@ -107,8 +109,7 @@ export const makeDiscovery = Effect.gen(function* () {
                   })
                 : providerAuth({
                     status: "unauthenticated",
-                    detail:
-                      "Authenticate this server with `fj --host <server-url> auth add-token`.",
+                    detail: t("sourceControl.forgejoSourceControlProvider.authenticateWithFjToken"),
                   }),
         },
       });
@@ -188,7 +189,7 @@ export const make = Effect.gen(function* () {
               new ForgejoCli.ForgejoCliError({
                 command: "tea",
                 cwd: input.cwd,
-                detail: "Forgejo API returned an invalid response.",
+                detail: t("sourceControl.forgejoSourceControlProvider.invalidApiResponse"),
                 reason: "invalid-response",
                 cause,
               }),
@@ -219,7 +220,7 @@ export const make = Effect.gen(function* () {
       return yield* new ForgejoCli.ForgejoCliError({
         command: "tea",
         cwd: input.cwd,
-        detail: "Specify a pull request number or Forgejo pull request URL.",
+        detail: t("sourceControl.forgejoSourceControlProvider.pullRequestReferenceRequired"),
       });
     return yield* request(
       { ...input, path: `${repositoryPath(repo.repository)}/pulls/${number}` },

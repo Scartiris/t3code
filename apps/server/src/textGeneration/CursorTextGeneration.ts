@@ -14,6 +14,7 @@ import {
 } from "@t3tools/contracts";
 import { formatGeneratedBranchName, sanitizeFeatureBranchName } from "@t3tools/shared/git";
 import { extractJsonObject } from "@t3tools/shared/schemaJson";
+import { t } from "@t3tools/shared/i18n";
 
 import { TextGenerationError } from "@t3tools/contracts";
 import * as TextGeneration from "./TextGeneration.ts";
@@ -47,7 +48,7 @@ function cursorSdkResultDetail(result: RunResult): string {
     case "error":
       return "Cursor SDK request finished with an error.";
     case "finished":
-      return "Cursor SDK returned empty output.";
+      return t("textGeneration.cursorTextGeneration.emptyOutput");
   }
 }
 
@@ -87,7 +88,7 @@ export const makeCursorTextGeneration = Effect.fn("makeCursorTextGeneration")(fu
       if (!cursorSettings.enabled) {
         return yield* new TextGenerationError({
           operation,
-          detail: "Cursor is disabled in T3 Code settings.",
+          detail: t("textGeneration.cursorTextGeneration.cursorDisabled"),
         });
       }
 
@@ -218,7 +219,7 @@ export const makeCursorTextGeneration = Effect.fn("makeCursorTextGeneration")(fu
             Effect.fail(
               new TextGenerationError({
                 operation,
-                detail: "Cursor SDK returned invalid structured output.",
+                detail: t("textGeneration.cursorTextGeneration.invalidStructuredOutput"),
                 cause,
               }),
             ),

@@ -1,5 +1,6 @@
 import { it as effectIt } from "@effect/vitest";
 import { HostProcessPlatform } from "@t3tools/shared/hostProcess";
+import { t } from "@t3tools/shared/i18n";
 import * as Effect from "effect/Effect";
 import { describe, expect, it, vi } from "vite-plus/test";
 
@@ -20,11 +21,11 @@ import { DesktopSnapShotError } from "./DesktopSnapShot.ts";
 
 describe("window capture errors", () => {
   it.each([
-    ["unsupported", "SnapShots are not supported here."],
-    ["disabled", "Enable SnapShots in Settings first."],
-    ["no-window-selected", "No window was selected."],
-    ["window-unavailable", "The active window is not available for capture."],
-    ["capture", "Could not capture the active window."],
+    ["unsupported", t("snapShot.desktopSnapShot.unsupportedHere")],
+    ["disabled", t("snapShot.desktopSnapShot.disabledHint")],
+    ["no-window-selected", t("snapShot.desktopSnapShot.noWindowSelected")],
+    ["window-unavailable", t("snapShot.desktopSnapShot.activeWindowUnavailable")],
+    ["capture", t("snapShot.desktopSnapShot.captureFailed")],
   ] as const)("keeps %s failures user-facing", (operation, message) => {
     expect(new DesktopSnapShotError({ operation }).message).toBe(message);
   });
@@ -746,21 +747,21 @@ describe("isWaylandSession", () => {
 
 describe("snapShotShortcutRegistrationFailureMessage", () => {
   it("distinguishes a modifier listener failure from a reserved key chord", () => {
-    expect(
-      snapShotShortcutRegistrationFailureMessage({ kind: "both-shift-keys" }, "darwin"),
-    ).toMatch(/Shift \+ Shift is not available/);
+    expect(snapShotShortcutRegistrationFailureMessage({ kind: "both-shift-keys" }, "darwin")).toBe(
+      t("snapShot.snapShot.modifierPairNotAvailable", { label: "Shift + Shift" }),
+    );
     expect(
       snapShotShortcutRegistrationFailureMessage(
         { kind: "modifier-pair", modifier: "meta" },
         "darwin",
       ),
-    ).toMatch(/Command \+ Command is not available/);
+    ).toBe(t("snapShot.snapShot.modifierPairNotAvailable", { label: "Command + Command" }));
     expect(
       snapShotShortcutRegistrationFailureMessage(
         { kind: "modifier-pair", modifier: "meta" },
         "linux",
       ),
-    ).toMatch(/Super \+ Super is not available/);
+    ).toBe(t("snapShot.snapShot.modifierPairNotAvailable", { label: "Super + Super" }));
     expect(
       snapShotShortcutRegistrationFailureMessage(
         {
@@ -773,7 +774,7 @@ describe("snapShotShortcutRegistrationFailureMessage", () => {
         },
         "darwin",
       ),
-    ).toMatch(/already used/);
+    ).toBe(t("snapShot.snapShot.shortcutInUse"));
   });
 });
 
@@ -788,7 +789,7 @@ describe("snapShotShortcutSystemConflict", () => {
         altKey: false,
         modKey: false,
       }),
-    ).toMatch(/typing/);
+    ).toBe(t("snapShot.snapShot.shortcutShiftConflict"));
     expect(
       snapShotShortcutSystemConflict({
         key: "c",
@@ -798,7 +799,11 @@ describe("snapShotShortcutSystemConflict", () => {
         altKey: false,
         modKey: true,
       }),
-    ).toMatch(/Copy/);
+    ).toBe(
+      t("snapShot.snapShot.shortcutIsActionInMostApps", {
+        action: t("snapShot.snapShot.actionCopy"),
+      }),
+    );
   });
 
   it("allows a specific multi-modifier shortcut", () => {

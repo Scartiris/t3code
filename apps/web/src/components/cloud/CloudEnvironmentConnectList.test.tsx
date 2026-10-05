@@ -1,6 +1,7 @@
 import type { Discovery } from "@t3tools/client-runtime/relay";
 import type { AtomCommandResult } from "@t3tools/client-runtime/state/runtime";
 import { EnvironmentId, ORCHESTRATION_PROTOCOL_VERSION } from "@t3tools/contracts";
+import { t } from "@t3tools/shared/i18n";
 import * as Option from "effect/Option";
 import { AsyncResult } from "effect/unstable/reactivity";
 import { act, useState, type ButtonHTMLAttributes, type ReactNode } from "react";
@@ -175,7 +176,9 @@ describe("cloud onboarding discovery", () => {
       finishDiscovery(linkedMachines);
     });
     expect(onDiscoveryReady).toHaveBeenCalledTimes(1);
-    expect(renderer!.root.findByType("button").children).toEqual(["Add"]);
+    expect(renderer!.root.findByType("button").children).toEqual([
+      t("cloud.cloudEnvironmentConnectList.add"),
+    ]);
   });
 
   it("keeps incompatible discoveries unselected until the user enables a compatible server", async () => {
@@ -310,7 +313,9 @@ describe("cloud onboarding discovery", () => {
     expect(renderer!.root.findAllByType("p").map((node) => node.children)).toContainEqual([
       "Work laptop",
     ]);
-    expect(renderer!.root.findByType("button").children).toEqual(["Add"]);
+    expect(renderer!.root.findByType("button").children).toEqual([
+      t("cloud.cloudEnvironmentConnectList.add"),
+    ]);
     await advance(30_000);
     expect(discovery.listEnvironments).toHaveBeenCalledTimes(2);
   });
@@ -318,7 +323,9 @@ describe("cloud onboarding discovery", () => {
   it("keeps a discovered computer visible when it is added to the browser", async () => {
     discovery.listEnvironments.mockResolvedValue(linkedMachines);
     await mount();
-    expect(renderer!.root.findByType("button").children).toEqual(["Add"]);
+    expect(renderer!.root.findByType("button").children).toEqual([
+      t("cloud.cloudEnvironmentConnectList.add"),
+    ]);
     await act(async () => {
       renderer!.update(
         <CloudEnvironmentConnectRows

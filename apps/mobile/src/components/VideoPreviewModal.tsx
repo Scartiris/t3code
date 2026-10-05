@@ -1,4 +1,5 @@
 import { useIsFocused } from "@react-navigation/native";
+import { t } from "@t3tools/shared/i18n";
 import { videoMimeType } from "@t3tools/shared/video";
 import { useEffect, useRef, useState } from "react";
 import { ActivityIndicator, Keyboard, Modal, Pressable, View } from "react-native";
@@ -74,7 +75,9 @@ function useLocalPlayback(source: LocalVideoPreviewSource): PlaybackState {
       },
       (cause: unknown) => {
         if (!controller.signal.aborted) {
-          setError(cause instanceof Error ? cause.message : "Could not load this video.");
+          setError(
+            cause instanceof Error ? cause.message : t("components.videoPreviewModal.loadFailed"),
+          );
         }
       },
     );
@@ -154,7 +157,7 @@ function OpenVideoPreviewModal(props: {
           <MediaActionsMenu media={mediaActions} inModal />
           <Pressable
             accessibilityRole="button"
-            accessibilityLabel="Close video"
+            accessibilityLabel={t("components.videoPreviewModal.closeVideo")}
             onPress={props.onRequestClose}
             className="size-12 items-center justify-center"
           >
@@ -165,7 +168,9 @@ function OpenVideoPreviewModal(props: {
         {playback.uri === null && !playback.unavailable ? (
           <View className="flex-1 items-center justify-center gap-3 px-6">
             <ActivityIndicator color="#ffffff" />
-            <AppText className="text-sm text-white/80">Loading video...</AppText>
+            <AppText className="text-sm text-white/80">
+              {t("components.videoPreviewModal.loadingVideo")}
+            </AppText>
           </View>
         ) : (
           <MediaVideoPlayer
@@ -186,13 +191,15 @@ function OpenVideoPreviewModal(props: {
         ) : null}
         <Pressable
           accessibilityRole="button"
-          accessibilityLabel="Save or share video"
+          accessibilityLabel={t("components.videoPreviewModal.saveOrShare")}
           disabled={playback.uri === null || mediaActions.sharing}
           onPress={mediaActions.share}
           className="mx-4 my-3 min-h-12 items-center justify-center rounded-xl bg-white/15 px-4"
         >
           <AppText className="font-t3-medium text-base text-white">
-            {mediaActions.sharing ? "Opening share sheet..." : "Save or share video"}
+            {mediaActions.sharing
+              ? t("components.videoPreviewModal.openingShareSheet")
+              : t("components.videoPreviewModal.saveOrShare")}
           </AppText>
         </Pressable>
       </View>

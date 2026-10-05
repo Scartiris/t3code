@@ -1,4 +1,5 @@
 import { EnvironmentId, ProviderInstanceId, USAGE_CONTRACT_VERSION } from "@t3tools/contracts";
+import { t } from "@t3tools/shared/i18n";
 import { mergeUsage } from "@t3tools/shared/usageMerge";
 import { StrictMode, act } from "react";
 import { DEFAULT_RESOLVED_KEYBINDINGS } from "@t3tools/shared/keybindings";
@@ -161,7 +162,7 @@ it.each([0, 1])(
     vi.mocked(Date.now).mockReturnValue(Date.parse("2026-09-11T12:30:00Z"));
     await act(async () => {
       renderer.root
-        .findAllByProps({ "aria-label": "Refresh limits" })
+        .findAllByProps({ "aria-label": t("usage.usagePage.refreshLimits") })
         .filter((node) => node.type === "button")
         .at(buttonIndex)!
         .props.onClick();
@@ -185,7 +186,10 @@ it("uses the current time when returning to limits from tokens", async () => {
   });
   const selectMetric = (metric: string) => {
     renderer.root
-      .findAll((node) => node.type === "div" && node.props["aria-label"] === "Usage metric")[0]!
+      .findAll(
+        (node) =>
+          node.type === "div" && node.props["aria-label"] === t("usage.usagePage.usageMetric"),
+      )[0]!
       .props.onValueChange([metric]);
   };
   await act(() => selectMetric("tokens"));
@@ -209,7 +213,10 @@ it("refreshes once on opening Limits and suppresses rapid returns and remounts",
   expect(state.refreshProviders).not.toHaveBeenCalled();
   const selectMetric = (metric: string) =>
     renderer.root
-      .findAll((node) => node.type === "div" && node.props["aria-label"] === "Usage metric")[0]!
+      .findAll(
+        (node) =>
+          node.type === "div" && node.props["aria-label"] === t("usage.usagePage.usageMetric"),
+      )[0]!
       .props.onValueChange([metric]);
   await act(() => selectMetric("limits"));
   expect(state.refreshProviders).toHaveBeenCalledTimes(1);
@@ -267,7 +274,8 @@ it("keeps manual refresh busy until the already-running automatic check settles"
   });
   const button = () =>
     renderer.root.findAll(
-      (node) => node.type === "button" && node.props["aria-label"] === "Refresh limits",
+      (node) =>
+        node.type === "button" && node.props["aria-label"] === t("usage.usagePage.refreshLimits"),
     )[0]!;
   expect(state.refreshProviders).toHaveBeenCalledTimes(1);
   await act(() => button().props.onClick());

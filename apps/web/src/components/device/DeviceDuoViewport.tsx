@@ -5,6 +5,7 @@ import { createPhoneInteraction } from "@t3tools/client-runtime/device/phone-int
 import { createCanvasFrameSink } from "@t3tools/client-runtime/device/frame";
 import type { DeviceScreenSize, DeviceStreamClient } from "@t3tools/client-runtime/device/stream";
 import { createDuoPinch } from "@t3tools/client-runtime/device/duo-control";
+import { t } from "@t3tools/shared/i18n";
 import { bindPhoneTrackpad } from "./phoneTrackpad";
 
 const loadDuoViewer = () => import("@t3tools/client-runtime/device/duo-viewer");
@@ -182,7 +183,7 @@ export function DeviceDuoViewport(props: {
         />
         <canvas
           ref={canvasRef}
-          aria-label="Interactive 3D iPhone Duo. Drag the screen to interact. Drag outside it or swipe with two fingers to turn. Pinch over the device to open or close its hinge."
+          aria-label={t("device.deviceDuoViewport.aria3d")}
           className="size-full touch-none"
           onPointerDown={(event) => {
             if (event.button !== 0) return;

@@ -1,4 +1,5 @@
 import { EnvironmentId } from "@t3tools/contracts";
+import { t } from "@t3tools/shared/i18n";
 import * as Option from "effect/Option";
 import { beforeEach, describe, expect, it, vi } from "vite-plus/test";
 
@@ -148,14 +149,14 @@ describe("validateDraftFileAttachments", () => {
 
   it("blocks files while config is unknown or file uploads are unsupported", () => {
     expect(validateDraftFileAttachments({ attachments: [file], serverConfig: null })).toBe(
-      "Server attachment support is still loading.",
+      t("threads.newTaskDraftScreen.serverAttachmentSupportLoading"),
     );
     expect(
       validateDraftFileAttachments({
         attachments: [file],
         serverConfig: { environment: { capabilities: { attachmentUploads: true } } },
       }),
-    ).toBe("This server does not support file attachments.");
+    ).toBe(t("chat.chatComposer.serverNoFileAttachments"));
   });
 
   it("uses the current clamped limit and allows valid mixed attachments", () => {
@@ -280,7 +281,7 @@ describe("prepareTurnAttachments", () => {
     const { fileUri: _, ...missingImage } = fileBackedImage;
     await expect(
       prepareTurnAttachments({ environmentId, attachments: [missingImage] }),
-    ).rejects.toThrow("'photo.png' is no longer available. Attach the image again.");
+    ).rejects.toThrow(t("threads.attachmentUpload.imageUnavailable", { name: "photo.png" }));
   });
 
   it.each(["resolve", "reject"] as const)(
@@ -677,7 +678,7 @@ describe("prepareTurnAttachments", () => {
     mocks.upload.mockResolvedValue({ status: 500, body: "failed", headers: {} });
 
     await expect(prepareTurnAttachments({ environmentId, attachments: [file] })).rejects.toThrow(
-      "Upload failed for 'report.pdf' (500).",
+      t("threads.attachmentUpload.uploadFailedWithStatus", { name: "report.pdf", status: 500 }),
     );
     expect(removeCallsFor(MINTED_ID)).toBe(1);
   });
@@ -693,7 +694,9 @@ describe("prepareTurnAttachments", () => {
 
     await expect(
       prepareTurnAttachments({ environmentId, attachments: [previouslyUploaded, file] }),
-    ).rejects.toThrow("Upload failed for 'report.pdf' (500).");
+    ).rejects.toThrow(
+      t("threads.attachmentUpload.uploadFailedWithStatus", { name: "report.pdf", status: 500 }),
+    );
 
     expect(removeCallsFor("pending-existing-pdf")).toBe(0);
   });

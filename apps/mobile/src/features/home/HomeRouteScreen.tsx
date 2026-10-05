@@ -5,6 +5,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { Platform, useWindowDimensions } from "react-native";
 
 import type { EnvironmentThreadShell } from "@t3tools/client-runtime/state/shell";
+import { t } from "@t3tools/shared/i18n";
 
 import { NativeHeaderToolbar, NativeStackScreenOptions } from "../../native/StackHeader";
 import { useProjects, useNavigationThreadShells } from "../../state/entities";
@@ -133,13 +134,15 @@ export function HomeRouteScreen() {
         {Platform.OS === "ios" ? (
           <NativeHeaderToolbar placement="left">
             <NativeHeaderToolbar.Button
-              accessibilityLabel="New task"
+              accessibilityLabel={t("home.homeRouteScreen.newTask")}
               icon="square.and.pencil"
               onPress={() => navigation.navigate("NewTaskSheet", { screen: "NewTask" })}
             />
           </NativeHeaderToolbar>
         ) : null}
-        {Platform.OS === "android" ? <AndroidScreenHeader title="Threads" /> : null}
+        {Platform.OS === "android" ? (
+          <AndroidScreenHeader title={t("home.homeRouteScreen.threads")} />
+        ) : null}
         <WorkspaceEmptyDetail
           onAddConnection={
             Platform.OS === "android" && !catalogState.hasConnections

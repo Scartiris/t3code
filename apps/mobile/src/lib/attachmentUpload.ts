@@ -14,6 +14,7 @@ import type {
   UploadChatImageAttachment,
 } from "@t3tools/contracts";
 import { PROVIDER_SEND_TURN_SUPPORTED_IMAGE_MIME_TYPES } from "@t3tools/contracts";
+import { t } from "@t3tools/shared/i18n";
 import * as Option from "effect/Option";
 
 import { appAtomRegistry } from "../state/atom-registry";
@@ -59,10 +60,11 @@ export function validateDraftFileAttachments(input: {
 }): string | null {
   const files = input.attachments.filter((attachment) => attachment.type === "file");
   if (files.length === 0) return null;
-  if (input.serverConfig === null) return "Server attachment support is still loading.";
+  if (input.serverConfig === null)
+    return t("threads.newTaskDraftScreen.serverAttachmentSupportLoading");
   const capabilities = input.serverConfig.environment.capabilities;
   if (capabilities.attachmentUploads !== true || capabilities.fileAttachments === undefined) {
-    return "This server does not support file attachments.";
+    return t("chat.chatComposer.serverNoFileAttachments");
   }
   const maxBytes = clampFileAttachmentUploadBytes(capabilities.fileAttachments.maxUploadBytes);
   const oversized = files.find((attachment) => attachment.sizeBytes > maxBytes);
@@ -180,7 +182,8 @@ function supportedImageWireMimeType(
   const mimeType = PROVIDER_SEND_TURN_SUPPORTED_IMAGE_MIME_TYPES.find(
     (type) => type === attachment.mimeType.toLowerCase() || type === inferred,
   );
-  if (!mimeType) throw new Error(`Unsupported image type for '${attachment.name}'.`);
+  if (!mimeType)
+    throw new Error(t("threads.attachmentUpload.unsupportedImageType", { name: attachment.name }));
   return mimeType;
 }
 
@@ -239,7 +242,7 @@ async function composerImageAttachmentDataUrl(
     return attachment.dataUrl;
   }
   if (!isFileBackedComposerAttachment(attachment)) {
-    throw new Error(`'${attachment.name}' is no longer available. Attach the image again.`);
+    throw new Error(t("threads.attachmentUpload.imageUnavailable", { name: attachment.name }));
   }
   const release = retainComposerAttachmentFileForPreview(attachment);
   try {
@@ -267,7 +270,7 @@ async function uploadFileBytes(
   const fileUri = attachment.fileUri;
   const inlineDataUrl = attachment.type === "image" ? attachment.dataUrl : undefined;
   if (fileUri === undefined && inlineDataUrl === undefined) {
-    throw new Error(`'${attachment.name}' is no longer available. Attach the image again.`);
+    throw new Error(t("threads.attachmentUpload.imageUnavailable", { name: attachment.name }));
   }
   const file =
     fileUri === undefined
@@ -294,7 +297,12 @@ async function uploadFileBytes(
         : {}),
     });
     if (result.status < 200 || result.status >= 300) {
-      throw new Error(`Upload failed for '${attachment.name}' (${result.status}).`);
+      throw new Error(
+        t("threads.attachmentUpload.uploadFailedWithStatus", {
+          name: attachment.name,
+          status: result.status,
+        }),
+      );
     }
   } finally {
     if (fileUri === undefined && file.exists) file.delete();
@@ -353,7 +361,7 @@ export async function prepareTurnAttachments(input: {
     environmentSession.preparedConnectionValueAtom(environmentId),
   );
   if (Option.isNone(connection)) {
-    throw new Error("The environment is not connected.");
+    throw new Error(t("components.chatView.environmentNotConnected"));
   }
 
   const uploadedAttachments: UploadedMobileAttachment[] = [];
@@ -430,7 +438,7 @@ export async function prepareTurnAttachments(input: {
       if (result.status !== "uploaded") {
         throw result.status === "failed" && result.error !== undefined
           ? result.error
-          : new Error(`Upload failed for '${attachment.name}'.`);
+          : new Error(t("threads.attachmentUpload.uploadFailed", { name: attachment.name }));
       }
       uploadedAttachments.push(uploadedReference(attachment, result.attachmentId));
     }

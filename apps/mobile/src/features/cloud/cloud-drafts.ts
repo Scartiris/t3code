@@ -1,5 +1,6 @@
 import { EnvironmentRegistry } from "@t3tools/client-runtime/connection";
 import { createRuntimeCommand } from "@t3tools/client-runtime/state/runtime";
+import { t } from "@t3tools/shared/i18n";
 import * as Effect from "effect/Effect";
 import * as Schema from "effect/Schema";
 import * as SubscriptionRef from "effect/SubscriptionRef";
@@ -16,7 +17,9 @@ export class CloudDraftArchiveError extends Schema.TaggedError<CloudDraftArchive
   },
 ) {
   override get message(): string {
-    return `Could not preserve local drafts for ${this.environmentCount} cloud environments before sign-out.`;
+    return t("cloud.cloudDrafts.preserveDraftsFailed", {
+      environmentCount: this.environmentCount,
+    });
   }
 }
 

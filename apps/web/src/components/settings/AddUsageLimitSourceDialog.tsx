@@ -1,4 +1,5 @@
 import { type EnvironmentId, UsageLimitSourceId } from "@t3tools/contracts";
+import { t } from "@t3tools/shared/i18n";
 import { useState } from "react";
 
 import { useUpdateEnvironmentSettings } from "../../hooks/useSettings";
@@ -92,10 +93,9 @@ export function AddUsageLimitSourceDialog({
     >
       <DialogPopup className="max-w-md">
         <DialogHeader>
-          <DialogTitle>Add a CLIProxyAPI hub</DialogTitle>
+          <DialogTitle>{t("settings.addUsageLimitSourceDialog.title")}</DialogTitle>
           <DialogDescription>
-            Show the quota of every account the hub pools, next to the providers on{" "}
-            {environmentLabel}. The key stays on that server.
+            {t("settings.addUsageLimitSourceDialog.description", { environmentLabel })}
           </DialogDescription>
         </DialogHeader>
         <DialogPanel>
@@ -107,7 +107,9 @@ export function AddUsageLimitSourceDialog({
             }}
           >
             <div className="grid gap-1.5">
-              <Label htmlFor="usage-source-url">Hub URL</Label>
+              <Label htmlFor="usage-source-url">
+                {t("settings.addUsageLimitSourceDialog.hubUrl")}
+              </Label>
               <Input
                 id="usage-source-url"
                 placeholder="https://hub.example.ts.net:8318"
@@ -117,7 +119,9 @@ export function AddUsageLimitSourceDialog({
               />
             </div>
             <div className="grid gap-1.5">
-              <Label htmlFor="usage-source-key">Management key</Label>
+              <Label htmlFor="usage-source-key">
+                {t("settings.addUsageLimitSourceDialog.managementKey")}
+              </Label>
               <Input
                 id="usage-source-key"
                 type="password"
@@ -127,10 +131,12 @@ export function AddUsageLimitSourceDialog({
               />
             </div>
             <div className="grid gap-1.5">
-              <Label htmlFor="usage-source-label">Label (optional)</Label>
+              <Label htmlFor="usage-source-label">
+                {t("settings.addUsageLimitSourceDialog.optionalLabel")}
+              </Label>
               <Input
                 id="usage-source-label"
-                placeholder="Defaults to the hub's host name"
+                placeholder={t("settings.addUsageLimitSourceDialog.optionalLabelPlaceholder")}
                 value={label}
                 onChange={(event) => setLabel(event.target.value)}
               />
@@ -145,10 +151,10 @@ export function AddUsageLimitSourceDialog({
               onOpenChange(false);
             }}
           >
-            Cancel
+            {t("action.cancel")}
           </Button>
           <Button onClick={save} disabled={!canSave}>
-            Add hub
+            {t("settings.addUsageLimitSourceDialog.addHub")}
           </Button>
         </DialogFooter>
       </DialogPopup>

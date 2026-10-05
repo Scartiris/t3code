@@ -36,6 +36,7 @@ import * as OpenCodeServerLedger from "./OpenCodeServerLedger.ts";
 import { collectStreamAsString } from "./providerSnapshot.ts";
 import * as NetService from "@t3tools/shared/Net";
 import { HostProcessPlatform } from "@t3tools/shared/hostProcess";
+import { t } from "@t3tools/shared/i18n";
 import { compareSemverVersions, parseSemver } from "@t3tools/shared/semver";
 import { resolveSpawnCommand } from "@t3tools/shared/shell";
 const encodeUnknownJsonStringExit = Schema.encodeUnknownExit(Schema.fromJsonString(Schema.Unknown));
@@ -802,7 +803,7 @@ const makeOpenCodeRuntime = Effect.gen(function* () {
               new OpenCodeRuntimeError({
                 operation: "startOpenCodeServerProcess",
                 detail: [
-                  `OpenCode server exited before startup completed (code: ${String(exitCode)}).`,
+                  t("provider.opencodeRuntime.serverExitedDuringStartup", { code: exitCode }),
                   stdout.trim() ? `stdout:\n${stdout.trim()}` : null,
                   stderr.trim() ? `stderr:\n${stderr.trim()}` : null,
                 ]
@@ -838,7 +839,7 @@ const makeOpenCodeRuntime = Effect.gen(function* () {
       if (Option.isNone(readyOption)) {
         return yield* new OpenCodeRuntimeError({
           operation: "startOpenCodeServerProcess",
-          detail: `Timed out waiting for OpenCode server start after ${timeoutMs}ms.`,
+          detail: t("provider.opencodeRuntime.serverStartTimedOut", { timeoutMs }),
         });
       }
 
@@ -924,7 +925,7 @@ const makeOpenCodeRuntime = Effect.gen(function* () {
             : Result.fail(
                 new OpenCodeRuntimeError({
                   operation: "provider.list",
-                  detail: "OpenCode provider list was empty.",
+                  detail: t("provider.opencodeRuntime.providerListEmpty"),
                 }),
               ),
         (result) => result,
@@ -1035,7 +1036,9 @@ const makeOpenCodeRuntime = Effect.gen(function* () {
       if (modelsResult.value.code !== 0) {
         return yield* new OpenCodeRuntimeError({
           operation: "loadInventoryFromCli",
-          detail: `OpenCode models command exited with code ${modelsResult.value.code}.`,
+          detail: t("provider.opencodeRuntime.modelsCommandFailed", {
+            code: modelsResult.value.code,
+          }),
         });
       }
 
@@ -1084,7 +1087,7 @@ const makeOpenCodeRuntime = Effect.gen(function* () {
           : Effect.fail(
               new OpenCodeRuntimeError({
                 operation: "loadSkillsFromCli",
-                detail: `OpenCode skills command exited with code ${result.code}.`,
+                detail: t("provider.opencodeRuntime.skillsCommandFailed", { code: result.code }),
               }),
             ),
       ),

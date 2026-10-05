@@ -1,3 +1,4 @@
+import { t } from "@t3tools/shared/i18n";
 import type { ComponentProps } from "react";
 import { Pressable } from "react-native";
 
@@ -20,13 +21,15 @@ export function SettingsSwitchRow(
     >
       {props.value === null ? (
         <Pressable
-          accessibilityLabel={`Set ${props.label} on for selected environments`}
+          accessibilityLabel={t("components.settingsSwitchRow.setOnA11y", { label: props.label })}
           accessibilityRole="button"
           disabled={props.disabled}
           className="rounded-full bg-subtle px-3 py-2 active:opacity-70"
           onPress={() => props.onValueChange(true)}
         >
-          <Text className="text-sm font-t3-medium text-foreground">Mixed · Set on</Text>
+          <Text className="text-sm font-t3-medium text-foreground">
+            {t("components.settingsSwitchRow.mixedSetOn")}
+          </Text>
         </Pressable>
       ) : (
         <ThemedSwitch

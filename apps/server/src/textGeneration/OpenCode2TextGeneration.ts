@@ -8,6 +8,7 @@
  */
 import { AbsolutePath, Location, Model, Provider, Session } from "@opencode/client/effect";
 import { TextGenerationError } from "@t3tools/contracts";
+import { t } from "@t3tools/shared/i18n";
 import { getModelSelectionStringOptionValue } from "@t3tools/shared/model";
 import { extractJsonObject } from "@t3tools/shared/schemaJson";
 import * as Deferred from "effect/Deferred";
@@ -51,7 +52,7 @@ const runOnServer = (
     if (parsed === null) {
       return yield* new TextGenerationError({
         operation: input.operation,
-        detail: "OpenCode model selection must use the 'provider/model' format.",
+        detail: t("textGeneration.openCode2TextGeneration.modelSelectionFormat"),
       });
     }
     const variant = getModelSelectionStringOptionValue(input.modelSelection, "variant");
@@ -72,7 +73,7 @@ const runOnServer = (
               ? { _tag: "text", text: [...texts.values()].join("\n").trim() }
               : {
                   _tag: "failed",
-                  detail: "OpenCode ended the generation in a way this version cannot read.",
+                  detail: t("textGeneration.openCode2TextGeneration.unreadableGenerationEnd"),
                   cause: event,
                 },
           );
@@ -112,7 +113,7 @@ const runOnServer = (
           case "session.execution.interrupted":
             return Deferred.succeed(outcome, {
               _tag: "failed",
-              detail: "OpenCode stopped the generation.",
+              detail: t("textGeneration.openCode2TextGeneration.generationStopped"),
             });
           default:
             return Effect.void;
@@ -123,7 +124,7 @@ const runOnServer = (
       Effect.flatMap((exit) =>
         Deferred.succeed(outcome, {
           _tag: "failed",
-          detail: "The OpenCode event stream was lost.",
+          detail: t("textGeneration.openCode2TextGeneration.eventStreamLost"),
           cause: exit,
         }),
       ),
@@ -163,7 +164,7 @@ const runOnServer = (
             Effect.ignore,
             Effect.as<Outcome>({
               _tag: "failed",
-              detail: "OpenCode did not finish generating in time.",
+              detail: t("textGeneration.openCode2TextGeneration.timedOut"),
             }),
           ),
       }),
@@ -178,7 +179,7 @@ const runOnServer = (
     if (result.text.length === 0) {
       return yield* new TextGenerationError({
         operation: input.operation,
-        detail: "OpenCode returned empty output.",
+        detail: t("textGeneration.openCode2TextGeneration.emptyOutput"),
       });
     }
     return result.text;
@@ -199,7 +200,7 @@ export const make = Effect.fn("OpenCode2TextGeneration.make")(function* () {
             ? cause
             : new TextGenerationError({
                 operation: input.operation,
-                detail: "OpenCode text generation failed.",
+                detail: t("textGeneration.openCode2TextGeneration.generationFailed"),
                 cause,
               }),
         ),
@@ -209,7 +210,7 @@ export const make = Effect.fn("OpenCode2TextGeneration.make")(function* () {
               (cause) =>
                 new TextGenerationError({
                   operation: input.operation,
-                  detail: "OpenCode returned invalid structured output.",
+                  detail: t("textGeneration.openCode2TextGeneration.invalidStructuredOutput"),
                   cause,
                 }),
             ),

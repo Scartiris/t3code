@@ -1,11 +1,12 @@
 import { type ServerProviderSkill, type ServerProviderSlashCommand } from "@t3tools/contracts";
+import { t } from "@t3tools/shared/i18n";
 import * as Predicate from "effect/Predicate";
 
 // Pi RPC get_commands omits TUI builtins. Advertise /compact so T3 can map it to RPC compact.
 export const PI_COMPACT_SLASH_COMMAND: ServerProviderSlashCommand = {
   name: "compact",
-  description: "Summarize the conversation and reduce context usage",
-  input: { hint: "Optional instructions" },
+  description: t("provider.piCommands.compactDescription"),
+  input: { hint: t("provider.piCommands.compactInstructionsHint") },
 };
 
 export interface PiCompactCommand {

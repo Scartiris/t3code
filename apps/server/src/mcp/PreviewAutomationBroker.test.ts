@@ -17,6 +17,7 @@ import {
   type PreviewAutomationRequest,
   type PreviewAutomationStreamEvent,
 } from "@t3tools/contracts";
+import { t } from "@t3tools/shared/i18n";
 import * as Effect from "effect/Effect";
 import * as Layer from "effect/Layer";
 import * as Exit from "effect/Exit";
@@ -380,7 +381,11 @@ it.effect("preserves bounded request and remote selector diagnostics", () => {
         remoteDetailKind: "object",
       });
       expect(error.message).toBe(
-        `Preview automation click received an invalid locator (${locator.length} characters).`,
+        t("previewErrors.previewAutomation.invalidSelectorWithKind", {
+          operation: "click",
+          selectorKind: "locator",
+          selectorLength: locator.length,
+        }),
       );
       expect(error.message).not.toContain("secret");
       expect(error.cause).toBe(remoteError);
@@ -429,10 +434,21 @@ it.effect("classifies a remote non-editable target without collapsing it to exec
         selectorKind: "focused-element",
         remoteTag: "PreviewAutomationTargetNotEditableError",
       });
-      expect(error.message).toBe("Preview automation type requires an editable focused element.");
+      expect(error.message).toBe(
+        t("previewErrors.previewAutomation.requiresEditableFocusedElement", { operation: "type" }),
+      );
     }),
   );
 });
+
+const recordingFailureMessages = {
+  PreviewAutomationRecordingTransferError: "previewErrors.previewAutomation.recordingSaveFailed",
+  PreviewAutomationRecordingDesktopUpdateRequiredError:
+    "previewErrors.previewAutomation.recordingNeedsDesktopUpdate",
+  PreviewAutomationRecordingTooLargeError: "previewErrors.previewAutomation.recordingTooLarge",
+  PreviewAutomationRecordingDeadlineExpiredError:
+    "previewErrors.previewAutomation.recordingTransferExpired",
+} as const;
 
 it.effect.each([
   "PreviewAutomationRecordingTransferError",
@@ -471,7 +487,7 @@ it.effect.each([
         threadId: scope.threadId,
       });
       expect(error.cause).toBe(remoteError);
-      expect(error.message).toContain("remains on the desktop");
+      expect(error.message).toBe(t(recordingFailureMessages[tag]));
       expect(error.message).not.toContain("remote recording details");
     }),
   ),

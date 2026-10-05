@@ -4,6 +4,8 @@ import * as NodeFSP from "node:fs/promises";
 import * as NodeCrypto from "node:crypto";
 import * as NodeTimersPromises from "node:timers/promises";
 
+import { t } from "@t3tools/shared/i18n";
+
 import type { UsageRecord } from "./usageTranscripts.ts";
 import {
   CursorKeychainTimeoutError,
@@ -91,7 +93,7 @@ export async function readCursorAccountUsage(
           ? "Cursor credentials could not be read."
           : cause instanceof CursorKeychainTimeoutError
             ? "Allow Keychain access on the Mac running T3 Code, then refresh."
-            : "Cursor Keychain credentials could not be read.",
+            : t("usage.cursorUsageReader.keychainCredentialsUnreadable"),
     };
   }
   if (typeof accessToken !== "string" || !accessToken) {
@@ -102,7 +104,7 @@ export async function readCursorAccountUsage(
       error:
         typeof credentialSource === "string"
           ? null
-          : "Cursor account history needs a macOS Keychain CLI login on this server.",
+          : t("usage.cursorUsageReader.keychainLoginRequired"),
     };
   }
   let accountKey: string | null = null;
@@ -151,7 +153,7 @@ export async function readCursorAccountUsage(
           accountKey,
           records: [],
           missing: false,
-          error: "Sign in to Cursor again to read account usage.",
+          error: t("usage.cursorUsageReader.signInAgain"),
         };
       }
       if (!response.ok) throw new Error("Account usage request failed");
@@ -266,7 +268,7 @@ export async function readCursorAccountUsage(
       accountKey,
       records: [],
       missing: false,
-      error: "Cursor account usage could not be read.",
+      error: t("usage.cursorUsageReader.accountUsageUnreadable"),
     };
   }
 }

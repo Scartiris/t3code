@@ -1,6 +1,7 @@
 import * as NodeServices from "@effect/platform-node/NodeServices";
 import { assert, describe, expect, it } from "@effect/vitest";
 import { HostProcessWorkingDirectory } from "@t3tools/shared/hostProcess";
+import { t } from "@t3tools/shared/i18n";
 import * as Duration from "effect/Duration";
 import * as Deferred from "effect/Deferred";
 import * as Effect from "effect/Effect";
@@ -336,7 +337,7 @@ describe("VcsProcess.run", () => {
         command: "node",
         argumentCount: 4,
         exitCode: 2,
-        detail: "Process exited with a non-zero status.",
+        detail: t("vcs.vcs.detailProcessFailed"),
         failureKind: "command-failed",
         stderrLength: secretStderr.length,
         stderrTruncated: false,
@@ -361,7 +362,7 @@ describe("VcsProcess.run", () => {
         operation: "test.authentication",
         command: "node",
         exitCode: 1,
-        detail: "Authentication failed.",
+        detail: t("vcs.vcs.detailAuthenticationFailed"),
         failureKind: "authentication",
         stderrLength: secretStderr.length,
         stderrTruncated: false,
@@ -386,7 +387,7 @@ describe("VcsProcess.run", () => {
       expect(error).toMatchObject({
         command: "node",
         exitCode: 1,
-        detail: "API rate limit exceeded.",
+        detail: t("vcs.vcs.detailRateLimited"),
         failureKind: "rate-limited",
         stderrLength: providerStderr.length,
         stderrTruncated: false,
@@ -407,7 +408,7 @@ describe("VcsProcess.run", () => {
       }).pipe(Effect.flip);
 
       expect(error).toMatchObject({
-        detail: "API rate limit exceeded.",
+        detail: t("vcs.vcs.detailRateLimited"),
         failureKind: "rate-limited",
       });
       expect(error.message).not.toContain(providerStderr);

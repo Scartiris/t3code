@@ -1,3 +1,4 @@
+import { t } from "@t3tools/shared/i18n";
 import { describe, expect, it } from "vite-plus/test";
 
 import { changeRequestWebUrl, resolveLinkPullRequestInput } from "./LinkPullRequestDialog";
@@ -112,7 +113,7 @@ describe("resolveLinkPullRequestInput", () => {
   it("asks for a URL when a bare number has no project to resolve against", () => {
     expect(
       resolveLinkPullRequestInput({ reference: "12", project: null, hasProject: () => true }),
-    ).toMatchObject({ error: expect.stringContaining("full URL") });
+    ).toMatchObject({ error: t("pullRequest.linkPullRequestDialog.pasteFullUrl") });
   });
 
   it("accepts a checkout command as a reference", () => {

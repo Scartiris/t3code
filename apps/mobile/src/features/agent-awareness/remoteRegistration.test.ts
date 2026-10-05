@@ -19,6 +19,7 @@ import { ManagedRelay } from "@t3tools/client-runtime/relay";
 
 import type { EnvironmentId } from "@t3tools/contracts";
 import { verifyDpopProof } from "@t3tools/shared/dpop";
+import { t } from "@t3tools/shared/i18n";
 import type { SavedRemoteConnection } from "../../lib/connection";
 import { cryptoLayer } from "../cloud/dpop";
 import { managedRelayClientLayer } from "../cloud/managedRelayLayer";
@@ -430,7 +431,9 @@ describe("makeRelayDeviceRegistrationRequest", () => {
         _tag: "AgentAwarenessOperationError",
         operation: "read-live-activity-push-token",
         cause,
-        message: "Agent awareness operation read-live-activity-push-token failed.",
+        message: t("agentAwareness.remoteRegistration.operationFailed", {
+          operation: "read-live-activity-push-token",
+        }),
       });
     }).pipe(Effect.provide(relayTestLayer));
   });

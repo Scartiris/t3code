@@ -1,5 +1,6 @@
 import { useAtomSet, useAtomValue } from "@effect/atom-react";
 import { useNavigation } from "@react-navigation/native";
+import { t } from "@t3tools/shared/i18n";
 import { AsyncResult } from "effect/unstable/reactivity";
 import { Platform, ScrollView, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -22,13 +23,13 @@ const ENTER_BEHAVIOR_OPTIONS: ReadonlyArray<{
 }> = [
   {
     behavior: "send",
-    label: "Send message",
-    description: "Return sends the message. Shift-Return inserts a new line.",
+    label: t("chat.sendMessage"),
+    description: t("settings.settingsKeyboardRouteScreen.sendDescription"),
   },
   {
     behavior: "newline",
-    label: "Insert new line",
-    description: "Return inserts a new line. Command-Return sends the message.",
+    label: t("settings.settingsKeyboardRouteScreen.insertNewLine"),
+    description: t("settings.settingsKeyboardRouteScreen.newlineDescription"),
   },
 ];
 
@@ -47,7 +48,10 @@ export function SettingsKeyboardRouteScreen() {
       {Platform.OS === "android" ? (
         <>
           <NativeStackScreenOptions options={{ headerShown: false }} />
-          <AndroidScreenHeader title="Keyboard" onBack={() => navigation.goBack()} />
+          <AndroidScreenHeader
+            title={t("settings.settingsKeyboardRouteScreen.title")}
+            onBack={() => navigation.goBack()}
+          />
         </>
       ) : null}
       <ScrollView
@@ -57,7 +61,7 @@ export function SettingsKeyboardRouteScreen() {
         contentContainerClassName="gap-3 px-5 pt-4"
         contentContainerStyle={{ paddingBottom: Math.max(insets.bottom, 18) + 18 }}
       >
-        <SettingsSection title="Return key">
+        <SettingsSection title={t("settings.settingsKeyboardRouteScreen.returnKey")}>
           {ENTER_BEHAVIOR_OPTIONS.map((option, index) => (
             <SettingsChoiceRow
               key={option.behavior}
@@ -71,7 +75,7 @@ export function SettingsKeyboardRouteScreen() {
           ))}
         </SettingsSection>
         <Text className="px-2 text-sm text-foreground-muted">
-          Applies to the composer when a hardware keyboard is connected.
+          {t("settings.settingsKeyboardRouteScreen.hardwareKeyboardHint")}
         </Text>
       </ScrollView>
     </View>

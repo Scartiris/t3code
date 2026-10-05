@@ -1,3 +1,4 @@
+import { t } from "@t3tools/shared/i18n";
 import { FolderClosedIcon } from "lucide-react";
 import { FileExplorerIcon, FinderIcon } from "../Icons";
 import { resolveOpenInOptions } from "./OpenInPicker";
@@ -67,9 +68,9 @@ describe("shouldShowOpenInPicker", () => {
 
 describe("resolveOpenInOptions", () => {
   it.each([
-    ["MacIntel", "Finder", FinderIcon],
-    ["Win32", "File Explorer", FileExplorerIcon],
-    ["Linux x86_64", "Files", FolderClosedIcon],
+    ["MacIntel", t("web.utils.finder"), FinderIcon],
+    ["Win32", t("web.utils.fileExplorer"), FileExplorerIcon],
+    ["Linux x86_64", t("web.utils.files"), FolderClosedIcon],
   ] as const)("includes the file manager with its icon on %s", (platform, label, Icon) => {
     expect(resolveOpenInOptions(platform, ["cursor", "vscode", "file-manager"])).toEqual([
       expect.objectContaining({ value: "cursor", label: "Cursor" }),

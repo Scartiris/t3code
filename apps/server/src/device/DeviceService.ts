@@ -35,6 +35,7 @@ import {
   LOCAL_DEVICE_HOST_ID,
   type ThreadId,
 } from "@t3tools/contracts";
+import { t } from "@t3tools/shared/i18n";
 import * as FileSystem from "effect/FileSystem";
 import { resolveNodeExecutable, nodeRuntimeUnavailableMessage } from "@t3tools/shared/nodeRuntime";
 import * as Path from "effect/Path";
@@ -232,7 +233,10 @@ export const makeWithHosts = Effect.fn("DeviceService.makeWithHosts")(function* 
       const id = hostId ?? LOCAL_DEVICE_HOST_ID;
       const host = hosts.get(id);
       if (!host) {
-        return yield* new DeviceHostUnavailableError({ hostId: id, reason: "Unknown host." });
+        return yield* new DeviceHostUnavailableError({
+          hostId: id,
+          reason: t("device.deviceService.unknownHost"),
+        });
       }
       return host;
     });
@@ -259,8 +263,7 @@ export const makeWithHosts = Effect.fn("DeviceService.makeWithHosts")(function* 
       if (!(yield* readDeviceSettings).enabled) {
         return yield* new DeviceHostUnavailableError({
           hostId: host.id,
-          reason:
-            "Device support is off. Enable it in the Device panel before installing or starting device tools.",
+          reason: t("device.deviceService.deviceSupportOff"),
         });
       }
       const ready = yield* host
@@ -280,7 +283,7 @@ export const makeWithHosts = Effect.fn("DeviceService.makeWithHosts")(function* 
                     ? nodeRuntimeUnavailableMessage("Local device support")
                     : error.step === "probe"
                       ? "Could not connect to this host over SSH."
-                      : `Device support failed during ${error.step}.`,
+                      : t("device.deviceService.deviceSupportStepFailed", { step: error.step }),
                 cause: error,
               }),
           ),
@@ -288,7 +291,7 @@ export const makeWithHosts = Effect.fn("DeviceService.makeWithHosts")(function* 
       if (hosts.get(host.id) !== host)
         return yield* new DeviceHostUnavailableError({
           hostId: host.id,
-          reason: "Host configuration changed. Retry the operation.",
+          reason: t("device.deviceService.hostConfigurationChanged"),
         });
       const { state } = yield* SynchronizedRef.get(stateRef);
       if (state.hostStatuses[host.id]?.status !== "ready") {
@@ -334,10 +337,12 @@ export const makeWithHosts = Effect.fn("DeviceService.makeWithHosts")(function* 
                   error._tag === "NodeRuntimeUnavailableError"
                     ? nodeRuntimeUnavailableMessage("Local device support")
                     : error._tag === "DeviceHostTimeoutError"
-                      ? `Agent tools did not start within ${error.timeoutMs} ms.`
+                      ? t("device.deviceService.agentToolsStartTimedOut", {
+                          timeoutMs: error.timeoutMs,
+                        })
                       : error.step === "probe"
                         ? "Could not connect to this host over SSH."
-                        : `Device support failed during ${error.step}.`,
+                        : t("device.deviceService.deviceSupportStepFailed", { step: error.step }),
                 cause: error,
               }),
           ),
@@ -590,7 +595,7 @@ export const makeWithHosts = Effect.fn("DeviceService.makeWithHosts")(function* 
       return yield* new DevicePlatformUnavailableError({
         hostId: host.id,
         platform,
-        reason: availability.reason ?? "Platform toolchain missing.",
+        reason: availability.reason ?? t("device.deviceService.platformToolchainMissing"),
       });
     }
   });
@@ -698,7 +703,7 @@ export const makeWithHosts = Effect.fn("DeviceService.makeWithHosts")(function* 
     if (hosts.get(host.id) !== host)
       return yield* new DeviceHostUnavailableError({
         hostId: host.id,
-        reason: "Host configuration changed. Retry the operation.",
+        reason: t("device.deviceService.hostConfigurationChanged"),
       });
     const openedAt = DateTime.formatIso(yield* DateTime.now);
     const session: DeviceSession = {
@@ -713,7 +718,7 @@ export const makeWithHosts = Effect.fn("DeviceService.makeWithHosts")(function* 
         if (!(yield* readDeviceSettings).enabled)
           return yield* new DeviceHostUnavailableError({
             hostId: host.id,
-            reason: "Device support was turned off while the device was opening.",
+            reason: t("device.deviceService.deviceSupportDisabledWhileOpening"),
           });
         yield* publish((current) => ({
           ...current,
@@ -930,15 +935,14 @@ export const makeWithHosts = Effect.fn("DeviceService.makeWithHosts")(function* 
           if (!ready)
             return yield* new DeviceHostUnavailableError({
               hostId: input.hostId,
-              reason:
-                "Agent device access requires enabled device support, agent access, and an available simulator platform on this host.",
+              reason: t("device.deviceService.agentDeviceAccessRequirements"),
             });
           const configPath = yield* lifecycleLock.withPermit(
             Effect.gen(function* () {
               if (hosts.get(host.id) !== host)
                 return yield* new DeviceHostUnavailableError({
                   hostId: host.id,
-                  reason: "Host configuration changed. Retry the operation.",
+                  reason: t("device.deviceService.hostConfigurationChanged"),
                 });
               return yield* configureAgent(input.hostId, ready);
             }),

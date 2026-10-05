@@ -5,6 +5,7 @@ import {
   resolveCustomSnooze,
   type CustomSnoozeInput,
 } from "@t3tools/client-runtime/state/thread-settled";
+import { t } from "@t3tools/shared/i18n";
 import { useState } from "react";
 import {
   KeyboardAvoidingView,
@@ -41,16 +42,16 @@ export function CustomSnoozeSheet(props: {
           contentContainerStyle={{ padding: 24, paddingBottom: 24, gap: 20 }}
         >
           <AppText accessibilityRole="header" className="text-xl font-t3-semibold">
-            Custom snooze
+            {t("threads.customSnoozeSheet.shared.title")}
           </AppText>
           <AppText className="text-base text-foreground-secondary">
-            Choose when snoozed threads return to your inbox.
+            {t("threads.customSnoozeSheet.shared.description")}
           </AppText>
           <SegmentedControl
             options={
               [
-                { value: "date", label: "Date and time" },
-                { value: "duration", label: "Duration" },
+                { value: "date", label: t("threads.customSnoozeSheet.shared.modeDateAndTime") },
+                { value: "duration", label: t("threads.customSnoozeSheet.shared.modeDuration") },
               ] as const
             }
             selected={mode}
@@ -67,11 +68,19 @@ export function CustomSnoozeSheet(props: {
                 <Pressable
                   key={value}
                   accessibilityRole="button"
-                  accessibilityLabel={value === "date" ? "Choose date" : "Choose time"}
+                  accessibilityLabel={
+                    value === "date"
+                      ? t("threads.customSnoozeSheet.shared.chooseDate")
+                      : t("threads.customSnoozeSheet.shared.chooseTime")
+                  }
                   className="min-h-12 flex-row items-center justify-between rounded-xl bg-subtle px-3"
                   onPress={() => setPicker(value)}
                 >
-                  <AppText>{value === "date" ? "Date" : "Time"}</AppText>
+                  <AppText>
+                    {value === "date"
+                      ? t("threads.customSnoozeSheet.shared.dateLabel")
+                      : t("threads.customSnoozeSheet.shared.timeLabel")}
+                  </AppText>
                   <AppText>
                     {value === "date"
                       ? date.toLocaleDateString()
@@ -102,9 +111,9 @@ export function CustomSnoozeSheet(props: {
             </View>
           ) : (
             <View className="gap-3">
-              <AppText>Snooze for</AppText>
+              <AppText>{t("threads.customSnoozeSheet.shared.snoozeFor")}</AppText>
               <TextInput
-                accessibilityLabel="Duration"
+                accessibilityLabel={t("threads.customSnoozeSheet.shared.durationInputLabel")}
                 className="min-h-12 rounded-xl bg-subtle px-3 text-base text-foreground"
                 keyboardType="decimal-pad"
                 value={amount}
@@ -130,7 +139,11 @@ export function CustomSnoozeSheet(props: {
                     }}
                   >
                     <AppText>
-                      {value === "minutes" ? "Minutes" : value === "hours" ? "Hours" : "Days"}
+                      {value === "minutes"
+                        ? t("threads.customSnoozeSheet.shared.unitMinutes")
+                        : value === "hours"
+                          ? t("threads.customSnoozeSheet.shared.unitHours")
+                          : t("threads.customSnoozeSheet.shared.unitDays")}
                     </AppText>
                   </Pressable>
                 ))}
@@ -148,7 +161,7 @@ export function CustomSnoozeSheet(props: {
               className="min-h-12 justify-center px-3"
               onPress={props.onClose}
             >
-              <AppText>Cancel</AppText>
+              <AppText>{t("threads.customSnoozeSheet.shared.cancel")}</AppText>
             </Pressable>
             <Pressable
               accessibilityRole="button"
@@ -162,8 +175,8 @@ export function CustomSnoozeSheet(props: {
                 if (!snoozedUntil) {
                   setError(
                     mode === "date"
-                      ? "Choose a date and time in the future."
-                      : "Enter a positive duration.",
+                      ? t("threads.customSnoozeSheet.shared.errorFutureDateTime")
+                      : t("threads.customSnoozeSheet.shared.errorPositiveDuration"),
                   );
                   return;
                 }
@@ -171,7 +184,9 @@ export function CustomSnoozeSheet(props: {
                 props.onClose();
               }}
             >
-              <AppText className="text-foreground">Snooze</AppText>
+              <AppText className="text-foreground">
+                {t("threads.customSnoozeSheet.shared.snooze")}
+              </AppText>
             </Pressable>
           </View>
         </ScrollView>

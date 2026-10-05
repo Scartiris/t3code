@@ -3,6 +3,7 @@ import {
   CLAUDE_RESUME_COMPACTION_NEVER_ANSWER,
   isClaudeResumeCompactionQuestion,
 } from "@t3tools/shared/claudeCompaction";
+import { t } from "@t3tools/shared/i18n";
 import {
   resolveSelectableProviderInstanceEntry,
   type ProviderInstanceEntry,
@@ -102,11 +103,13 @@ export function formatContextWindowCompactionMessage(
   autoCompactThreshold?: number | null,
 ): string {
   if (typeof autoCompactThreshold === "number" && autoCompactThreshold > 0) {
-    return `Compacts automatically at ${autoCompactThreshold.toLocaleString("en-US")} tokens.`;
+    return t("chat.contextWindowMeter.autoCompactAtThreshold", {
+      threshold: autoCompactThreshold.toLocaleString("en-US"),
+    });
   }
   return modelDisplayName
-    ? `Context for ${modelDisplayName} compacts automatically when needed.`
-    : "Context compacts automatically when needed.";
+    ? t("chat.contextWindowMeter.autoCompactForModel", { model: modelDisplayName })
+    : t("chat.contextWindowMeter.autoCompactWhenNeeded");
 }
 
 /**

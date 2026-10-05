@@ -1,5 +1,6 @@
 import type { SdkCredentialStore } from "@cursor/sdk";
 import { ProviderSetupError, type ProviderInstanceId } from "@t3tools/contracts";
+import { t } from "@t3tools/shared/i18n";
 import * as Effect from "effect/Effect";
 import * as FileSystem from "effect/FileSystem";
 import * as Option from "effect/Option";
@@ -79,7 +80,7 @@ export const makeCursorCredentialStore = Effect.fn("makeCursorCredentialStore")(
               new ProviderSetupError({
                 instanceId,
                 operation: "credentials",
-                detail: "Cursor returned an unsupported credential format.",
+                detail: t("provider.cursorCredentialStore.unsupportedCredentialFormat"),
               }),
           ),
           Effect.flatMap((encoded) => credentials.set(new TextEncoder().encode(encoded))),

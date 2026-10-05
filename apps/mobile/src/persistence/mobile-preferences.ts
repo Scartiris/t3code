@@ -6,6 +6,7 @@ import * as Ref from "effect/Ref";
 import * as Schema from "effect/Schema";
 import * as Semaphore from "effect/Semaphore";
 import type { ProviderInstanceId, SidebarProjectGroupingMode } from "@t3tools/contracts";
+import { t } from "@t3tools/shared/i18n";
 import type { ComposerEnterBehavior } from "../lib/composerEnterBehavior";
 import type { FollowUpBehavior } from "../lib/followUpBehavior";
 import { MOBILE_THEME_IDS, type MobileThemeId, type MobileThemeMode } from "../lib/mobileTheme";
@@ -59,7 +60,7 @@ export class MobilePreferencesLoadError extends Schema.TaggedError<MobilePrefere
   { cause: Schema.Defect() },
 ) {
   override get message(): string {
-    return "Failed to load mobile preferences.";
+    return t("persistence.mobilePreferences.loadFailed");
   }
 }
 
@@ -68,7 +69,7 @@ export class MobilePreferencesSaveError extends Schema.TaggedError<MobilePrefere
   { cause: Schema.Defect() },
 ) {
   override get message(): string {
-    return "Failed to save mobile preferences.";
+    return t("persistence.mobilePreferences.saveFailed");
   }
 }
 

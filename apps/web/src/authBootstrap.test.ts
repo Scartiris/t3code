@@ -5,6 +5,7 @@ import {
   type AuthSessionState,
   type DesktopBridge,
 } from "@t3tools/contracts";
+import { t } from "@t3tools/shared/i18n";
 import * as DateTime from "effect/DateTime";
 import * as Effect from "effect/Effect";
 import { HttpClientError, HttpClientRequest, HttpClientResponse } from "effect/unstable/http";
@@ -380,7 +381,7 @@ describe("resolveInitialServerAuthGateState", () => {
     expect(error).toMatchObject({
       _tag: "PrimaryEnvironmentPairingCredentialRequiredError",
       providedLength: 3,
-      message: "Enter a pairing token to continue.",
+      message: t("environments.auth.pairingTokenRequired"),
     });
   });
 
@@ -404,7 +405,7 @@ describe("resolveInitialServerAuthGateState", () => {
     expect(error).toMatchObject({
       _tag: "PrimaryEnvironmentPairingCredentialRejectedError",
       providedLength: 9,
-      message: "Invalid pairing token. Check the token and try again.",
+      message: t("environments.auth.invalidPairingToken"),
     });
     expect(isPrimaryEnvironmentPairingCredentialRejectedError(error)).toBe(true);
     if (!isPrimaryEnvironmentPairingCredentialRejectedError(error)) {
@@ -430,7 +431,7 @@ describe("resolveInitialServerAuthGateState", () => {
     expect(error.status).toBe(500);
     expect(error.cause).toBe(cause);
     expect(error.message).toBe(
-      "Primary environment request failed during list-pairing-links (HTTP 500).",
+      t("environments.auth.requestFailed", { operation: "list-pairing-links", status: 500 }),
     );
     expect(error.message).not.toContain(cause.message);
   });
@@ -486,7 +487,7 @@ describe("resolveInitialServerAuthGateState", () => {
     await expect(gateStatePromise).resolves.toEqual({
       status: "requires-auth",
       auth: DESKTOP_AUTH,
-      errorMessage: "Timed out waiting for authenticated session after bootstrap.",
+      errorMessage: t("environments.auth.sessionEstablishTimeout"),
     });
     expect(testApi.calls.browserSession).toEqual([{ credential: "desktop-bootstrap-token" }]);
   });
@@ -594,7 +595,7 @@ describe("resolveInitialServerAuthGateState", () => {
     const rejectedState = {
       status: "requires-auth",
       auth: LOOPBACK_AUTH,
-      errorMessage: "Invalid pairing token. Check the token and try again.",
+      errorMessage: t("environments.auth.invalidPairingToken"),
     } as const;
     await expect(explicitPairing).resolves.toEqual(rejectedState);
     await expect(laterCaller).resolves.toEqual(rejectedState);
@@ -636,7 +637,7 @@ describe("resolveInitialServerAuthGateState", () => {
     await expect(resolveInitialServerAuthGateState()).resolves.toEqual({
       status: "requires-auth",
       auth: LOOPBACK_AUTH,
-      errorMessage: "Invalid pairing token. Check the token and try again.",
+      errorMessage: t("environments.auth.invalidPairingToken"),
     });
     await expect(resolveInitialServerAuthGateState()).resolves.toEqual({
       status: "requires-auth",

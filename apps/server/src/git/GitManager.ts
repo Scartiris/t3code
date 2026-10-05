@@ -36,6 +36,7 @@ import {
   type SourceControlWritingStyleSettings,
   type ThreadId,
 } from "@t3tools/contracts";
+import { t } from "@t3tools/shared/i18n";
 import {
   hasProjectSettingsOverrides,
   resolveProjectSettings,
@@ -810,7 +811,7 @@ export const make = Effect.gen(function* () {
           new GitManagerError({
             operation: "randomUUIDv4",
             cwd,
-            detail: "Failed to generate Git operation identifier.",
+            detail: t("git.gitManager.operationIdUnavailable"),
             cause,
           }),
       ),
@@ -2024,7 +2025,7 @@ export const make = Effect.gen(function* () {
       return yield* new GitManagerError({
         operation: "runPrStep",
         cwd,
-        detail: "Current branch has not been pushed. Push before creating a PR.",
+        detail: t("git.gitManager.branchNotPushed"),
       });
     }
 
@@ -2081,7 +2082,7 @@ export const make = Effect.gen(function* () {
           new GitManagerError({
             operation: "runPrStep",
             cwd,
-            detail: "Failed to write pull request body temp file.",
+            detail: t("git.gitManager.pullRequestBodyWriteFailed"),
             cause,
           }),
       ),
@@ -2180,7 +2181,7 @@ export const make = Effect.gen(function* () {
         return yield* new GitManagerError({
           operation: "branchPullRequest",
           cwd: cacheCwd,
-          detail: `Saved upstream for ${branch} is incomplete.`,
+          detail: t("git.gitManager.savedUpstreamIncomplete", { branch }),
         });
       }
       remoteName = savedRemoteName;
@@ -2255,7 +2256,7 @@ export const make = Effect.gen(function* () {
       return yield* new GitManagerError({
         operation: "branchPullRequest",
         cwd: cacheCwd,
-        detail: `Repository identity for ${branch} could not be verified.`,
+        detail: t("git.gitManager.repositoryIdentityUnverified", { branch }),
       });
     }
     if (!hasSameIdentity(cached.headContext, currentIdentity)) {
@@ -2273,7 +2274,7 @@ export const make = Effect.gen(function* () {
         return yield* new GitManagerError({
           operation: "branchPullRequest",
           cwd: cacheCwd,
-          detail: `Repository identity for ${branch} changed during pull request lookup.`,
+          detail: t("git.gitManager.repositoryIdentityChanged", { branch }),
         });
       }
     }
@@ -2459,7 +2460,7 @@ export const make = Effect.gen(function* () {
                   return yield* new GitManagerError({
                     operation: "preparePullRequestThread",
                     cwd: worktreePath,
-                    detail: "The pull request head could not be resolved for this checkout.",
+                    detail: t("git.gitManager.pullRequestHeadUnresolved"),
                   });
                 }
                 return yield* gitCore.resolveCommit({
@@ -2663,14 +2664,14 @@ export const make = Effect.gen(function* () {
           return yield* new GitManagerError({
             operation: "runStackedAction",
             cwd: input.cwd,
-            detail: "Feature-branch checkout is only supported for commit actions.",
+            detail: t("git.gitManager.featureBranchRequiresCommitAction"),
           });
         }
         if (input.action === "create_pr" && initialStatus.hasWorkingTreeChanges) {
           return yield* new GitManagerError({
             operation: "runStackedAction",
             cwd: input.cwd,
-            detail: "Commit local changes before creating a PR.",
+            detail: t("git.gitManager.commitBeforePullRequest"),
           });
         }
 
@@ -2727,7 +2728,7 @@ export const make = Effect.gen(function* () {
               new GitManagerError({
                 operation: "runStackedAction",
                 cwd: input.cwd,
-                detail: "Failed to get server settings.",
+                detail: t("git.gitManager.serverSettingsUnavailable"),
                 cause,
               }),
           ),

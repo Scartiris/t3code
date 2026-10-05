@@ -50,6 +50,7 @@ import {
   ThreadLinkedPullRequest,
   ThreadId,
 } from "@t3tools/contracts";
+import { t } from "@t3tools/shared/i18n";
 import { modelSelectionsEqual } from "@t3tools/shared/model";
 import {
   derivePendingBackgroundWork,
@@ -1181,7 +1182,7 @@ const makeOrchestrator = Effect.fn("orchestrationV2.Orchestrator.layer")(functio
                   parentItemId: null,
                   ordinal: yield* nextTurnItemOrdinal(projection),
                   status: "failed" as const,
-                  title: "Queued provider could not start",
+                  title: t("orchestration-v2.orchestrator.queuedProviderStartFailed"),
                   startedAt: now,
                   completedAt: now,
                   updatedAt: now,
@@ -1604,7 +1605,10 @@ const makeOrchestrator = Effect.fn("orchestrationV2.Orchestrator.layer")(functio
               parentItemId: null,
               ordinal: queuedRun.ordinal * 100 - 1,
               status: "completed",
-              title: handoff === null ? "Imported context" : "Provider handoff",
+              title:
+                handoff === null
+                  ? t("orchestration-v2.orchestrator.importedContext")
+                  : t("orchestration-v2.orchestrator.providerHandoff"),
               startedAt: now,
               completedAt: now,
               updatedAt: now,
@@ -5976,10 +5980,10 @@ const makeOrchestrator = Effect.fn("orchestrationV2.Orchestrator.layer")(functio
               status: "completed",
               title:
                 portableForkHandoff !== null
-                  ? "Fork context"
+                  ? t("orchestration-v2.orchestrator.forkContext")
                   : providerSwitchHandoff !== null
-                    ? "Provider handoff"
-                    : "Merge-back context",
+                    ? t("orchestration-v2.orchestrator.providerHandoff")
+                    : t("orchestration-v2.orchestrator.mergeBackContext"),
               startedAt: now,
               completedAt: now,
               updatedAt: now,
@@ -7571,7 +7575,10 @@ const makeOrchestrator = Effect.fn("orchestrationV2.Orchestrator.layer")(functio
         occurredAt: now,
         payload: {
           ...state.preparationItem,
-          title: command.phase === "worktree" ? "Preparing worktree" : "Starting setup script",
+          title:
+            command.phase === "worktree"
+              ? t("orchestration-v2.orchestrator.preparingWorktree")
+              : t("orchestration-v2.orchestrator.startingSetupScript"),
           updatedAt: now,
         },
       });
@@ -7639,8 +7646,8 @@ const makeOrchestrator = Effect.fn("orchestrationV2.Orchestrator.layer")(functio
         payload: {
           ...state.preparationItem,
           status: "completed",
-          title: "Workspace ready",
-          output: "Workspace preparation completed.",
+          title: t("orchestration-v2.orchestrator.workspaceReady"),
+          output: t("orchestration-v2.orchestrator.workspacePreparationCompleted"),
           exitCode: 0,
           completedAt: now,
           updatedAt: now,
@@ -7714,7 +7721,7 @@ const makeOrchestrator = Effect.fn("orchestrationV2.Orchestrator.layer")(functio
         payload: {
           ...state.preparationItem,
           status: "failed",
-          title: "Workspace preparation failed",
+          title: t("orchestration-v2.orchestrator.workspacePreparationFailed"),
           output: command.failure.message,
           exitCode: 1,
           completedAt: now,
@@ -7742,7 +7749,7 @@ const makeOrchestrator = Effect.fn("orchestrationV2.Orchestrator.layer")(functio
           parentItemId: null,
           ordinal: yield* nextTurnItemOrdinal(projection),
           status: "failed",
-          title: "Workspace preparation failed",
+          title: t("orchestration-v2.orchestrator.workspacePreparationFailed"),
           startedAt: now,
           completedAt: now,
           updatedAt: now,
@@ -8094,12 +8101,12 @@ const makeOrchestrator = Effect.fn("orchestrationV2.Orchestrator.layer")(functio
         parentItemId: null,
         ordinal: yield* nextTurnItemOrdinal(projection),
         status: "completed",
-        title: "Interrupt requested",
+        title: t("orchestration-v2.orchestrator.interruptRequested"),
         startedAt: now,
         completedAt: now,
         updatedAt: now,
         type: "run_interrupt_request",
-        message: command.reason ?? "Interrupt requested",
+        message: command.reason ?? t("orchestration-v2.orchestrator.interruptRequested"),
       };
 
       if (
@@ -8130,12 +8137,12 @@ const makeOrchestrator = Effect.fn("orchestrationV2.Orchestrator.layer")(functio
           parentItemId: interruptRequestItem.id,
           ordinal: interruptRequestItem.ordinal + 1,
           status: "interrupted",
-          title: "Interrupted",
+          title: t("orchestration-v2.orchestrator.interrupted"),
           startedAt: now,
           completedAt: now,
           updatedAt: now,
           type: "run_interrupt_result",
-          message: "Run interrupted before provider start",
+          message: t("orchestration-v2.orchestrator.runInterruptedBeforeProviderStart"),
         };
         yield* emitEvent({
           type: "turn-item.updated",
@@ -8178,8 +8185,9 @@ const makeOrchestrator = Effect.fn("orchestrationV2.Orchestrator.layer")(functio
             payload: {
               ...preparationItem,
               status: "interrupted",
-              title: "Workspace preparation interrupted",
-              output: command.reason ?? "Interrupted before provider start",
+              title: t("orchestration-v2.orchestrator.workspacePreparationInterrupted"),
+              output:
+                command.reason ?? t("orchestration-v2.orchestrator.interruptedBeforeProviderStart"),
               completedAt: now,
               updatedAt: now,
             },

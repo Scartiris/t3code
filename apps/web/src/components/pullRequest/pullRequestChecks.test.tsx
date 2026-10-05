@@ -1,4 +1,5 @@
 import type { EnvironmentId, ProjectId, PullRequestCheck } from "@t3tools/contracts";
+import { t } from "@t3tools/shared/i18n";
 import { Children, isValidElement, type ReactNode } from "react";
 import { describe, expect, it } from "vite-plus/test";
 
@@ -37,17 +38,26 @@ describe("pullRequestChecksState", () => {
       url: "https://github.com/acme/web/actions/runs/42/job/7",
     });
     const manualGate = check("action-required", { url: "https://example.com/manual-gate" });
-    expect(pullRequestCheckStatusLabel(workflow)).toBe("Awaiting approval");
-    expect(pullRequestCheckStatusLabel(manualGate)).toBe("Awaiting action");
-    expect(summarizePullRequestChecks([check("success"), workflow])).toBe(
-      "1 workflow awaiting approval",
+    expect(pullRequestCheckStatusLabel(workflow)).toBe(
+      t("pullRequest.pullRequestPresentation.awaitingApproval"),
     );
-    expect(summarizePullRequestChecks([check("failure"), workflow])).toBe("1 of 2 failing");
+    expect(pullRequestCheckStatusLabel(manualGate)).toBe(
+      t("pullRequest.pullRequestPresentation.checkAwaitingAction"),
+    );
+    expect(summarizePullRequestChecks([check("success"), workflow])).toBe(
+      t("pullRequest.pullRequestPresentation.workflowsAwaitingApproval", { count: 1 }),
+    );
+    expect(summarizePullRequestChecks([check("failure"), workflow])).toBe(
+      t("pullRequest.pullRequestPresentation.failedOfTotal", { failed: 1, total: 2 }),
+    );
     expect(summarizePullRequestChecks([check("success"), manualGate])).toBe(
-      "1 check awaiting action",
+      t("pullRequest.pullRequestPresentation.checksAwaitingAction", { count: 1 }),
     );
     expect(summarizePullRequestChecks([workflow, manualGate])).toBe(
-      "1 workflow and 1 check awaiting action",
+      t("pullRequest.pullRequestPresentation.workflowsAndChecksAwaitingAction", {
+        workflows: 1,
+        checks: 1,
+      }),
     );
   });
 });

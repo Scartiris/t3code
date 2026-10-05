@@ -7,6 +7,7 @@
  * `~/.pi/agent`, so continuation identity uses the default instance grouping.
  */
 import { PiSettings, ProviderDriverKind, type ServerProvider } from "@t3tools/contracts";
+import { t } from "@t3tools/shared/i18n";
 import * as Effect from "effect/Effect";
 import * as FileSystem from "effect/FileSystem";
 import * as Path from "effect/Path";
@@ -134,7 +135,7 @@ export const PiDriver: ProviderDriver<PiSettings, PiDriverEnv> = {
             new ProviderDriverError({
               driver: DRIVER_KIND,
               instanceId,
-              detail: "Failed to build Pi orchestration adapter.",
+              detail: t("provider.piDriver.orchestrationAdapterBuildFailed"),
               cause,
             }),
         ),
@@ -173,7 +174,7 @@ export const PiDriver: ProviderDriver<PiSettings, PiDriverEnv> = {
             new ProviderDriverError({
               driver: DRIVER_KIND,
               instanceId,
-              detail: "Failed to build Pi snapshot.",
+              detail: t("provider.piDriver.snapshotBuildFailed"),
               cause,
             }),
         ),

@@ -5,6 +5,7 @@ import {
   isAtomCommandInterrupted,
   squashAtomCommandFailure,
 } from "@t3tools/client-runtime/state/runtime";
+import { t } from "@t3tools/shared/i18n";
 import { AppText as Text } from "../../components/AppText";
 import { useProjects } from "../../state/entities";
 import { useAtomCommand } from "../../state/use-atom-command";
@@ -130,8 +131,10 @@ export function NewTaskDraftRouteScreen({ route }: StaticScreenProps<NewTaskDraf
     if (!isAtomCommandInterrupted(result)) {
       const error = squashAtomCommandFailure(result);
       Alert.alert(
-        "Could not switch branch",
-        error instanceof Error ? error.message : "The branch could not be checked out.",
+        t("threads.newTaskDraftRouteScreen.couldNotSwitchBranch"),
+        error instanceof Error
+          ? error.message
+          : t("threads.newTaskDraftRouteScreen.branchCheckoutFailed"),
       );
     }
     navigation.goBack();
@@ -151,12 +154,16 @@ export function NewTaskDraftRouteScreen({ route }: StaticScreenProps<NewTaskDraf
     <>
       <NativeStackScreenOptions
         options={{
-          title: Array.isArray(params.title) ? params.title[0] : (params.title ?? "New task"),
+          title: Array.isArray(params.title)
+            ? params.title[0]
+            : (params.title ?? t("threads.newTaskDraftRouteScreen.newTask")),
         }}
       />
       {preparingBranch ? (
         <View className="flex-1 items-center justify-center bg-screen">
-          <Text className="text-foreground">Switching branch...</Text>
+          <Text className="text-foreground">
+            {t("threads.newTaskDraftRouteScreen.switchingBranch")}
+          </Text>
         </View>
       ) : (
         <NewTaskDraftScreen

@@ -1,4 +1,5 @@
 import type { DesktopUpdateRemoteOutcome, DesktopUpdateState } from "@t3tools/contracts";
+import { t } from "@t3tools/shared/i18n";
 
 /**
  * What a server-triggered update run should do next, given the updater's
@@ -49,7 +50,7 @@ export function nextRemoteDesktopUpdateStep(
     return {
       action: "done",
       outcome: "failed",
-      reason: disabledReason ?? "Automatic updates are disabled on this machine.",
+      reason: disabledReason ?? t("updates.remoteUpdateFlow.updatesDisabled"),
     };
   }
   // Mirror installDownloadedUpdate's own admission rule exactly, so the run
@@ -68,7 +69,7 @@ export function nextRemoteDesktopUpdateStep(
       return {
         action: "done",
         outcome: "failed",
-        reason: state.message ?? "The desktop app failed to download the update.",
+        reason: state.message ?? t("updates.remoteUpdateFlow.downloadFailed"),
       };
     }
     return { action: "download" };
@@ -89,7 +90,7 @@ export function nextRemoteDesktopUpdateStep(
     return {
       action: "done",
       outcome: "failed",
-      reason: state.message ?? "The desktop app update failed.",
+      reason: state.message ?? t("updates.remoteUpdateFlow.updateFailed"),
     };
   }
   // status === "idle"
@@ -97,7 +98,7 @@ export function nextRemoteDesktopUpdateStep(
     return {
       action: "done",
       outcome: "failed",
-      reason: "The desktop app did not report an update result.",
+      reason: t("updates.remoteUpdateFlow.noResult"),
     };
   }
   return { action: "check" };

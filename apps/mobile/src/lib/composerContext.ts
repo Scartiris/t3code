@@ -1,5 +1,6 @@
 import { serializeLegacyContextMessage } from "@t3tools/shared/composerContextLegacySend";
 import { filePreviewKind } from "@t3tools/shared/filePreview";
+import { t } from "@t3tools/shared/i18n";
 import { videoMimeType } from "@t3tools/shared/video";
 import {
   COMPOSER_CONTEXT_MAX_RECORDS,
@@ -32,10 +33,10 @@ export function composerContextSendBlockReason(
 ): string | null {
   if (!context) return null;
   if (context.records.length > COMPOSER_CONTEXT_MAX_RECORDS) {
-    return `Remove context items until there are at most ${COMPOSER_CONTEXT_MAX_RECORDS}.`;
+    return t("threads.composerContext.maxContextItems", { count: COMPOSER_CONTEXT_MAX_RECORDS });
   }
   return !isMessageContext(context) || decodeMessageContext(context)._tag === "None"
-    ? "This draft has too much context to send. Remove some context items and try again."
+    ? t("threads.composerContext.draftContextTooLarge")
     : null;
 }
 

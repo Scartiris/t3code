@@ -13,6 +13,7 @@ import {
 } from "@t3tools/contracts";
 import { resolveDesktopAppControlAddress } from "@t3tools/shared/desktopAppControl";
 import { HostProcessUserId } from "@t3tools/shared/hostProcess";
+import { t } from "@t3tools/shared/i18n";
 import * as Context from "effect/Context";
 import * as Effect from "effect/Effect";
 import * as Layer from "effect/Layer";
@@ -42,7 +43,7 @@ export class DesktopAppActivationStartError extends Schema.TaggedError<DesktopAp
   },
 ) {
   override get message(): string {
-    return `Could not start the desktop app control socket at ${this.address}.`;
+    return t("app.desktopAppActivation.controlSocketStartFailed", { address: this.address });
   }
 }
 
@@ -145,7 +146,7 @@ export async function startDesktopAppControlServer(input: {
       buffer += chunk;
       if (Buffer.byteLength(buffer, "utf8") > MAX_REQUEST_BYTES) {
         handled = true;
-        finish(invalidResponse("invalid-request", "The desktop app request is too large."));
+        finish(invalidResponse("invalid-request", t("app.desktopAppActivation.requestTooLarge")));
         return;
       }
 
@@ -158,21 +159,22 @@ export async function startDesktopAppControlServer(input: {
       try {
         parsed = JSON.parse(line);
       } catch {
-        finish(invalidResponse("invalid-request", "The desktop app request is not valid JSON."));
+        finish(invalidResponse("invalid-request", t("app.desktopAppActivation.requestNotJson")));
         return;
       }
 
       if (!isDesktopAppActivationRequest(parsed)) {
         finish(
-          invalidResponse(requestIdFromUnknown(parsed), "The desktop app request is invalid."),
+          invalidResponse(
+            requestIdFromUnknown(parsed),
+            t("app.desktopAppActivation.requestInvalid"),
+          ),
         );
         return;
       }
       activeRequestId = parsed.requestId;
       void input.handle(parsed).then(finish, () => {
-        finish(
-          invalidResponse(parsed.requestId, "T3 Code could not process the desktop app request."),
-        );
+        finish(invalidResponse(parsed.requestId, t("app.desktopAppActivation.requestFailed")));
       });
     });
     socket.on("error", () => socket.destroy());

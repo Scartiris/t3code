@@ -29,6 +29,7 @@ import {
   type RelayProtectedError as RelayProtectedErrorType,
   RelayUnregisterDeviceEndpoint,
 } from "@t3tools/contracts/relay";
+import { t } from "@t3tools/shared/i18n";
 import { encodeOAuthScope, oauthScopeSetEquals } from "@t3tools/shared/oauthScope";
 import { decodeRelayJwt } from "@t3tools/shared/relayJwt";
 import { withRelayClientTracing } from "@t3tools/shared/relayTracing";
@@ -60,7 +61,7 @@ export class ManagedRelayDpopKeyLoadError extends Schema.TaggedError<ManagedRela
   },
 ) {
   override get message(): string {
-    return "Could not load relay DPoP proof key.";
+    return t("relayErrors.managedRelay.dpopProofKeyLoadFailed");
   }
 }
 
@@ -73,7 +74,10 @@ export class ManagedRelayDpopProofCreationError extends Schema.TaggedError<Manag
   },
 ) {
   override get message(): string {
-    return `Could not create the relay DPoP proof for ${this.method} ${this.url}.`;
+    return t("relayErrors.managedRelay.dpopProofCreationFailed", {
+      method: this.method,
+      url: this.url,
+    });
   }
 }
 
@@ -127,7 +131,10 @@ export class ManagedRelayRequestTimeoutError extends Schema.TaggedError<ManagedR
   },
 ) {
   override get message(): string {
-    return `${this.activity} timed out. ${NETWORK_BLOCKING_HINT}`;
+    return t("relayErrors.managedRelay.requestTimedOut", {
+      activity: this.activity,
+      hint: NETWORK_BLOCKING_HINT,
+    });
   }
 }
 
@@ -138,7 +145,7 @@ export class ManagedRelayUrlInvalidError extends Schema.TaggedError<ManagedRelay
   },
 ) {
   override get message(): string {
-    return "Relay URL must be a secure absolute HTTPS origin.";
+    return t("relayErrors.managedRelay.urlMustBeSecureHttpsOrigin");
   }
 }
 
@@ -153,7 +160,7 @@ export class ManagedRelayRequestFailedError extends Schema.TaggedError<ManagedRe
   },
 ) {
   override get message(): string {
-    const message = `Could not ${this.action}.`;
+    const message = t("relayErrors.managedRelay.requestFailed", { action: this.action });
     return this.transportFailed ? `${message} ${NETWORK_BLOCKING_HINT}` : message;
   }
 }
@@ -166,7 +173,7 @@ export class ManagedRelayAccessTokenScopesUnexpectedError extends Schema.TaggedE
   },
 ) {
   override get message(): string {
-    return "Relay granted unexpected DPoP access token scopes.";
+    return t("relayErrors.managedRelay.accessTokenScopesUnexpected");
   }
 }
 
@@ -179,7 +186,7 @@ export class ManagedRelayTokenProofCreationError extends Schema.TaggedError<Mana
   },
 ) {
   override get message(): string {
-    return "Could not create relay token DPoP proof.";
+    return t("relayErrors.managedRelay.tokenProofCreationFailed");
   }
 }
 
@@ -192,7 +199,7 @@ export class ManagedRelayRequestProofCreationError extends Schema.TaggedError<Ma
   },
 ) {
   override get message(): string {
-    return "Could not create relay request DPoP proof.";
+    return t("relayErrors.managedRelay.requestProofCreationFailed");
   }
 }
 

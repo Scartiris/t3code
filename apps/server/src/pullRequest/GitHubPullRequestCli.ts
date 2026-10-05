@@ -38,6 +38,7 @@ import {
   type PullRequestUpdateMethod,
   type PullRequestPreview,
 } from "@t3tools/contracts";
+import { t } from "@t3tools/shared/i18n";
 
 import * as GitHubCli from "../sourceControl/GitHubCli.ts";
 import * as GitHubGraphQlBudget from "../sourceControl/githubGraphQlBudget.ts";
@@ -188,7 +189,7 @@ export class GitHubDiffCursorError extends Schema.TaggedError<GitHubDiffCursorEr
   },
 ) {
   get detail(): string {
-    return "The diff cursor was not one this pull request handed out.";
+    return t("pullRequest.gitHubPullRequestCli.diffCursorUnknown");
   }
 
   override get message(): string {
@@ -205,7 +206,7 @@ export class GitHubDiffCommitError extends Schema.TaggedError<GitHubDiffCommitEr
   },
 ) {
   get detail(): string {
-    return "The named commit was not a commit sha.";
+    return t("pullRequest.gitHubPullRequestCli.commitNotSha");
   }
 
   override get message(): string {
@@ -225,8 +226,8 @@ export class GitHubDiffRevisionsUnavailableError extends Schema.TaggedError<GitH
 ) {
   get detail(): string {
     return this.commit === undefined
-      ? `Pull request #${this.number} reported no usable base and head revisions.`
-      : `Commit ${this.commit} reported no usable revisions for this file.`;
+      ? t("pullRequest.gitHubPullRequestCli.revisionsUnavailable", { number: this.number })
+      : t("pullRequest.gitHubPullRequestCli.commitRevisionsUnavailable", { commit: this.commit });
   }
 
   override get message(): string {
@@ -246,8 +247,8 @@ export class GitHubDiffFileContentsUnavailableError extends Schema.TaggedError<G
 ) {
   get detail(): string {
     return this.reason === "oversized"
-      ? `The diff file '${this.path}' exceeds the 1 MB expansion limit.`
-      : `The diff file '${this.path}' is binary.`;
+      ? t("pullRequest.gitHubPullRequestCli.diffFileOversized", { path: this.path })
+      : t("pullRequest.gitHubPullRequestCli.diffFileBinary", { path: this.path });
   }
 
   override get message(): string {
@@ -270,7 +271,7 @@ export class GitHubRepositorySelectorError extends Schema.TaggedError<GitHubRepo
   },
 ) {
   get detail(): string {
-    return "A repository was named that GitHub cannot address.";
+    return t("pullRequest.gitHubPullRequestCli.repositoryNotAddressable");
   }
 
   override get message(): string {
@@ -288,7 +289,7 @@ export class GitHubSubjectScopeError extends Schema.TaggedError<GitHubSubjectSco
   },
 ) {
   get detail(): string {
-    return "The named subject did not belong to the named pull request.";
+    return t("pullRequest.gitHubPullRequestCli.subjectOutOfScope");
   }
 
   override get message(): string {
@@ -310,7 +311,7 @@ export class GitHubWorkflowApprovalRefusedError extends Schema.TaggedError<GitHu
 ) {
   get detail(): string {
     if (this.reason === "head-list-truncated") {
-      return `GitHub returned more than ${this.limit} pull requests for this head branch.`;
+      return t("pullRequest.gitHubPullRequestCli.headListTruncated", { limit: this.limit });
     }
     if (this.reason === "head-not-unique") {
       return `The head revision matched ${this.observedCount} pull requests instead of uniquely matching #${this.number}.`;
@@ -333,7 +334,7 @@ export class GitHubWorkflowApprovalHeadUnavailableError extends Schema.TaggedErr
   },
 ) {
   get detail(): string {
-    return `GitHub did not report a complete head revision for #${this.number}.`;
+    return t("pullRequest.gitHubPullRequestCli.headRevisionMissing", { number: this.number });
   }
 
   override get message(): string {
@@ -351,7 +352,7 @@ export class GitHubWorkflowApprovalHeadChangedError extends Schema.TaggedError<G
   },
 ) {
   get detail(): string {
-    return `The head revision of #${this.number} changed before its workflows could be approved.`;
+    return t("pullRequest.gitHubPullRequestCli.headRevisionChanged", { number: this.number });
   }
 
   override get message(): string {

@@ -6,6 +6,7 @@ import {
   ThreadId,
 } from "@t3tools/contracts";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vite-plus/test";
+import { t } from "@t3tools/shared/i18n";
 
 import { DraftId, useComposerDraftStore } from "../../composerDraftStore";
 import type { DesktopSnapShotBridge } from "../../lib/desktopSnapShot";
@@ -331,7 +332,7 @@ describe("durable snapshot delivery", () => {
           void store.syncPersistedAttachments(target, [capture]);
         }
         await expect(deliverSnapShot(bridge, capture, target)).rejects.toThrow(
-          "could not be saved",
+          t("desktop.snapShotCoordinator.draftSaveFailed"),
         );
         expect(acknowledgeSnapShot).not.toHaveBeenCalled();
         expect(

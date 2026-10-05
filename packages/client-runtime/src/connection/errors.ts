@@ -1,5 +1,6 @@
 import type { ClientConnectionMethod, EnvironmentId } from "@t3tools/contracts";
 import type { RelayProtectedError } from "@t3tools/contracts/relay";
+import { t } from "@t3tools/shared/i18n";
 import type { ManagedRelayClientError } from "../relay/managedRelay.ts";
 import { dpopFailureMessage, relayProtectedErrorMessage } from "../relay/errorPresentation.ts";
 import type { RemoteEnvironmentAuthError } from "../authorization/remote.ts";
@@ -13,14 +14,14 @@ import {
 export function profileMissingError(connectionId: string): ConnectionBlockedError {
   return new ConnectionBlockedError({
     reason: "configuration",
-    detail: `Connection profile ${connectionId} is unavailable.`,
+    detail: t("connectionErrors.errors.profileMissing", { connectionId }),
   });
 }
 
 export function credentialMissingError(connectionId: string): ConnectionBlockedError {
   return new ConnectionBlockedError({
     reason: "authentication",
-    detail: `Connection credential ${connectionId} is unavailable.`,
+    detail: t("connectionErrors.errors.credentialMissing", { connectionId }),
   });
 }
 
@@ -30,7 +31,10 @@ export function environmentMismatchError(input: {
 }): ConnectionBlockedError {
   return new ConnectionBlockedError({
     reason: "configuration",
-    detail: `Connected environment ${input.actual} does not match ${input.expected}.`,
+    detail: t("connectionErrors.errors.environmentMismatch", {
+      actual: input.actual,
+      expected: input.expected,
+    }),
   });
 }
 
@@ -121,20 +125,20 @@ export function mapRemoteEnvironmentError(
     case "EnvironmentAuthInvalidError":
       return new ConnectionBlockedError({
         reason: "authentication",
-        detail: "The environment credential is invalid.",
+        detail: t("connectionErrors.errors.credentialInvalid"),
         traceId: error.traceId,
       });
     case "EnvironmentScopeRequiredError":
     case "EnvironmentOperationForbiddenError":
       return new ConnectionBlockedError({
         reason: "permission",
-        detail: "The environment credential does not grant the required access.",
+        detail: t("connectionErrors.errors.credentialScopeRequired"),
         traceId: error.traceId,
       });
     case "EnvironmentRequestInvalidError":
       return new ConnectionBlockedError({
         reason: "configuration",
-        detail: "The environment rejected the authentication request.",
+        detail: t("connectionErrors.errors.authRequestRejected"),
         traceId: error.traceId,
       });
     case "EnvironmentResourceNotFoundError":
@@ -143,7 +147,7 @@ export function mapRemoteEnvironmentError(
       // snapshot). Treat it as a configuration issue with the endpoint.
       return new ConnectionBlockedError({
         reason: "configuration",
-        detail: "The environment endpoint could not be found.",
+        detail: t("connectionErrors.errors.endpointNotFound"),
         traceId: error.traceId,
       });
     case "RemoteEnvironmentAuthTimeoutError":
@@ -159,7 +163,7 @@ export function mapRemoteEnvironmentError(
     case "EnvironmentInternalError":
       return new ConnectionTransientError({
         reason: "remote-unavailable",
-        detail: "The environment could not authorize the connection.",
+        detail: t("connectionErrors.errors.couldNotAuthorize"),
         traceId: error.traceId,
       });
     case "RemoteEnvironmentAuthInvalidJsonError":
@@ -184,7 +188,10 @@ export function mapRemoteDpopEnvironmentError(
   if (error._tag === "EnvironmentAuthInvalidError" && error.reason === "invalid_credential") {
     return new ConnectionBlockedError({
       reason: "authentication",
-      detail: dpopFailureMessage("The environment credential is invalid.", error.dpopFailureReason),
+      detail: dpopFailureMessage(
+        t("connectionErrors.errors.credentialInvalid"),
+        error.dpopFailureReason,
+      ),
       traceId: error.traceId,
     });
   }

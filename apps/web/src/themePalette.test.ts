@@ -1,4 +1,5 @@
 import { describe, expect, it, vi } from "vite-plus/test";
+import { t } from "@t3tools/shared/i18n";
 import { BUILT_IN_THEMES } from "@t3tools/shared/themePalettes";
 
 import {
@@ -285,7 +286,7 @@ describe("theme files", () => {
         appearance: "light",
         colors: { background: "#ffffff" },
       }),
-    ).toThrow('"background" is not a supported theme color role.');
+    ).toThrow(t("web.themePalette.unsupportedColorRole", { role: "background" }));
 
     expect(() =>
       parseThemeFile({
@@ -294,7 +295,7 @@ describe("theme files", () => {
         appearance: "light",
         colors: { accent: "var(--danger)" },
       }),
-    ).toThrow('The color for "accent" must be a literal CSS color');
+    ).toThrow(t("web.themePalette.colorMustBeLiteralCss", { role: "accent" }));
   });
 
   it("canonicalizes the explicitly exported theme", () => {
@@ -493,7 +494,7 @@ describe("theme files", () => {
         colors: { canvas: "#f8fbff" },
         variants: { light: { canvas: "#101827" } },
       }),
-    ).toThrow('Theme variants must not repeat the base appearance "light".');
+    ).toThrow(t("web.themePalette.variantRepeatsBaseAppearance", { appearance: "light" }));
   });
 
   it("keeps a single-mode theme on its only palette", () => {
@@ -896,7 +897,13 @@ describe("theme files", () => {
           colors: { accent: "#5b6cff" },
         }),
       ),
-    ).toThrow(`Failed to read the theme library from ${CUSTOM_THEMES_STORAGE_KEY}.`);
+    ).toThrow(
+      t("web.themePalette.libraryOperationFailed", {
+        operation: "read",
+        direction: "from",
+        storageKey: CUSTOM_THEMES_STORAGE_KEY,
+      }),
+    );
     expect(setItem).not.toHaveBeenCalled();
 
     vi.unstubAllGlobals();
@@ -924,7 +931,7 @@ describe("theme files", () => {
           colors: { accent: "#5b6cff" },
         }),
       ),
-    ).toThrow('A theme named "Aurora" is already installed.');
+    ).toThrow(t("web.themePalette.themeAlreadyInstalled", { label: "Aurora" }));
     expect(setItem).not.toHaveBeenCalled();
 
     vi.unstubAllGlobals();

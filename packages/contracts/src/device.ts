@@ -12,6 +12,7 @@
  *
  * @module Device
  */
+import { t } from "@t3tools/i18n";
 import { Schema } from "effect";
 
 import { ThreadId, TrimmedNonEmptyString } from "./baseSchemas.ts";
@@ -369,7 +370,7 @@ export class DeviceHostUnavailableError extends Schema.TaggedError<DeviceHostUna
   },
 ) {
   override get message(): string {
-    return `Device host ${this.hostId} is unavailable: ${this.reason}`;
+    return t("device.device.hostUnavailable", { hostId: this.hostId, reason: this.reason });
   }
 }
 
@@ -382,7 +383,11 @@ export class DevicePlatformUnavailableError extends Schema.TaggedError<DevicePla
   },
 ) {
   override get message(): string {
-    return `${this.platform} devices are unavailable on host ${this.hostId}: ${this.reason}`;
+    return t("device.device.platformUnavailable", {
+      platform: this.platform,
+      hostId: this.hostId,
+      reason: this.reason,
+    });
   }
 }
 
@@ -394,7 +399,7 @@ export class DeviceNotFoundError extends Schema.TaggedError<DeviceNotFoundError>
   },
 ) {
   override get message(): string {
-    return `Device ${this.deviceId} was not found on host ${this.hostId}.`;
+    return t("device.device.notFound", { deviceId: this.deviceId, hostId: this.hostId });
   }
 }
 
@@ -406,12 +411,11 @@ export class DeviceBootError extends Schema.TaggedError<DeviceBootError>()("Devi
 }) {
   override get message(): string {
     const explanation = {
-      disk_space: "There is not enough free disk space on the environment server.",
-      timeout: "The device did not become ready in time.",
-      launch_failed:
-        "The simulator or emulator could not start. Check its configuration on the environment server.",
+      disk_space: t("device.device.bootDiskSpace"),
+      timeout: t("device.device.bootTimeout"),
+      launch_failed: t("device.device.bootLaunchFailed"),
     }[this.reason];
-    return `Device ${this.deviceId} failed to boot: ${explanation}`;
+    return t("device.device.bootFailed", { deviceId: this.deviceId, explanation });
   }
 }
 
@@ -432,13 +436,21 @@ export class DeviceOperationError extends Schema.TaggedError<DeviceOperationErro
 ) {
   override get message(): string {
     const explanation = {
-      command_failed: `The device command failed${this.exitCode === undefined ? "" : ` (exit code ${this.exitCode})`}.`,
-      request_failed: "Could not communicate with device support. Try refreshing devices.",
-      invalid_payload: "The device request could not be encoded.",
-      settings_failed: "Could not read or save device settings.",
-      hub_rejected: "The device hub could not complete the request.",
+      command_failed: t("device.device.operationCommandFailed", {
+        exitCodeSuffix:
+          this.exitCode === undefined
+            ? ""
+            : t("device.device.operationCommandFailedExit", { exitCode: this.exitCode }),
+      }),
+      request_failed: t("device.device.operationRequestFailed"),
+      invalid_payload: t("device.device.operationInvalidPayload"),
+      settings_failed: t("device.device.operationSettingsFailed"),
+      hub_rejected: t("device.device.operationHubRejected"),
     }[this.reason];
-    return `Device ${this.operation} failed: ${explanation}`;
+    return t("device.device.operationFailed", {
+      operation: this.operation,
+      explanation,
+    });
   }
 }
 
@@ -452,8 +464,11 @@ export class DeviceActionUnavailableError extends Schema.TaggedError<DeviceActio
 ) {
   override get message(): string {
     return this.reason === "helper_missing"
-      ? `Device ${this.operation} requires a helper missing from this install. Set up device support again.`
-      : `Device ${this.operation} is not supported on ${this.platform}.`;
+      ? t("device.device.actionHelperMissing", { operation: this.operation })
+      : t("device.device.actionUnsupported", {
+          operation: this.operation,
+          platform: this.platform,
+        });
   }
 }
 
@@ -573,11 +588,15 @@ export const DeviceToolError = Schema.Union([
 export type DeviceToolError = typeof DeviceToolError.Type;
 
 export function deviceToolInstallMessage(name: string, tool: DeviceToolVersion | undefined) {
-  if (!tool) return `Installing ${name}…`;
+  if (!tool) return t("device.device.toolInstalling", { name });
   const previous =
     tool.runningVersion ??
     [...tool.installedVersions].sort((a, b) => a.localeCompare(b, "en", { numeric: true })).at(-1);
   return previous && !tool.installedVersions.includes(tool.requiredVersion)
-    ? `Updating ${name} from ${previous} to ${tool.requiredVersion}…`
-    : `Installing ${name} ${tool.requiredVersion}…`;
+    ? t("device.device.toolUpdating", {
+        name,
+        previousVersion: previous,
+        requiredVersion: tool.requiredVersion,
+      })
+    : t("device.device.toolInstallingVersion", { name, requiredVersion: tool.requiredVersion });
 }

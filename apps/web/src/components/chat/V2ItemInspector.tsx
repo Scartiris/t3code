@@ -4,6 +4,7 @@ import type {
   RunId,
   ThreadId,
 } from "@t3tools/contracts";
+import { t } from "@t3tools/shared/i18n";
 import { ExternalLinkIcon, GitBranchIcon, RotateCcwIcon } from "lucide-react";
 import { memo, Suspense, use, useMemo } from "react";
 
@@ -109,7 +110,7 @@ export const V2ItemInspector = memo(function V2ItemInspector(props: V2ItemInspec
           <StructuredValue value={item.input} highlightJson />
           {item.exitCode !== undefined ? (
             <p className={item.exitCode === 0 ? "text-success" : "text-destructive"}>
-              Process exited with code {item.exitCode}
+              {t("chat.v2ItemInspector.processExited", { code: item.exitCode })}
             </p>
           ) : null}
         </div>
@@ -133,7 +134,7 @@ export const V2ItemInspector = memo(function V2ItemInspector(props: V2ItemInspec
                 variant="outline"
                 onClick={() => props.onOpenTurnDiff(item.runId!, item.fileName)}
               >
-                Open diff
+                {t("chat.v2ItemInspector.openDiff")}
               </Button>
             ) : null}
           </div>
@@ -188,7 +189,7 @@ export const V2ItemInspector = memo(function V2ItemInspector(props: V2ItemInspec
                   </a>
                 ) : (
                   <p className="font-medium text-foreground">
-                    {result.title ?? result.url ?? "Search result"}
+                    {result.title ?? result.url ?? t("chat.v2ItemInspector.searchResult")}
                   </p>
                 )}
                 {result.snippet ? <p className="text-muted-foreground">{result.snippet}</p> : null}
@@ -201,7 +202,7 @@ export const V2ItemInspector = memo(function V2ItemInspector(props: V2ItemInspec
       {item.type === "dynamic_tool" ? (
         <div>
           <p className="mb-1 text-3xs font-medium tracking-wide uppercase text-muted-foreground">
-            Input
+            {t("chat.v2ItemInspector.input")}
           </p>
           <StructuredValue value={item.input} highlightJson />
         </div>
@@ -225,7 +226,8 @@ export const V2ItemInspector = memo(function V2ItemInspector(props: V2ItemInspec
       {item.type === "checkpoint" ? (
         <div className="flex flex-wrap items-center gap-2">
           <span className="text-muted-foreground">
-            {support.checkpoint?.status ?? item.status} · {item.files.length} files
+            {support.checkpoint?.status ?? item.status} ·{" "}
+            {t("chat.v2ItemInspector.fileCount", { count: item.files.length })}
           </span>
           {props.onRollbackCheckpoint && support.checkpoint?.status === "ready" ? (
             <Button
@@ -239,7 +241,7 @@ export const V2ItemInspector = memo(function V2ItemInspector(props: V2ItemInspec
               }
             >
               <RotateCcwIcon className="size-3" />
-              Roll back
+              {t("chat.v2ItemInspector.rollBack")}
             </Button>
           ) : null}
         </div>
@@ -248,13 +250,13 @@ export const V2ItemInspector = memo(function V2ItemInspector(props: V2ItemInspec
       {item.type === "fork" ? (
         <Button size="xs" variant="outline" onClick={() => props.onOpenThread(item.targetThreadId)}>
           <GitBranchIcon className="size-3" />
-          Open fork
+          {t("chat.v2ItemInspector.openFork")}
         </Button>
       ) : null}
 
       {item.type === "subagent" && item.childThreadId !== null ? (
         <Button size="xs" variant="outline" onClick={() => props.onOpenThread(item.childThreadId!)}>
-          Open subagent thread
+          {t("chat.v2ItemInspector.openSubagentThread")}
         </Button>
       ) : null}
 
@@ -268,8 +270,10 @@ export const V2ItemInspector = memo(function V2ItemInspector(props: V2ItemInspec
           </p>
           {support.contextTransfer ? (
             <p>
-              Transfer {support.contextTransfer.type.replaceAll("_", " ")} ·{" "}
-              {support.contextTransfer.status}
+              {t("chat.v2ItemInspector.contextTransfer", {
+                type: support.contextTransfer.type.replaceAll("_", " "),
+                status: support.contextTransfer.status,
+              })}
             </p>
           ) : null}
         </div>

@@ -1,3 +1,4 @@
+import { t } from "@t3tools/shared/i18n";
 import { useEffect, useRef, useState } from "react";
 import { pendingProviderAuthDelivery, clearProviderAuthDelivery } from "../../providerAuthDelivery";
 import { serverEnvironment } from "../../state/server";
@@ -30,15 +31,15 @@ export function ProviderAuthCallbackCoordinator() {
         if (result._tag === "Failure")
           toastManager.add({
             type: "error",
-            title: "ChatGPT sign-in couldn't finish",
-            description: "Return to the provider and try again.",
+            title: t("settings.providerAuthCallbackCoordinator.signInFailed"),
+            description: t("settings.providerAuthCallbackCoordinator.returnToProvider"),
           });
       })
       .catch(() =>
         toastManager.add({
           type: "error",
-          title: "ChatGPT sign-in couldn't finish",
-          description: "Reconnect to the environment and try again.",
+          title: t("settings.providerAuthCallbackCoordinator.signInFailed"),
+          description: t("settings.providerAuthCallbackCoordinator.reconnectEnvironment"),
         }),
       )
       .finally(() => {

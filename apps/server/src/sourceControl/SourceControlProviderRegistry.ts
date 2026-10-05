@@ -10,6 +10,7 @@ import {
 } from "@t3tools/contracts";
 import type { SourceControlProviderKind } from "@t3tools/contracts";
 import { detectSourceControlProviderFromRemoteUrl } from "@t3tools/shared/sourceControl";
+import { t } from "@t3tools/shared/i18n";
 
 import * as AzureDevOpsSourceControlProvider from "./AzureDevOpsSourceControlProvider.ts";
 import * as BitbucketSourceControlProvider from "./BitbucketSourceControlProvider.ts";
@@ -74,7 +75,7 @@ function unsupportedProvider(
         provider: kind,
         operation: "listChangeRequests",
         cwd: input.cwd,
-        detail: `No ${kind} source control provider is registered.`,
+        detail: t("sourceControl.sourceControlProviderRegistry.providerNotRegistered", { kind }),
       }),
     getChangeRequest: (input) =>
       new SourceControlProviderError({
@@ -82,7 +83,7 @@ function unsupportedProvider(
         operation: "getChangeRequest",
         cwd: input.cwd,
         reference: SourceControlProvider.transportSafeSourceControlErrorValue(input.reference),
-        detail: `No ${kind} source control provider is registered.`,
+        detail: t("sourceControl.sourceControlProviderRegistry.providerNotRegistered", { kind }),
       }),
     createChangeRequest: (input) =>
       new SourceControlProviderError({
@@ -90,7 +91,7 @@ function unsupportedProvider(
         operation: "createChangeRequest",
         cwd: input.cwd,
         reference: SourceControlProvider.transportSafeSourceControlErrorValue(input.headSelector),
-        detail: `No ${kind} source control provider is registered.`,
+        detail: t("sourceControl.sourceControlProviderRegistry.providerNotRegistered", { kind }),
       }),
     getRepositoryCloneUrls: (input) =>
       new SourceControlProviderError({
@@ -98,7 +99,7 @@ function unsupportedProvider(
         operation: "getRepositoryCloneUrls",
         cwd: input.cwd,
         repository: SourceControlProvider.transportSafeSourceControlErrorValue(input.repository),
-        detail: `No ${kind} source control provider is registered.`,
+        detail: t("sourceControl.sourceControlProviderRegistry.providerNotRegistered", { kind }),
       }),
     createRepository: (input) =>
       new SourceControlProviderError({
@@ -106,14 +107,14 @@ function unsupportedProvider(
         operation: "createRepository",
         cwd: input.cwd,
         repository: SourceControlProvider.transportSafeSourceControlErrorValue(input.repository),
-        detail: `No ${kind} source control provider is registered.`,
+        detail: t("sourceControl.sourceControlProviderRegistry.providerNotRegistered", { kind }),
       }),
     getDefaultBranch: (input) =>
       new SourceControlProviderError({
         provider: kind,
         operation: "getDefaultBranch",
         cwd: input.cwd,
-        detail: `No ${kind} source control provider is registered.`,
+        detail: t("sourceControl.sourceControlProviderRegistry.providerNotRegistered", { kind }),
       }),
     checkoutChangeRequest: (input) =>
       new SourceControlProviderError({
@@ -121,7 +122,7 @@ function unsupportedProvider(
         operation: "checkoutChangeRequest",
         cwd: input.cwd,
         reference: SourceControlProvider.transportSafeSourceControlErrorValue(input.reference),
-        detail: `No ${kind} source control provider is registered.`,
+        detail: t("sourceControl.sourceControlProviderRegistry.providerNotRegistered", { kind }),
       }),
   });
 }

@@ -1,6 +1,7 @@
 import type { DesktopSshPasswordPromptRequest } from "@t3tools/contracts";
 import { DesktopSshPasswordPromptResolutionInputSchema } from "@t3tools/contracts";
 import type { SshPasswordRequest } from "@t3tools/ssh/auth";
+import { t } from "@t3tools/shared/i18n";
 import * as Context from "effect/Context";
 import * as Crypto from "effect/Crypto";
 import * as DateTime from "effect/DateTime";
@@ -49,7 +50,7 @@ export class DesktopSshPromptRequestIdGenerationError extends Schema.TaggedError
   },
 ) {
   override get message(): string {
-    return "Secure randomness is unavailable.";
+    return t("ssh.desktopSshPasswordPrompts.secureRandomnessUnavailable");
   }
 }
 
@@ -77,7 +78,9 @@ export class DesktopSshPromptPresentationError extends Schema.TaggedError<Deskto
   },
 ) {
   override get message(): string {
-    return `Failed to present SSH password prompt for ${this.destination}.`;
+    return t("ssh.desktopSshPasswordPrompts.presentationFailed", {
+      destination: this.destination,
+    });
   }
 }
 
@@ -89,7 +92,7 @@ export class DesktopSshPromptTimedOutError extends Schema.TaggedError<DesktopSsh
   },
 ) {
   override get message(): string {
-    return `SSH authentication timed out for ${this.destination}.`;
+    return t("ssh.desktopSshPasswordPrompts.timedOut", { destination: this.destination });
   }
 }
 
@@ -101,7 +104,7 @@ export class DesktopSshPromptCancelledError extends Schema.TaggedError<DesktopSs
   },
 ) {
   override get message(): string {
-    return `SSH authentication cancelled for ${this.destination}.`;
+    return t("ssh.desktopSshPasswordPrompts.cancelled", { destination: this.destination });
   }
 }
 
@@ -113,7 +116,7 @@ export class DesktopSshPromptWindowClosedError extends Schema.TaggedError<Deskto
   },
 ) {
   override get message(): string {
-    return "SSH authentication was cancelled because the app window closed.";
+    return t("ssh.desktopSshPasswordPrompts.windowClosed");
   }
 }
 
@@ -125,7 +128,7 @@ export class DesktopSshPromptServiceStoppedError extends Schema.TaggedError<Desk
   },
 ) {
   override get message(): string {
-    return "SSH password prompt service stopped.";
+    return t("ssh.desktopSshPasswordPrompts.serviceStopped");
   }
 }
 
@@ -136,7 +139,7 @@ export class DesktopSshPromptInvalidRequestIdError extends Schema.TaggedError<De
   },
 ) {
   override get message(): string {
-    return "Invalid SSH password prompt id.";
+    return t("ssh.desktopSshPasswordPrompts.invalidRequestId");
   }
 }
 
@@ -147,7 +150,7 @@ export class DesktopSshPromptExpiredError extends Schema.TaggedError<DesktopSshP
   },
 ) {
   override get message(): string {
-    return "SSH password prompt expired. Try connecting again.";
+    return t("ssh.desktopSshPasswordPrompts.expired");
   }
 }
 

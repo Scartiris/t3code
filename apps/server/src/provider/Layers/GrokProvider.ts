@@ -8,6 +8,7 @@ import {
   type ServerProviderSlashCommand,
 } from "@t3tools/contracts";
 import type * as EffectAcpSchema from "effect-acp/compat";
+import { t } from "@t3tools/shared/i18n";
 import { causeErrorTag } from "@t3tools/shared/observability";
 import * as Crypto from "effect/Crypto";
 import * as DateTime from "effect/DateTime";
@@ -436,7 +437,7 @@ export const checkGrokProviderStatus = Effect.fn("checkGrokProviderStatus")(func
         version: null,
         status: "error",
         auth: { status: "unknown" },
-        message: "Grok CLI is installed but timed out while running `grok --version`.",
+        message: t("provider.grokProvider.versionProbeTimedOut"),
       },
     });
   }
@@ -534,7 +535,7 @@ export const checkGrokProviderStatus = Effect.fn("checkGrokProviderStatus")(func
         version,
         status: "error",
         auth,
-        message: "Grok CLI is installed but not logged in. Run `grok login`.",
+        message: t("provider.grokProvider.notLoggedIn"),
       },
     });
   }

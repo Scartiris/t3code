@@ -5,6 +5,7 @@ import {
   gitHubRoutingPermissionFor,
   type GitHubRoutingPermission,
 } from "@t3tools/client-runtime/connection";
+import { t } from "@t3tools/shared/i18n";
 import { useState } from "react";
 import { Alert, Pressable, View } from "react-native";
 
@@ -19,16 +20,20 @@ const options: ReadonlyArray<{
   label: string;
   description: string;
 }> = [
-  { value: "off", label: "Off", description: "Keep GitHub requests on this environment." },
+  {
+    value: "off",
+    label: t("connection.gitHubRoutingSettings.offLabel"),
+    description: t("connection.gitHubRoutingSettings.offDescription"),
+  },
   {
     value: "read",
-    label: "Read PRs",
-    description: "Share PR data with other enabled environments.",
+    label: t("connection.gitHubRoutingSettings.readPrsLabel"),
+    description: t("connection.gitHubRoutingSettings.readPrsDescription"),
   },
   {
     value: "read-write",
-    label: "Read and act",
-    description: "Actions may use broader GitHub permissions than the original environment.",
+    label: t("connection.gitHubRoutingSettings.readAndActLabel"),
+    description: t("connection.gitHubRoutingSettings.readAndActDescription"),
   },
 ];
 
@@ -42,7 +47,7 @@ export function GitHubRoutingSettings() {
 
   return (
     <View className="mt-5 gap-3">
-      <SettingsSection title="GitHub routing">
+      <SettingsSection title={t("connection.gitHubRoutingSettings.title")}>
         {[...catalog.entries.values()].map((entry) => {
           const environmentId = entry.target.environmentId;
           const selected = gitHubRoutingPermissionFor(entry, permissions);
@@ -51,7 +56,9 @@ export function GitHubRoutingSettings() {
             <View key={environmentId}>
               <Pressable
                 accessibilityRole="button"
-                accessibilityLabel={`${entry.target.label} GitHub routing`}
+                accessibilityLabel={t("connection.gitHubRoutingSettings.environmentLabel", {
+                  label: entry.target.label,
+                })}
                 accessibilityState={{ expanded: expanded === environmentId }}
                 className="flex-row items-center gap-3 p-4"
                 onPress={() => setExpanded(expanded === environmentId ? null : environmentId)}
@@ -87,8 +94,8 @@ export function GitHubRoutingSettings() {
                           setSaving(false);
                           if (result._tag === "Failure")
                             Alert.alert(
-                              "Could not save GitHub routing permission",
-                              "Try again before leaving this screen.",
+                              t("connection.gitHubRoutingSettings.saveFailedTitle"),
+                              t("connection.gitHubRoutingSettings.saveFailedBody"),
                             );
                         });
                       }}
@@ -115,8 +122,7 @@ export function GitHubRoutingSettings() {
         })}
       </SettingsSection>
       <Text className="px-2 text-sm text-foreground-muted">
-        Choose environments you trust to share PR data and use each other's GitHub access. Enable
-        both environments. This applies only to this client.
+        {t("connection.gitHubRoutingSettings.description")}
       </Text>
     </View>
   );

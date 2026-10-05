@@ -4,6 +4,7 @@ import {
   type AtomCommandResult,
 } from "@t3tools/client-runtime/state/runtime";
 import type { ProviderAuthResponse, ServerProvider } from "@t3tools/contracts";
+import { t } from "@t3tools/shared/i18n";
 import { useRef, useState } from "react";
 import { Alert, Linking, Pressable, ScrollView, TextInput, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -28,7 +29,10 @@ export function SettingsProviderAccountsRouteScreen() {
   return (
     <>
       <SettingsEnvironmentFilterHeader />
-      <SettingsScreen title="Provider accounts" trailing={<AndroidSettingsEnvironmentFilter />}>
+      <SettingsScreen
+        title={t("settings.settingsProviderAccountsRouteScreen.title")}
+        trailing={<AndroidSettingsEnvironmentFilter />}
+      >
         <ScreenScrollView
           className="flex-1"
           contentInsetAdjustmentBehavior="automatic"
@@ -36,7 +40,9 @@ export function SettingsProviderAccountsRouteScreen() {
           contentContainerStyle={{ paddingBottom: Math.max(insets.bottom, 18) + 18 }}
         >
           {selectedTargets.length === 0 ? (
-            <Text className="text-foreground-muted">Select a connected environment.</Text>
+            <Text className="text-foreground-muted">
+              {t("settings.settingsProviderAccountsRouteScreen.selectEnvironment")}
+            </Text>
           ) : (
             selectedTargets.map((environment) => (
               <SettingsSection key={environment.environmentId} title={environment.label}>
@@ -59,7 +65,7 @@ export function SettingsProviderAccountsRouteScreen() {
                     (provider.driver === "acpRegistry" && provider.installed),
                 ) ? (
                   <Text className="p-4 text-foreground-muted">
-                    Configure a provider with in-app sign-in in web or desktop Settings.
+                    {t("settings.settingsProviderAccountsRouteScreen.configureProvider")}
                   </Text>
                 ) : null}
               </SettingsSection>
@@ -129,10 +135,14 @@ function ProviderAccount({
       if (result._tag === "Success") succeeded = true;
       else if (!isAtomCommandInterrupted(result)) {
         const failure = squashAtomCommandFailure(result);
-        setError(failure instanceof Error ? failure.message : "Could not update provider sign-in.");
+        setError(
+          failure instanceof Error
+            ? failure.message
+            : t("settings.settingsProviderAccountsRouteScreen.updateSignInFailed"),
+        );
       }
     } catch {
-      setError("Could not update provider sign-in.");
+      setError(t("settings.settingsProviderAccountsRouteScreen.updateSignInFailed"));
     }
     pendingRef.current = false;
     setPending(false);
@@ -182,19 +192,21 @@ function ProviderAccount({
           {active || state?.phase === "failed" || state?.phase === "cancelled"
             ? state.message
             : signedIn
-              ? "Signed in."
+              ? t("settings.settingsProviderAccountsRouteScreen.signedIn")
               : isDiscovering
-                ? "Discovering sign-in methods…"
+                ? t("settings.settingsProviderAccountsRouteScreen.discoveringMethods")
                 : needsExternalSetup
-                  ? "No in-app sign-in advertised. Follow the provider's docs to finish setup."
-                  : "Connect this provider."}
+                  ? t("settings.settingsProviderAccountsRouteScreen.noInAppSignIn")
+                  : t("settings.settingsProviderAccountsRouteScreen.connectProvider")}
         </Text>
         {signedIn && !active && provider.auth.email?.trim() ? (
           <ProviderAccountEmail key={provider.auth.email} email={provider.auth.email} />
         ) : null}
         {interaction?.type === "deviceCode" ? (
           <Text selectable className="text-foreground">
-            Enter code {interaction.userCode} on the sign-in page.
+            {t("settings.settingsProviderAccountsRouteScreen.enterCode", {
+              userCode: interaction.userCode,
+            })}
           </Text>
         ) : null}
         {interaction?.type === "terminal" ? (
@@ -204,10 +216,14 @@ function ProviderAccount({
                 {interaction.output.replace(/\x1b\[[0-?]*[ -/]*[@-~]/g, "")}
               </Text>
             </ScrollView>
-            {field("input", "Terminal response", true)}
+            {field(
+              "input",
+              t("settings.settingsProviderAccountsRouteScreen.terminalResponse"),
+              true,
+            )}
             <SettingsActionRow
               icon="arrow.up"
-              label="Send response"
+              label={t("settings.settingsProviderAccountsRouteScreen.sendResponse")}
               disabled={disabled}
               onPress={() => {
                 void send({ type: "terminal", data: `${values.input ?? ""}\r` }).then((sent) => {
@@ -224,7 +240,7 @@ function ProviderAccount({
             ))}
             <SettingsActionRow
               icon="person.crop.circle"
-              label="Connect"
+              label={t("settings.settingsProviderAccountsRouteScreen.connect")}
               disabled={disabled}
               onPress={() => {
                 void send({ type: "credentials", values }).then((sent) => {
@@ -236,10 +252,14 @@ function ProviderAccount({
         ) : null}
         {url && (interaction?.type === "browser" ? interaction.acceptsCallback : !interaction) ? (
           <>
-            {field("callback", "Final localhost URL", false)}
+            {field(
+              "callback",
+              t("settings.settingsProviderAccountsRouteScreen.finalLocalhostUrl"),
+              false,
+            )}
             <SettingsActionRow
               icon="arrow.right"
-              label="Continue"
+              label={t("settings.settingsProviderAccountsRouteScreen.continue")}
               disabled={disabled || !values.callback?.trim()}
               onPress={() => {
                 if (!state?.flowId) return;
@@ -277,13 +297,17 @@ function ProviderAccount({
               }}
             />
           ))}
-          <SettingsActionRow icon="xmark" label="Cancel" onPress={() => setChoosingMethod(false)} />
+          <SettingsActionRow
+            icon="xmark"
+            label={t("action.cancel")}
+            onPress={() => setChoosingMethod(false)}
+          />
         </View>
       ) : null}
       {url ? (
         <SettingsActionRow
           icon="globe"
-          label="Open sign-in page"
+          label={t("settings.settingsProviderAccountsRouteScreen.openSignInPage")}
           disabled={disabled}
           onPress={() => {
             void (async () => {
@@ -294,24 +318,26 @@ function ProviderAccount({
               )
                 return;
               await Linking.openURL(url);
-            })().catch(() => setError("Could not open the sign-in page."));
+            })().catch(() =>
+              setError(t("settings.settingsProviderAccountsRouteScreen.openSignInPageFailed")),
+            );
           }}
         />
       ) : null}
       {needsExternalSetup && provider.setup?.documentationUrl ? (
         <SettingsActionRow
           icon="globe"
-          label="Open docs"
+          label={t("settings.settingsProviderAccountsRouteScreen.openDocs")}
           onPress={() => {
             void Linking.openURL(provider.setup!.documentationUrl!).catch(() =>
-              setError("Could not open the provider docs."),
+              setError(t("settings.settingsProviderAccountsRouteScreen.openDocsFailed")),
             );
           }}
         />
       ) : active && state?.flowId ? (
         <SettingsActionRow
           icon="xmark"
-          label="Cancel sign-in"
+          label={t("settings.settingsProviderAccountsRouteScreen.cancelSignIn")}
           disabled={disabled}
           onPress={() => {
             void run(() => cancel({ environmentId, input: { instanceId, flowId: state.flowId! } }));
@@ -320,7 +346,11 @@ function ProviderAccount({
       ) : !active && !needsExternalSetup && provider.setup?.canAuthenticate !== false ? (
         <SettingsActionRow
           icon="person.crop.circle"
-          label={signedIn ? "Change account" : "Sign in"}
+          label={
+            signedIn
+              ? t("settings.settingsProviderAccountsRouteScreen.changeAccount")
+              : t("settings.settingsProviderAccountsRouteScreen.signIn")
+          }
           disabled={disabled || !provider.enabled || !provider.installed || state === null}
           loading={pending}
           onPress={chooseMethod}
@@ -329,17 +359,19 @@ function ProviderAccount({
       {!active && signedIn && (provider.auth.canLogout ?? provider.setup?.canAuthenticate) ? (
         <SettingsActionRow
           icon="person.crop.circle"
-          label="Sign out"
+          label={t("settings.settingsProviderAccountsRouteScreen.signOut")}
           tone="danger"
           disabled={disabled || state === null}
           onPress={() =>
             Alert.alert(
-              "Sign out?",
-              `Running threads sharing this sign-in on ${environment.label} will stop. Thread history is kept.`,
+              t("settings.settingsProviderAccountsRouteScreen.signOutConfirmTitle"),
+              t("settings.settingsProviderAccountsRouteScreen.signOutConfirmBody", {
+                environment: environment.label,
+              }),
               [
-                { text: "Cancel", style: "cancel" },
+                { text: t("action.cancel"), style: "cancel" },
                 {
-                  text: "Sign out",
+                  text: t("settings.settingsProviderAccountsRouteScreen.signOut"),
                   style: "destructive",
                   onPress: () => {
                     void run(() => logout(target));
@@ -359,7 +391,11 @@ function ProviderAccountEmail({ email }: { readonly email: string }) {
   return (
     <Pressable
       accessibilityRole="button"
-      accessibilityLabel={revealed ? "Hide account email" : "Reveal account email"}
+      accessibilityLabel={
+        revealed
+          ? t("settings.settingsProviderAccountsRouteScreen.hideAccountEmail")
+          : t("settings.settingsProviderAccountsRouteScreen.revealAccountEmail")
+      }
       onPress={() => setRevealed((value) => !value)}
       className="min-h-[44px] justify-center"
     >

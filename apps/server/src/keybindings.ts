@@ -19,6 +19,7 @@ import {
   type ServerUpsertKeybindingInput,
   type ServerConfigIssue,
 } from "@t3tools/contracts";
+import { t } from "@t3tools/shared/i18n";
 import * as Array from "effect/Array";
 import * as Cache from "effect/Cache";
 import * as Cause from "effect/Cause";
@@ -208,7 +209,7 @@ export interface KeybindingsChangeEvent {
 
 function trimIssueMessage(message: string): string {
   const trimmed = message.trim();
-  return trimmed.length > 0 ? trimmed : "Invalid keybindings configuration.";
+  return trimmed.length > 0 ? trimmed : t("server.keybindings.invalidConfiguration");
 }
 
 function malformedConfigIssue(detail: string): ServerConfigIssue {
@@ -307,7 +308,7 @@ const make = Effect.gen(function* () {
       (cause) =>
         new KeybindingsConfigError({
           configPath: keybindingsConfigPath,
-          detail: "failed to access keybindings config",
+          detail: t("server.keybindings.configAccessFailed"),
           cause,
         }),
     ),
@@ -318,7 +319,7 @@ const make = Effect.gen(function* () {
       (cause) =>
         new KeybindingsConfigError({
           configPath: keybindingsConfigPath,
-          detail: "failed to read keybindings config",
+          detail: t("server.keybindings.configReadFailed"),
           cause,
         }),
     ),
@@ -383,7 +384,9 @@ const make = Effect.gen(function* () {
     const rawConfig = yield* readRawConfig;
     const decodedEntries = decodeRawKeybindingsEntriesExit(rawConfig);
     if (decodedEntries._tag === "Failure") {
-      const detail = `expected JSON array (${Cause.pretty(decodedEntries.cause)})`;
+      const detail = t("server.keybindings.malformedConfigExpectedJsonArray", {
+        cause: Cause.pretty(decodedEntries.cause),
+      });
       return {
         keybindings: [],
         issues: [malformedConfigIssue(detail)],
@@ -444,7 +447,7 @@ const make = Effect.gen(function* () {
         (cause) =>
           new KeybindingsConfigError({
             configPath: keybindingsConfigPath,
-            detail: "failed to record keybinding migrations",
+            detail: t("server.keybindings.migrationsRecordFailed"),
             cause,
           }),
       ),
@@ -630,7 +633,7 @@ const make = Effect.gen(function* () {
         (cause) =>
           new KeybindingsConfigError({
             configPath: keybindingsConfigPath,
-            detail: "failed to prepare keybindings config directory",
+            detail: t("server.keybindings.configDirectoryPrepareFailed"),
             cause,
           }),
       ),

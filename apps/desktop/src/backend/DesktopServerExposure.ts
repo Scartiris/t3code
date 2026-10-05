@@ -2,6 +2,7 @@ import {
   createAdvertisedEndpoint,
   type CreateAdvertisedEndpointInput,
 } from "@t3tools/shared/advertisedEndpoint";
+import { t } from "@t3tools/shared/i18n";
 import {
   DesktopServerExposureModeSchema,
   type AdvertisedEndpoint,
@@ -159,11 +160,11 @@ const resolveDesktopCoreAdvertisedEndpoints = (
   const endpoints: AdvertisedEndpoint[] = [
     createDesktopEndpoint({
       id: `desktop-loopback:${input.port}`,
-      label: "This machine",
+      label: t("backend.desktopServerExposure.thisMachine"),
       httpBaseUrl: input.exposure.localHttpUrl,
       reachability: "loopback",
       status: "available",
-      description: "Loopback endpoint for this desktop app.",
+      description: t("backend.desktopServerExposure.thisMachineDescription"),
     }),
   ];
 
@@ -171,12 +172,12 @@ const resolveDesktopCoreAdvertisedEndpoints = (
     endpoints.push(
       createDesktopEndpoint({
         id: `desktop-lan:${input.exposure.endpointUrl}`,
-        label: "Local network",
+        label: t("backend.desktopServerExposure.localNetwork"),
         httpBaseUrl: input.exposure.endpointUrl,
         reachability: "lan",
         status: "available",
         isDefault: true,
-        description: "Reachable from devices on the same network.",
+        description: t("backend.desktopServerExposure.localNetworkDescription"),
       }),
     );
   }
@@ -187,14 +188,16 @@ const resolveDesktopCoreAdvertisedEndpoints = (
       endpoints.push(
         createManualEndpoint({
           id: `manual:${customEndpointUrl}`,
-          label: isHttpsEndpoint ? "Custom HTTPS" : "Custom endpoint",
+          label: isHttpsEndpoint
+            ? t("backend.desktopServerExposure.customHttps")
+            : t("backend.desktopServerExposure.customEndpoint"),
           httpBaseUrl: customEndpointUrl,
           reachability: "public",
           ...(isHttpsEndpoint ? ({ hostedHttpsCompatibility: "compatible" } as const) : {}),
           status: "unknown",
           description: isHttpsEndpoint
-            ? "User-configured HTTPS endpoint for this desktop backend."
-            : "User-configured endpoint for this desktop backend.",
+            ? t("backend.desktopServerExposure.customHttpsDescription")
+            : t("backend.desktopServerExposure.customEndpointDescription"),
         }),
       );
     } catch {

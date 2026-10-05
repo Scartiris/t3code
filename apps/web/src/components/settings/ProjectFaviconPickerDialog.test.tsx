@@ -1,7 +1,9 @@
 import { EnvironmentId } from "@t3tools/contracts";
+import { t } from "@t3tools/shared/i18n";
 import type { ReactElement } from "react";
 import { beforeEach, describe, expect, it, vi } from "vite-plus/test";
 
+import { getLocalFileManagerName } from "~/lib/utils";
 import { visitElements } from "../../test/reactElementTree";
 import { reactHookHarness as hooks } from "../../test/reactHookHarness";
 
@@ -51,6 +53,12 @@ import {
   ProjectFaviconPickerDialog,
 } from "./ProjectFaviconPickerDialog";
 
+function openInFileManagerLabel() {
+  return t("settings.projectFaviconPickerDialog.openInFileManager", {
+    fileManagerName: getLocalFileManagerName("MacIntel"),
+  });
+}
+
 describe("ProjectFaviconPickerDialog", () => {
   beforeEach(() => {
     hooks.reset();
@@ -74,7 +82,10 @@ describe("ProjectFaviconPickerDialog", () => {
       readonly onPickExternal: () => Promise<string | null>;
     }) as ReactElement<Record<string, unknown>>;
 
-    const button = visitElements(picker, (element) => element.props.children === "Open in Finder");
+    const button = visitElements(
+      picker,
+      (element) => element.props.children === openInFileManagerLabel(),
+    );
     expect(button).not.toBeNull();
 
     (button?.props.onClick as (() => void) | undefined)?.();
@@ -108,7 +119,10 @@ describe("ProjectFaviconPickerDialog", () => {
 
     hooks.beginRender();
     const picker = ProjectFaviconPickerDialog(props) as ReactElement<Record<string, unknown>>;
-    const button = visitElements(picker, (element) => element.props.children === "Open in Finder");
+    const button = visitElements(
+      picker,
+      (element) => element.props.children === openInFileManagerLabel(),
+    );
 
     (button?.props.onClick as (() => void) | undefined)?.();
     await Promise.resolve();
@@ -118,7 +132,7 @@ describe("ProjectFaviconPickerDialog", () => {
     expect(onSelect).not.toHaveBeenCalled();
     expect(toastManager.add).toHaveBeenCalledWith({
       type: "error",
-      title: "Could not open image picker",
+      title: t("settings.projectFaviconPickerDialog.pickerFailed"),
       description: "picker failed",
     });
   });

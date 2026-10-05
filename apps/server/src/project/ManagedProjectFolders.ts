@@ -10,6 +10,7 @@
  * @module ManagedProjectFolders
  */
 import { CommandId, ProjectId, type ThreadId } from "@t3tools/contracts";
+import { t } from "@t3tools/shared/i18n";
 import { newProjectFolderName } from "@t3tools/shared/path";
 import * as Cause from "effect/Cause";
 import * as Context from "effect/Context";
@@ -35,7 +36,7 @@ export class ScratchUnavailableError extends Schema.TaggedError<ScratchUnavailab
   {},
 ) {
   override get message(): string {
-    return "Threads without a project are not available on this environment.";
+    return t("project.managedProjectFolders.scratchUnavailable");
   }
 }
 
@@ -47,7 +48,7 @@ export class ScratchFolderError extends Schema.TaggedError<ScratchFolderError>()
   },
 ) {
   override get message(): string {
-    return "Failed to create the folder for threads without a project.";
+    return t("project.managedProjectFolders.scratchFolderCreateFailed");
   }
 }
 
@@ -59,7 +60,7 @@ export class ScratchProjectError extends Schema.TaggedError<ScratchProjectError>
   },
 ) {
   override get message(): string {
-    return "Failed to create the project for threads without a project.";
+    return t("project.managedProjectFolders.scratchProjectCreateFailed");
   }
 }
 
@@ -217,7 +218,7 @@ function describeCommitFailure(stderr: string): string {
     .split("\n")
     .map((line) => line.trim())
     .filter(Boolean);
-  return lines.at(-1) ?? "Git could not make the first commit.";
+  return lines.at(-1) ?? t("project.managedProjectFolders.firstCommitFailed");
 }
 
 const make = Effect.gen(function* () {

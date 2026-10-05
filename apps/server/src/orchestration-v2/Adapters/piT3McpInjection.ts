@@ -1,4 +1,5 @@
 import { tokenizeCliArgs } from "@t3tools/shared/cliArgs";
+import { t } from "@t3tools/shared/i18n";
 import * as Effect from "effect/Effect";
 import * as FileSystem from "effect/FileSystem";
 
@@ -124,13 +125,16 @@ export function resolvePiLaunchArgs(launchArgs: string): PiLaunchArgsResolution 
     if (arg === "--") {
       return {
         ok: false,
-        message: "Pi launch arguments cannot include positional prompts.",
+        message: t("orchestration-v2.piT3McpInjection.positionalPromptsUnsupported"),
       };
     }
     if (PI_ARGUMENTS_WITH_VALUES.has(arg)) {
       const value = args[index + 1];
       if (value === undefined) {
-        return { ok: false, message: `Pi launch argument '${arg}' requires a value.` };
+        return {
+          ok: false,
+          message: t("orchestration-v2.piT3McpInjection.argumentRequiresValue", { arg }),
+        };
       }
       if (arg === "--provider") hasProvider = true;
       if (arg === "--model") hasModel = true;
@@ -153,11 +157,14 @@ export function resolvePiLaunchArgs(launchArgs: string): PiLaunchArgsResolution 
       continue;
     }
     if (arg.startsWith("-")) {
-      return { ok: false, message: `Pi launch argument '${arg}' is not supported by T3 Code.` };
+      return {
+        ok: false,
+        message: t("orchestration-v2.piT3McpInjection.argumentUnsupported", { arg }),
+      };
     }
     return {
       ok: false,
-      message: `Pi launch arguments cannot include positional prompt '${arg}'.`,
+      message: t("orchestration-v2.piT3McpInjection.positionalPromptUnsupported", { arg }),
     };
   }
   // Pi 1.0 exits at startup on `--provider` without `--model`; older versions

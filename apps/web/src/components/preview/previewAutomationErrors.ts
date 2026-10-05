@@ -12,6 +12,7 @@ import {
   ThreadId,
   TrimmedNonEmptyString,
 } from "@t3tools/contracts";
+import { t } from "@t3tools/shared/i18n";
 import * as Schema from "effect/Schema";
 
 export interface PreviewAutomationOperationContext {
@@ -36,7 +37,12 @@ export class PreviewAutomationOverlayTimeoutError extends Schema.TaggedError<Pre
   }
 
   override get message(): string {
-    return `Preview webview for request ${this.requestId} on environment ${this.environmentId} thread ${this.threadId} did not register within ${this.timeoutMs}ms.`;
+    return t("preview.previewAutomationErrors.overlayTimeout", {
+      requestId: this.requestId,
+      environmentId: this.environmentId,
+      threadId: this.threadId,
+      timeoutMs: this.timeoutMs,
+    });
   }
 }
 
@@ -56,7 +62,14 @@ export class PreviewAutomationNavigationTimeoutError extends Schema.TaggedError<
   }
 
   override get message(): string {
-    return `Preview navigation for request ${this.requestId} on environment ${this.environmentId} thread ${this.threadId} tab ${this.tabId} did not reach ${this.readiness} readiness within ${this.timeoutMs}ms.`;
+    return t("preview.previewAutomationErrors.navigationTimeout", {
+      requestId: this.requestId,
+      environmentId: this.environmentId,
+      threadId: this.threadId,
+      tabId: this.tabId,
+      readiness: this.readiness,
+      timeoutMs: this.timeoutMs,
+    });
   }
 }
 
@@ -75,7 +88,13 @@ export class PreviewAutomationViewportTimeoutError extends Schema.TaggedError<Pr
   }
 
   override get message(): string {
-    return `Preview viewport for request ${this.requestId} on environment ${this.environmentId} thread ${this.threadId} tab ${this.tabId} was not rendered within ${this.timeoutMs}ms.`;
+    return t("preview.previewAutomationErrors.viewportTimeout", {
+      requestId: this.requestId,
+      environmentId: this.environmentId,
+      threadId: this.threadId,
+      tabId: this.tabId,
+      timeoutMs: this.timeoutMs,
+    });
   }
 }
 
@@ -95,7 +114,14 @@ export class PreviewAutomationTargetUnavailableError extends Schema.TaggedError<
   }
 
   override get message(): string {
-    return `Preview automation target for ${this.operation} request ${this.requestId} is unavailable on environment ${this.environmentId} thread ${this.threadId} (tab ${this.tabId ?? "unassigned"}, bridge ${this.bridgeAvailable ? "available" : "unavailable"}).`;
+    return t("preview.previewAutomationErrors.targetUnavailable", {
+      operation: this.operation,
+      requestId: this.requestId,
+      environmentId: this.environmentId,
+      threadId: this.threadId,
+      tabId: this.tabId ?? "未分配",
+      bridgeState: this.bridgeAvailable ? "可用" : "不可用",
+    });
   }
 }
 
@@ -113,7 +139,12 @@ export class PreviewAutomationRecordingNotActiveError extends Schema.TaggedError
   }
 
   override get message(): string {
-    return `Preview automation request ${this.requestId} found no active recording for tab ${this.tabId ?? "unassigned"} on environment ${this.environmentId} thread ${this.threadId}.`;
+    return t("preview.previewAutomationErrors.recordingNotActive", {
+      requestId: this.requestId,
+      tabId: this.tabId ?? "未分配",
+      environmentId: this.environmentId,
+      threadId: this.threadId,
+    });
   }
 }
 
@@ -134,7 +165,11 @@ export class PreviewAutomationTargetNotEditableHostError extends Schema.TaggedEr
   }
 
   override get message(): string {
-    return `Preview automation ${this.operation} request ${this.requestId} requires an editable target in tab ${this.tabId ?? "unassigned"}.`;
+    return t("preview.previewAutomationErrors.targetNotEditable", {
+      operation: this.operation,
+      requestId: this.requestId,
+      tabId: this.tabId ?? "未分配",
+    });
   }
 }
 
@@ -205,7 +240,13 @@ export class PreviewAutomationOperationError extends Schema.TaggedError<PreviewA
   }
 
   override get message(): string {
-    return `Preview automation ${this.operation} request ${this.requestId} failed on environment ${this.environmentId} thread ${this.threadId} (tab ${this.tabId ?? "unassigned"}).`;
+    return t("preview.previewAutomationErrors.operationFailed", {
+      operation: this.operation,
+      requestId: this.requestId,
+      environmentId: this.environmentId,
+      threadId: this.threadId,
+      tabId: this.tabId ?? "未分配",
+    });
   }
 }
 

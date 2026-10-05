@@ -1,4 +1,5 @@
 import { useAtomValue } from "@effect/atom-react";
+import { t } from "@t3tools/shared/i18n";
 import { usesChatGptSharing } from "@t3tools/shared/usageLimits";
 import { useState } from "react";
 import { environmentPresentations } from "../../state/presentation";
@@ -64,18 +65,20 @@ export function ChatGptWelcomeCoordinator() {
       <DialogPopup>
         <DialogHeader>
           <OpenAI className="mb-2 size-8" aria-hidden="true" />
-          <DialogTitle>Your ChatGPT plan is connected</DialogTitle>
+          <DialogTitle>{t("settings.chatGptWelcomeCoordinator.planConnected")}</DialogTitle>
           <DialogDescription>
-            Eligible usage in T3 Code uses your ChatGPT plan. Manage your shared usage and any
-            credit settings in ChatGPT.
+            {t("settings.chatGptWelcomeCoordinator.description")}
           </DialogDescription>
           <p className="text-xs text-muted-foreground">
-            {next?.providerName} on {next?.environmentLabel}
+            {t("settings.chatGptWelcomeCoordinator.providerOnEnvironment", {
+              providerName: next?.providerName ?? "",
+              environmentLabel: next?.environmentLabel ?? "",
+            })}
           </p>
         </DialogHeader>
         <DialogFooter>
           <ChatGptUsageButton />
-          <Button onClick={dismiss}>Continue</Button>
+          <Button onClick={dismiss}>{t("settings.chatGptWelcomeCoordinator.continueLabel")}</Button>
         </DialogFooter>
       </DialogPopup>
     </Dialog>

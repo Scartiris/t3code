@@ -28,6 +28,7 @@ import {
   type OrchestrationV2ProviderThread,
 } from "@t3tools/contracts";
 import { HostProcessIsExecutable, HostProcessPlatform } from "@t3tools/shared/hostProcess";
+import { t } from "@t3tools/shared/i18n";
 import { resolveSelfInvocation } from "@t3tools/shared/nodeRuntime";
 import * as DateTime from "effect/DateTime";
 import * as Crypto from "effect/Crypto";
@@ -1338,12 +1339,21 @@ describe("AcpAdapterV2", () => {
       const read = items.find((item) => item.type === "dynamic_tool" && item.toolName === "Read");
       assert.deepEqual(
         read?.type === "dynamic_tool" ? { title: read.title, input: read.input } : null,
-        { title: "Read src/env.ts", input: { path: "src/env.ts" } },
+        {
+          title: t("toolActivity.toolActivity.readPath", { path: "src/env.ts", extra: "" }),
+          input: { path: "src/env.ts" },
+        },
       );
       const search = items.find((item) => item.type === "file_search");
       assert.deepEqual(
         search?.type === "file_search" ? { title: search.title, pattern: search.pattern } : null,
-        { title: "Searched TODO in web", pattern: "apps/web" },
+        {
+          title: t("toolActivity.toolActivity.searchedQueryInTarget", {
+            query: "TODO",
+            target: "web",
+          }),
+          pattern: "apps/web",
+        },
       );
       const completedCompaction = items.find(
         (item) =>
@@ -2502,6 +2512,10 @@ describe("AcpAdapterV2", () => {
           now: yield* DateTime.now,
         }),
       );
+      const firstProviderTurnId = idAllocator.derive.providerTurn({
+        driver: ACP_TEST_DRIVER,
+        nativeTurnId: acpScopedNativeId(instanceId, `${firstSessionId}:turn:1`),
+      });
       const activeRollback = yield* runtime
         .rollbackThread({
           providerThread,
@@ -2515,12 +2529,14 @@ describe("AcpAdapterV2", () => {
         .pipe(Effect.result);
       assert.equal(activeRollback._tag, "Failure");
       if (activeRollback._tag === "Failure") {
-        assert.include(String(activeRollback.failure.cause), "while turn");
+        assert.include(
+          String(activeRollback.failure.cause),
+          t("orchestration-v2.acpAdapterV2.rollbackWhileTurnActive", {
+            providerThreadId: providerThread.id,
+            turnId: firstProviderTurnId,
+          }),
+        );
       }
-      const firstProviderTurnId = idAllocator.derive.providerTurn({
-        driver: ACP_TEST_DRIVER,
-        nativeTurnId: acpScopedNativeId(instanceId, `${firstSessionId}:turn:1`),
-      });
       while (true) {
         const event = yield* Queue.take(events);
         if (event.type === "turn.terminal" && event.providerTurnId === firstProviderTurnId) break;
@@ -7915,7 +7931,10 @@ describe("AcpAdapterV2", () => {
       if (Exit.isSuccess(interruptExit)) {
         assert.fail("mid-prompt steering interrupt must still take the hard teardown path");
       }
-      assert.include(Cause.pretty(interruptExit.cause), "session is poisoned");
+      assert.include(
+        Cause.pretty(interruptExit.cause),
+        t("orchestration-v2.acpAdapterV2.processGroupTeardownUnavailable"),
+      );
     }).pipe(Effect.provide(testLayer), Effect.scoped),
   );
 
@@ -12422,7 +12441,10 @@ describe("AcpAdapterV2", () => {
 
       const interruptExit = yield* Fiber.join(interruptFiber);
       if (Exit.isSuccess(interruptExit)) assert.fail("hard teardown failure must fail interrupt");
-      assert.include(Cause.pretty(interruptExit.cause), "session is poisoned");
+      assert.include(
+        Cause.pretty(interruptExit.cause),
+        t("orchestration-v2.acpAdapterV2.processGroupTeardownFailed"),
+      );
       assert.isTrue(
         Option.isSome(yield* waitForProcesses([commandRootPid!, commandSleepPid!])),
         "failed teardown must leave both declared Bash and sleep PIDs live",
@@ -12458,17 +12480,26 @@ describe("AcpAdapterV2", () => {
 
       const startExit = yield* Fiber.join(startFiber);
       if (Exit.isSuccess(startExit)) assert.fail("poisoned session must reject startTurn");
-      assert.include(Cause.pretty(startExit.cause), "session is poisoned");
+      assert.include(
+        Cause.pretty(startExit.cause),
+        t("orchestration-v2.acpAdapterV2.processGroupTeardownFailed"),
+      );
       const resumeExit = yield* runtime
         .resumeThread({ providerThread, modelSelection, runtimePolicy })
         .pipe(Effect.exit);
       if (Exit.isSuccess(resumeExit)) assert.fail("poisoned session must reject resumeThread");
-      assert.include(Cause.pretty(resumeExit.cause), "session is poisoned");
+      assert.include(
+        Cause.pretty(resumeExit.cause),
+        t("orchestration-v2.acpAdapterV2.processGroupTeardownFailed"),
+      );
       const snapshotExit = yield* runtime.readThreadSnapshot({ providerThread }).pipe(Effect.exit);
       if (Exit.isSuccess(snapshotExit)) {
         assert.fail("poisoned session must reject readThreadSnapshot");
       }
-      assert.include(Cause.pretty(snapshotExit.cause), "session is poisoned");
+      assert.include(
+        Cause.pretty(snapshotExit.cause),
+        t("orchestration-v2.acpAdapterV2.processGroupTeardownFailed"),
+      );
       const forkExit = yield* runtime
         .forkThread({
           sourceProviderThread: providerThread,
@@ -12476,7 +12507,10 @@ describe("AcpAdapterV2", () => {
         })
         .pipe(Effect.exit);
       if (Exit.isSuccess(forkExit)) assert.fail("poisoned session must reject forkThread");
-      assert.include(Cause.pretty(forkExit.cause), "session is poisoned");
+      assert.include(
+        Cause.pretty(forkExit.cause),
+        t("orchestration-v2.acpAdapterV2.processGroupTeardownFailed"),
+      );
       yield* pollProtocolMethods(protocolEvents);
       const retryInterruptExit = yield* runtime
         .interruptTurn({ providerThread, providerTurnId, requestRuntimeRestart: true })
@@ -12580,7 +12614,10 @@ describe("AcpAdapterV2", () => {
         .interruptTurn({ providerThread, providerTurnId, requestRuntimeRestart: true })
         .pipe(Effect.exit);
       if (Exit.isSuccess(interruptExit)) assert.fail("missing hard teardown must fail interrupt");
-      assert.include(Cause.pretty(interruptExit.cause), "session is poisoned");
+      assert.include(
+        Cause.pretty(interruptExit.cause),
+        t("orchestration-v2.acpAdapterV2.processGroupTeardownUnavailable"),
+      );
 
       const startExit = yield* runtime
         .startTurn(
@@ -12588,12 +12625,18 @@ describe("AcpAdapterV2", () => {
         )
         .pipe(Effect.exit);
       if (Exit.isSuccess(startExit)) assert.fail("poisoned session must reject startTurn");
-      assert.include(Cause.pretty(startExit.cause), "session is poisoned");
+      assert.include(
+        Cause.pretty(startExit.cause),
+        t("orchestration-v2.acpAdapterV2.processGroupTeardownUnavailable"),
+      );
       const resumeExit = yield* runtime
         .resumeThread({ providerThread, modelSelection, runtimePolicy })
         .pipe(Effect.exit);
       if (Exit.isSuccess(resumeExit)) assert.fail("poisoned session must reject resumeThread");
-      assert.include(Cause.pretty(resumeExit.cause), "session is poisoned");
+      assert.include(
+        Cause.pretty(resumeExit.cause),
+        t("orchestration-v2.acpAdapterV2.processGroupTeardownUnavailable"),
+      );
     }).pipe(Effect.provide(testLayer), Effect.scoped),
   );
 

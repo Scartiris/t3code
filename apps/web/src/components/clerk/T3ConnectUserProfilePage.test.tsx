@@ -1,5 +1,6 @@
 import type { EnvironmentId } from "@t3tools/contracts";
 import type { RelayClientEnvironmentRecord } from "@t3tools/contracts/relay";
+import { t } from "@t3tools/shared/i18n";
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it, vi } from "vite-plus/test";
 
@@ -39,25 +40,31 @@ describe("T3 Connect environment row", () => {
     const markup = renderRow();
 
     expect(markup).toContain("Studio Mac");
-    expect(markup).toContain("Deregister");
-    expect(markup).not.toContain("Deregister server");
-    expect(markup).not.toContain("Confirm deregistration of Studio Mac");
+    expect(markup).toContain(t("clerk.t3ConnectUserProfilePage.deregister"));
+    expect(markup).not.toContain(t("clerk.t3ConnectUserProfilePage.deregisterServerTitle"));
+    expect(markup).not.toContain(
+      t("clerk.t3ConnectUserProfilePage.confirmDeregisterAria", { label: "Studio Mac" }),
+    );
   });
 
   it("expands Clerk-style confirmation content beneath the environment row", () => {
     const markup = renderRow({ confirmationOpen: true });
 
-    expect(markup).toContain("Deregister server");
-    expect(markup).toContain("“Studio Mac” will be removed from this account.");
-    expect(markup).toContain("Confirm deregistration of Studio Mac");
-    expect(markup).toContain("Local connections on your devices are not changed.");
-    expect(markup).toContain("Cancel");
+    expect(markup).toContain(t("clerk.t3ConnectUserProfilePage.deregisterServerTitle"));
+    expect(markup).toContain(
+      t("clerk.t3ConnectUserProfilePage.deregisterConfirmBody", { label: "Studio Mac" }),
+    );
+    expect(markup).toContain(
+      t("clerk.t3ConnectUserProfilePage.confirmDeregisterAria", { label: "Studio Mac" }),
+    );
+    expect(markup).toContain(t("clerk.t3ConnectUserProfilePage.deregisterConfirmDetail"));
+    expect(markup).toContain(t("action.cancel"));
   });
 
   it("locks the confirmation actions while deregistration is pending", () => {
     const markup = renderRow({ confirmationOpen: true, mutationPending: true });
 
-    expect(markup).toContain("Deregistering…");
+    expect(markup).toContain(t("clerk.t3ConnectUserProfilePage.deregistering"));
     expect(markup.match(/ disabled=""/g)).toHaveLength(3);
   });
 });

@@ -5,6 +5,7 @@ import {
   type OrchestrationV2ProviderCapabilities,
   type ProviderSetupError,
 } from "@t3tools/contracts";
+import { t } from "@t3tools/shared/i18n";
 import type { SelfInvocation } from "@t3tools/shared/nodeRuntime";
 import * as Crypto from "effect/Crypto";
 import * as Effect from "effect/Effect";
@@ -109,8 +110,8 @@ const extractAntigravitySubagentUpdate: NonNullable<AcpAdapterV2Flavor["extractS
       antigravitySubagentOutput(toolCall) ??
       toolCall.detail ??
       toolCall.title ??
-      "Antigravity subagent batch",
-    title: "Antigravity subagent batch",
+      t("orchestration-v2.antigravityAdapterV2.subagentBatch"),
+    title: t("orchestration-v2.antigravityAdapterV2.subagentBatch"),
     model: null,
     status,
     childSessionId: null,

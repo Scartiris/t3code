@@ -1,5 +1,6 @@
 import { assert, describe, it } from "@effect/vitest";
 import { DESKTOP_UPDATE_RESTART_MARKER_FILE } from "@t3tools/contracts";
+import { t } from "@t3tools/shared/i18n";
 import * as Cause from "effect/Cause";
 import * as Deferred from "effect/Deferred";
 import * as Duration from "effect/Duration";
@@ -463,7 +464,7 @@ describe("DesktopUpdates", () => {
         assert.notInclude(Object.values(loggedAnnotation).map(String).join(" "), "secret");
         assert.equal(
           state.message,
-          "Electron updater failed to check for updates on channel default.",
+          t("electron.electronUpdater.checkFailed", { channel: "default" }),
         );
         assert.notInclude(state.message ?? "", "secret");
       }),

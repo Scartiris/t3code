@@ -1,3 +1,4 @@
+import { t } from "@t3tools/shared/i18n";
 import { Platform, ScrollView, type StyleProp, type TextStyle, View } from "react-native";
 
 import { AppText as Text } from "../../../../components/AppText";
@@ -29,13 +30,13 @@ export function TextAppearancePreview(props: { readonly fontSize: number }) {
         className="text-foreground"
         style={{ fontSize: sizes.m, lineHeight: sizes.bodyLineHeight }}
       >
-        The quick brown fox jumps over the lazy dog.
+        {t("components.appearancePreviews.bodySample")}
       </Text>
       <Text
         className="text-foreground-muted"
         style={{ fontSize: sizes.s, lineHeight: Math.round(sizes.s * 1.4) }}
       >
-        Messages, labels, and headings scale with this size.
+        {t("components.appearancePreviews.bodySampleCaption")}
       </Text>
     </View>
   );
@@ -75,26 +76,38 @@ export function TerminalAppearancePreview(props: { readonly fontSize: number }) 
       </Text>
       <Text style={span(theme.foreground)}>
         <Text style={span(theme.palette[2])}>VITE v7.1.1</Text>
-        <Text style={span(theme.mutedForeground)}> ready in</Text>
+        <Text style={span(theme.mutedForeground)}>
+          {t("components.appearancePreviews.terminalReadyIn")}
+        </Text>
         <Text style={span(theme.foreground)}> 1.24s</Text>
       </Text>
       <Text style={span(theme.foreground)}>
         <Text style={span(theme.palette[2])}>→ </Text>
-        <Text style={span(theme.mutedForeground)}>Local: </Text>
+        <Text style={span(theme.mutedForeground)}>
+          {t("components.appearancePreviews.terminalLocalAddress")}
+        </Text>
         <Text style={span(theme.palette[6], { textDecorationLine: "underline" })}>
           http://127.0.0.1:5173/
         </Text>
       </Text>
       <Text style={span(theme.foreground)}>
-        <Text style={span(theme.palette[2])}>✓ 85 passed</Text>
-        <Text style={span(theme.palette[3])}> △ 2 warnings</Text>
-        <Text style={span(theme.palette[1])}> ✗ 0 failed</Text>
+        <Text style={span(theme.palette[2])}>
+          {t("components.appearancePreviews.terminalTestsPassed")}
+        </Text>
+        <Text style={span(theme.palette[3])}>
+          {t("components.appearancePreviews.terminalWarnings")}
+        </Text>
+        <Text style={span(theme.palette[1])}>
+          {t("components.appearancePreviews.terminalTestsFailed")}
+        </Text>
       </Text>
       <Text style={span(theme.foreground)}>
         <Text style={span(theme.background, { backgroundColor: theme.palette[2] })}>
-          {" READY "}
+          {t("components.appearancePreviews.terminalStatusReady")}
         </Text>
-        <Text style={span(theme.mutedForeground)}> watching for changes</Text>{" "}
+        <Text style={span(theme.mutedForeground)}>
+          {t("components.appearancePreviews.terminalWatchingForChanges")}
+        </Text>{" "}
         <Text style={span(theme.cursorForeground)}>▏</Text>
       </Text>
     </View>

@@ -1,4 +1,5 @@
 import { resolveThreadWorkingStartedAt } from "@t3tools/client-runtime/state/models";
+import { t } from "@t3tools/shared/i18n";
 import { backgroundWorkHoldsCompletion } from "@t3tools/shared/orchestrationV2PendingBackgroundWork";
 import { threadPullRequestSearchTerms } from "@t3tools/shared/threadPullRequests";
 import * as React from "react";
@@ -547,13 +548,17 @@ export function buildMultiSelectThreadContextMenuItems(input: {
   hasRunningThread: boolean;
 }): readonly ContextMenuItem<"mark-unread" | "archive" | "delete">[] {
   return [
-    { id: "mark-unread", label: `Mark unread (${input.count})` },
+    { id: "mark-unread", label: t("components.sidebar.markUnreadCount", { count: input.count }) },
     {
       id: "archive",
-      label: `Archive (${input.count})`,
+      label: t("components.sidebar.archiveCount", { count: input.count }),
       disabled: input.hasRunningThread,
     },
-    { id: "delete", label: `Delete (${input.count})`, destructive: true },
+    {
+      id: "delete",
+      label: t("components.sidebar.deleteCount", { count: input.count }),
+      destructive: true,
+    },
   ];
 }
 
@@ -595,13 +600,13 @@ export function buildBulkTitleRegenerationContextMenuItem(input: {
   if (input.actionableCount === 0) {
     return {
       id: "regenerate-title",
-      label: `Regenerating… (${input.supportedCount})`,
+      label: t("components.sidebar.regeneratingTitlesCount", { count: input.supportedCount }),
       disabled: true,
     };
   }
   return {
     id: "regenerate-title",
-    label: `Regenerate titles (${input.actionableCount})`,
+    label: t("components.sidebar.regenerateTitlesCount", { count: input.actionableCount }),
   };
 }
 
@@ -614,7 +619,7 @@ export function buildBulkUnpinContextMenuItem(input: {
   pinnedCount: number;
 }): ContextMenuItem<"unpin"> | null {
   if (input.pinnedCount === 0) return null;
-  return { id: "unpin", label: `Unpin (${input.pinnedCount})` };
+  return { id: "unpin", label: t("components.sidebar.unpinCount", { count: input.pinnedCount }) };
 }
 
 export interface ThreadStatusPill {

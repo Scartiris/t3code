@@ -3,6 +3,7 @@ import { useNavigate } from "@tanstack/react-router";
 import { CalendarClockIcon, PencilIcon, PlayIcon, Settings2Icon } from "lucide-react";
 import { useState } from "react";
 import type { EnvironmentId, ScheduledTask, ThreadId } from "@t3tools/contracts";
+import { t } from "@t3tools/shared/i18n";
 import {
   isAtomCommandInterrupted,
   squashAtomCommandFailure,
@@ -81,7 +82,10 @@ export function ThreadAutomationsPanel(props: {
     });
     setBusyTaskId(null);
     if (result._tag === "Failure" && !isAtomCommandInterrupted(result)) {
-      reportFailure("Could not update automation", squashAtomCommandFailure(result));
+      reportFailure(
+        t("chat.threadAutomationsPanel.updateFailed"),
+        squashAtomCommandFailure(result),
+      );
     }
   };
 
@@ -94,14 +98,14 @@ export function ThreadAutomationsPanel(props: {
     });
     setBusyTaskId(null);
     if (result._tag === "Failure" && !isAtomCommandInterrupted(result)) {
-      reportFailure("Could not run automation", squashAtomCommandFailure(result));
+      reportFailure(t("chat.threadAutomationsPanel.runFailed"), squashAtomCommandFailure(result));
     }
   };
 
   return (
     <ThreadDetailsSection
       headingId="thread-details-automations-heading"
-      title="Automations"
+      title={t("chat.threadAutomationsPanel.title")}
       data-thread-automations-panel
       actions={
         <Tooltip>
@@ -111,7 +115,7 @@ export function ThreadAutomationsPanel(props: {
                 size="icon-xs"
                 variant="ghost"
                 part="icon"
-                aria-label="Manage scheduled tasks"
+                aria-label={t("chat.threadAutomationsPanel.manage")}
                 onClick={() =>
                   void navigate({
                     to: "/settings/scheduled-tasks",
@@ -123,13 +127,13 @@ export function ThreadAutomationsPanel(props: {
               </ThreadDetailsControl>
             }
           />
-          <TooltipPopup>Manage scheduled tasks</TooltipPopup>
+          <TooltipPopup>{t("chat.threadAutomationsPanel.manage")}</TooltipPopup>
         </Tooltip>
       }
     >
       {tasksQuery.error !== null ? (
         <p className="px-2.5 py-1.5 text-2xs text-destructive">
-          Could not load automations: {tasksQuery.error}
+          {t("chat.threadAutomationsPanel.loadFailed", { error: tasksQuery.error })}
         </p>
       ) : null}
 
@@ -159,10 +163,12 @@ export function ThreadAutomationsPanel(props: {
               <p className="truncate text-2xs text-muted-foreground">
                 {scheduleLabel(task.schedule)}
                 {task.enabled && task.nextRunAt !== null
-                  ? ` · next ${relativeLabel(task.nextRunAt)}`
+                  ? t("chat.threadAutomationsPanel.nextRun", {
+                      time: relativeLabel(task.nextRunAt),
+                    })
                   : task.enabled
                     ? ""
-                    : " · paused"}
+                    : t("chat.threadAutomationsPanel.paused")}
               </p>
             </div>
             <Tooltip>
@@ -172,7 +178,7 @@ export function ThreadAutomationsPanel(props: {
                     size="icon-xs"
                     variant="ghost"
                     part="icon"
-                    aria-label={`Edit ${task.title}`}
+                    aria-label={t("chat.threadAutomationsPanel.editAria", { title: task.title })}
                     onClick={() =>
                       void navigate({
                         to: "/settings/scheduled-tasks",
@@ -184,7 +190,7 @@ export function ThreadAutomationsPanel(props: {
                   </ThreadDetailsControl>
                 }
               />
-              <TooltipPopup>Edit automation</TooltipPopup>
+              <TooltipPopup>{t("chat.threadAutomationsPanel.edit")}</TooltipPopup>
             </Tooltip>
             <Tooltip>
               <TooltipTrigger
@@ -193,7 +199,7 @@ export function ThreadAutomationsPanel(props: {
                     size="icon-xs"
                     variant="ghost"
                     part="icon"
-                    aria-label={`Run ${task.title} now`}
+                    aria-label={t("chat.threadAutomationsPanel.runNowAria", { title: task.title })}
                     disabled={busyTaskId !== null || task.lastRunStatus === "running"}
                     onClick={() => void runNow(task)}
                   >
@@ -201,12 +207,16 @@ export function ThreadAutomationsPanel(props: {
                   </ThreadDetailsControl>
                 }
               />
-              <TooltipPopup>Run now</TooltipPopup>
+              <TooltipPopup>{t("chat.threadAutomationsPanel.runNow")}</TooltipPopup>
             </Tooltip>
             <Switch
               checked={task.enabled}
               disabled={busyTaskId !== null}
-              aria-label={task.enabled ? `Pause ${task.title}` : `Resume ${task.title}`}
+              aria-label={
+                task.enabled
+                  ? t("chat.threadAutomationsPanel.pauseAria", { title: task.title })
+                  : t("chat.threadAutomationsPanel.resumeAria", { title: task.title })
+              }
               onCheckedChange={(enabled) => void toggleEnabled(task, enabled)}
             />
           </li>

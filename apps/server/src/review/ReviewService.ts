@@ -14,6 +14,7 @@ import {
   type ReviewDiffPreviewInput,
   type ReviewDiffPreviewResult,
 } from "@t3tools/contracts";
+import { t } from "@t3tools/shared/i18n";
 
 import * as ServerConfig from "../config.ts";
 import * as GitVcsDriver from "../vcs/GitVcsDriver.ts";
@@ -109,7 +110,7 @@ export const make = Effect.gen(function* () {
       return yield* new VcsUnsupportedOperationError({
         operation: "ReviewService.getDiffPreview",
         kind: handle.kind,
-        detail: `The ${handle.kind} VCS driver does not support review diff previews.`,
+        detail: t("review.reviewService.driverUnsupportedPreview", { kind: handle.kind }),
       });
     }
 
@@ -126,7 +127,7 @@ export const make = Effect.gen(function* () {
       return yield* new VcsUnsupportedOperationError({
         operation: "ReviewService.getDiffFileContents",
         kind: handle?.kind ?? "unknown",
-        detail: "Unchanged diff expansion currently requires a Git repository.",
+        detail: t("review.reviewService.unchangedExpansionRequiresGit"),
       });
     }
 

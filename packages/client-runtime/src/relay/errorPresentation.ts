@@ -1,15 +1,14 @@
 import type { DpopFailureReason } from "@t3tools/contracts";
 import type { RelayProtectedError } from "@t3tools/contracts/relay";
+import { t } from "@t3tools/shared/i18n";
 
-export const DPOP_CLOCK_HINT =
-  "Hint: Check that automatic date and time is enabled on both devices, then try again.";
+export const DPOP_CLOCK_HINT = t("relayErrors.errorPresentation.dpopClockHint");
 
 /** Older servers omit the DPoP category, but newer servers can also omit it for
  * a credential failure that happens after proof verification. */
-export const DPOP_UNKNOWN_HINT =
-  "Hint: Try again. If it still fails, clock skew may be the cause; check that automatic date and time is enabled on both devices.";
+export const DPOP_UNKNOWN_HINT = t("relayErrors.errorPresentation.dpopUnknownHint");
 
-export const DPOP_RETRY_HINT = "Hint: Try again. If the problem continues, copy the trace ID.";
+export const DPOP_RETRY_HINT = t("relayErrors.errorPresentation.dpopRetryHint");
 
 function dpopFailureHint(reason: DpopFailureReason | undefined): string {
   if (reason === "time_window") return DPOP_CLOCK_HINT;
@@ -27,40 +26,49 @@ export function relayProtectedErrorMessage(error: RelayProtectedError): string {
       switch (error.reason) {
         case "missing_bearer":
         case "invalid_bearer":
-          return "Relay rejected the cloud session token.";
+          return t("relayErrors.errorPresentation.cloudSessionTokenRejected");
         case "invalid_dpop":
-          return dpopFailureMessage("Relay rejected the DPoP proof.", error.dpopFailureReason);
+          return dpopFailureMessage(
+            t("relayErrors.errorPresentation.dpopProofRejected"),
+            error.dpopFailureReason,
+          );
         case "not_authorized":
-          return "Relay rejected the authenticated request.";
+          return t("relayErrors.errorPresentation.authenticatedRequestRejected");
       }
     case "RelayEnvironmentLinkProofExpiredError":
-      return "Relay rejected an expired environment link proof.";
+      return t("relayErrors.errorPresentation.linkProofExpired");
     case "RelayEnvironmentLinkProofInvalidError":
-      return `Relay rejected the environment link proof (${error.reason}).`;
+      return t("relayErrors.errorPresentation.linkProofInvalid", { reason: error.reason });
     case "RelayEnvironmentConnectNotAuthorizedError":
       // "Not authorized" covers non-auth causes too; surface the reason so a
       // missing link does not read as a credential problem.
       if (error.reason === "environment_link_not_found") {
-        return "Relay has no active link for this environment. The environment server may not have re-established its link yet.";
+        return t("relayErrors.errorPresentation.noActiveEnvironmentLink");
       }
       return error.reason
-        ? `Relay rejected the environment connection request (${error.reason}).`
-        : "Relay rejected the environment connection request.";
+        ? t("relayErrors.errorPresentation.connectionRequestRejectedWithReason", {
+            reason: error.reason,
+          })
+        : t("relayErrors.errorPresentation.connectionRequestRejected");
     case "RelayEnvironmentEndpointUnavailableError":
-      return `Relay could not reach the environment endpoint (${error.reason}).`;
+      return t("relayErrors.errorPresentation.endpointUnreachable", { reason: error.reason });
     case "RelayEnvironmentEndpointTimedOutError":
-      return "Relay timed out while contacting the environment endpoint.";
+      return t("relayErrors.errorPresentation.endpointTimedOut");
     case "RelayEnvironmentLinkFailedError":
-      return `Relay could not link the environment (${error.reason}).`;
+      return t("relayErrors.errorPresentation.linkFailed", { reason: error.reason });
     case "RelayEnvironmentLinkUnavailableError":
-      return `Relay cannot provision the managed endpoint (${error.reason}).`;
+      return t("relayErrors.errorPresentation.endpointProvisionFailed", { reason: error.reason });
     case "RelayEnvironmentLinkLimitExceededError":
-      return `Relay refused the link: this account already has its maximum of ${error.maxTunnels} managed tunnels. Unlink an environment to free one up.`;
+      return t("relayErrors.errorPresentation.linkLimitExceeded", {
+        maxTunnels: error.maxTunnels,
+      });
     case "RelayAgentActivityPublishProofExpiredError":
-      return "Relay rejected an expired agent activity publish proof.";
+      return t("relayErrors.errorPresentation.agentActivityProofExpired");
     case "RelayAgentActivityPublishProofInvalidError":
-      return `Relay rejected the agent activity publish proof (${error.reason}).`;
+      return t("relayErrors.errorPresentation.agentActivityProofInvalid", {
+        reason: error.reason,
+      });
     case "RelayInternalError":
-      return `Relay encountered an internal error (${error.reason}).`;
+      return t("relayErrors.errorPresentation.internalError", { reason: error.reason });
   }
 }

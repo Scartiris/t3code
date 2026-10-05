@@ -1,5 +1,6 @@
 import { assert, describe, it } from "@effect/vitest";
 import type { DesktopUpdateState } from "@t3tools/contracts";
+import { t } from "@t3tools/shared/i18n";
 
 import {
   MAX_REMOTE_UPDATE_CHECKS,
@@ -44,7 +45,7 @@ describe("nextRemoteDesktopUpdateStep", () => {
     assert.deepEqual(nextRemoteDesktopUpdateStep(state, NO_ATTEMPTS, null), {
       action: "done",
       outcome: "failed",
-      reason: "Automatic updates are disabled on this machine.",
+      reason: t("updates.remoteUpdateFlow.updatesDisabled"),
     });
   });
 
@@ -136,7 +137,7 @@ describe("nextRemoteDesktopUpdateStep", () => {
       {
         action: "done",
         outcome: "failed",
-        reason: "The desktop app failed to download the update.",
+        reason: t("updates.remoteUpdateFlow.downloadFailed"),
       },
     );
     assert.deepEqual(
@@ -187,7 +188,7 @@ describe("nextRemoteDesktopUpdateStep", () => {
     assert.deepEqual(nextRemoteDesktopUpdateStep(makeState({ status: "error" }), checked, null), {
       action: "done",
       outcome: "failed",
-      reason: "The desktop app update failed.",
+      reason: t("updates.remoteUpdateFlow.updateFailed"),
     });
   });
 
@@ -204,7 +205,7 @@ describe("nextRemoteDesktopUpdateStep", () => {
       {
         action: "done",
         outcome: "failed",
-        reason: "The desktop app did not report an update result.",
+        reason: t("updates.remoteUpdateFlow.noResult"),
       },
     );
   });

@@ -1,3 +1,4 @@
+import { t } from "@t3tools/shared/i18n";
 import { MessageCircle, Trash2 } from "lucide-react";
 import { useLayoutEffect, useRef, useState, type ReactNode } from "react";
 
@@ -37,8 +38,8 @@ export function DiffCommentAnnotation({
   onCancel,
   onComment,
   onDelete,
-  placeholder = "Add a comment…",
-  submitLabel = "Comment",
+  placeholder = t("diffs.diffCommentAnnotation.commentPlaceholder"),
+  submitLabel = t("diffs.diffCommentAnnotation.submitComment"),
   pending = false,
   secondaryAction,
   focusOnMount = true,
@@ -71,7 +72,7 @@ export function DiffCommentAnnotation({
             <Button
               variant="ghost-muted"
               size="icon-xs"
-              aria-label="Delete comment"
+              aria-label={t("diffs.diffCommentAnnotation.deleteComment")}
               onClick={onDelete}
             >
               <Trash2 className="size-3" />
@@ -95,7 +96,7 @@ export function DiffCommentAnnotation({
         size="sm"
         value={displayedText}
         placeholder={placeholder}
-        aria-label={`Comment on lines ${rangeLabel}`}
+        aria-label={t("diffs.diffCommentAnnotation.commentOnRange", { rangeLabel })}
         onChange={(event) => (onTextChange ?? setLocalDraftText)(event.target.value)}
         onFocus={(event) => {
           const end = event.currentTarget.value.length;
@@ -113,9 +114,11 @@ export function DiffCommentAnnotation({
         }}
       />
       <div className="mt-1.5 flex items-center gap-1">
-        <span className="mr-auto text-3xs text-muted-foreground/70">⌘/Ctrl Enter to send</span>
+        <span className="mr-auto text-3xs text-muted-foreground/70">
+          {t("diffs.diffCommentAnnotation.submitShortcutHint")}
+        </span>
         <Button variant="ghost-muted" size="xs" onClick={onCancel}>
-          Cancel
+          {t("action.cancel")}
         </Button>
         {secondaryAction ? (
           <Button

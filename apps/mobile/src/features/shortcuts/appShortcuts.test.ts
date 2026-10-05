@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vite-plus/test";
 import type { NavigationState } from "@react-navigation/native";
+import { t } from "@t3tools/shared/i18n";
 
 import type { RecentThreadShortcut } from "../../persistence/imperative";
 import {
@@ -75,7 +76,7 @@ describe("buildShortcutActions", () => {
 
   it("falls back to a generic label for missing titles", () => {
     const actions = buildShortcutActions([thread("a", "  ")]);
-    expect(actions[1]?.title).toBe("Thread");
+    expect(actions[1]?.title).toBe(t("shortcuts.appShortcuts.threadFallbackTitle"));
   });
 });
 

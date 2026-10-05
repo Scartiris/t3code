@@ -1,3 +1,4 @@
+import { t } from "@t3tools/shared/i18n";
 import * as Cause from "effect/Cause";
 import * as Effect from "effect/Effect";
 import * as Exit from "effect/Exit";
@@ -44,28 +45,28 @@ function formatDiagnosticIssue(issue: SchemaDiagnosticIssue): string {
     .map(formatDiagnosticPathSegment)
     .join("");
   const suffix = issue.path.length > MAX_SCHEMA_DIAGNOSTIC_PATH_SEGMENTS ? "[...]" : "";
-  return `${issue.message}\n  at ${path}${suffix}`;
+  return `${issue.message}${t("schemaJson.schemaJson.pathLocation", { path })}${suffix}`;
 }
 
 function schemaDiagnosticMessage(issue: SchemaIssue.Issue): string {
   switch (issue._tag) {
     case "InvalidType":
-      return "Invalid type";
+      return t("schemaJson.schemaJson.invalidType");
     case "InvalidValue":
     case "Filter":
     case "AnyOf":
     case "Encoding":
     case "Pointer":
     case "Composite":
-      return "Invalid value";
+      return t("schemaJson.schemaJson.invalidValue");
     case "MissingKey":
-      return "Missing key";
+      return t("schemaJson.schemaJson.missingKey");
     case "UnexpectedKey":
-      return "Unexpected key";
+      return t("schemaJson.schemaJson.unexpectedKey");
     case "Forbidden":
-      return "Forbidden operation";
+      return t("schemaJson.schemaJson.forbiddenOperation");
     case "OneOf":
-      return "Expected exactly one schema member to match";
+      return t("schemaJson.schemaJson.expectedExactlyOneMember");
   }
 }
 
@@ -143,7 +144,11 @@ export const formatSchemaError = (cause: Cause.Cause<Schema.SchemaError>) => {
   }
 
   if (issues.length === 0) {
-    return `Schema validation failed (failureCount=${failureCount}, defectCount=${defectCount}, interruptionCount=${interruptionCount}).`;
+    return t("schemaJson.schemaJson.validationFailed", {
+      failureCount,
+      defectCount,
+      interruptionCount,
+    });
   }
 
   const omittedIssueCount = issueCount - issues.length;
@@ -151,7 +156,7 @@ export const formatSchemaError = (cause: Cause.Cause<Schema.SchemaError>) => {
   if (omittedIssueCount === 0) {
     return truncateDiagnostic(formatted, MAX_SCHEMA_DIAGNOSTIC_LENGTH);
   }
-  const suffix = `\n... and ${omittedIssueCount} more issue(s)`;
+  const suffix = t("schemaJson.schemaJson.moreIssues", { count: omittedIssueCount });
   return truncateDiagnostic(formatted, MAX_SCHEMA_DIAGNOSTIC_LENGTH - suffix.length) + suffix;
 };
 

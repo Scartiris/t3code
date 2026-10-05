@@ -3,6 +3,7 @@ import type { ThreadId } from "@t3tools/contracts";
 import { resolveMarkdownLinkPresentation } from "@t3tools/mobile-markdown-text/links";
 import type { MarkdownFileContextMenu } from "@t3tools/mobile-markdown-text/types";
 import { hostPreviewMimeTypeFromExtension } from "@t3tools/shared/filePreview";
+import { t } from "@t3tools/shared/i18n";
 
 import {
   isAbsolutePath,
@@ -65,14 +66,18 @@ export function fileChipMenu(target: FileChipTarget): MarkdownFileContextMenu {
   return {
     title: target.fullPath ?? target.relativePath ?? "",
     actions: [
-      ...(target.fullPath ? [{ id: "copy-full-path", title: "Copy full path" }] : []),
-      ...(target.relativePath ? [{ id: "copy-relative-path", title: "Copy relative path" }] : []),
-      { id: "open-file", title: "Open in file viewer" },
+      ...(target.fullPath
+        ? [{ id: "copy-full-path", title: t("media.mediaActions.copyFullPath") }]
+        : []),
+      ...(target.relativePath
+        ? [{ id: "copy-relative-path", title: t("media.mediaActions.copyRelativePath") }]
+        : []),
+      { id: "open-file", title: t("media.mediaActions.openInFileViewer") },
       ...(fileChipMetadata(target)
         ? [
             {
               id: "save",
-              title: "Save or share",
+              title: t("files.attachmentFileScreen.saveOrShare"),
             },
           ]
         : []),

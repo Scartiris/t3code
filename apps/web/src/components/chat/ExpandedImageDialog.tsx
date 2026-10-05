@@ -7,6 +7,7 @@ import {
   type ReactNode,
   type KeyboardEvent,
 } from "react";
+import { t } from "@t3tools/shared/i18n";
 import { ChevronLeftIcon, ChevronRightIcon, XIcon } from "lucide-react";
 import { Image as ImageGlyph, Text as TextGlyph } from "lucide";
 import { Button } from "../ui/button";
@@ -89,7 +90,7 @@ export const ExpandedImageDialog = memo(function ExpandedImageDialog({
   const item = preview.images[index];
   const source: MediaActionSource = item?.actionsSource ?? {
     kind: item?.type === "video" ? "video" : "image",
-    name: item?.name ?? "Media",
+    name: item?.name ?? t("chat.expandedImageDialog.media"),
     src: item?.src ?? null,
   };
   const openFile = source.onOpenFile;
@@ -154,7 +155,10 @@ export const ExpandedImageDialog = memo(function ExpandedImageDialog({
   }, [onClose]);
 
   if (!item) return null;
-  const mediaLabel = item.type === "video" ? "video" : "image";
+  const mediaLabel =
+    item.type === "video"
+      ? t("chat.expandedImageDialog.video")
+      : t("chat.expandedImageDialog.image");
   const openOriginalLink =
     item.originalUrl && resolveExternalWebLinkHost(item.originalUrl) !== null ? (
       <OpenMediaLink originalUrl={item.originalUrl} />
@@ -163,10 +167,10 @@ export const ExpandedImageDialog = memo(function ExpandedImageDialog({
   const showingAccessibilityDetails =
     Boolean(accessibilityDetails) && accessibilityDetailsSrc === item.src;
   const contentsLabel = showingAccessibilityDetails
-    ? "Show screenshot"
+    ? t("chat.expandedImageDialog.showScreenshot")
     : accessibilityDetails?.format === "json"
-      ? "Show accessibility JSON"
-      : "Show extracted text";
+      ? t("chat.expandedImageDialog.showAccessibilityJson")
+      : t("chat.expandedImageDialog.showExtractedText");
 
   return (
     <Dialog
@@ -188,14 +192,16 @@ export const ExpandedImageDialog = memo(function ExpandedImageDialog({
           if (event.target === event.currentTarget) onClose();
         }}
       >
-        <DialogTitle className="sr-only">Expanded {mediaLabel} preview</DialogTitle>
+        <DialogTitle className="sr-only">
+          {t("chat.expandedImageDialog.expandedPreview", { mediaLabel })}
+        </DialogTitle>
         {preview.images.length > 1 && (
           <Button
             type="button"
             size="icon"
             variant="media-navigation"
             className="left-0 top-auto -bottom-12 translate-y-0 sm:top-1/2 sm:bottom-auto sm:-translate-y-1/2"
-            aria-label="Previous media"
+            aria-label={t("chat.expandedImageDialog.previousMedia", { mediaLabel })}
             onClick={() => navigateImage(-1)}
           >
             <ChevronLeftIcon className="size-5" />
@@ -210,7 +216,7 @@ export const ExpandedImageDialog = memo(function ExpandedImageDialog({
               variant="media-close"
               className="absolute right-0 -top-10 z-20"
               onClick={onClose}
-              aria-label={`Close ${mediaLabel} preview`}
+              aria-label={t("chat.expandedImageDialog.closePreview", { mediaLabel })}
             >
               <XIcon />
             </Button>
@@ -227,8 +233,8 @@ export const ExpandedImageDialog = memo(function ExpandedImageDialog({
               <ExpandedMediaFailure>
                 <p>
                   {openOriginalLink
-                    ? "This image could not be loaded."
-                    : "Image unavailable. The file may have been moved or deleted."}
+                    ? t("chat.expandedImageDialog.imageLoadFailed")
+                    : t("chat.expandedImageDialog.imageUnavailable")}
                 </p>
                 {openOriginalLink}
               </ExpandedMediaFailure>
@@ -281,7 +287,7 @@ export const ExpandedImageDialog = memo(function ExpandedImageDialog({
             size="icon"
             variant="media-navigation"
             className="right-0 top-auto -bottom-12 translate-y-0 sm:top-1/2 sm:bottom-auto sm:-translate-y-1/2"
-            aria-label="Next media"
+            aria-label={t("chat.expandedImageDialog.nextMedia", { mediaLabel })}
             onClick={() => navigateImage(1)}
           >
             <ChevronRightIcon className="size-5" />

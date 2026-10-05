@@ -13,6 +13,7 @@ import {
   type T3McpToolDefinition,
   type T3McpToolSummaryAction,
 } from "@t3tools/shared/t3McpToolPresentation";
+import { t } from "@t3tools/shared/i18n";
 import { classifyMarkdownImageSource } from "@t3tools/client-runtime/markdown-images";
 import { resolveMediaSource } from "@t3tools/client-runtime/media-source";
 import { parseChangeRequestUrl } from "@t3tools/shared/changeRequestUrl";
@@ -52,11 +53,14 @@ export function contextCompactionLabel(
     "status" | "beforeTokenCount" | "afterTokenCount"
   >,
 ): string {
-  if (item.status === "running") return "Compacting context";
+  if (item.status === "running") return t("workLog.presentation.compactingContext");
   if (item.beforeTokenCount !== undefined && item.afterTokenCount !== undefined) {
-    return `Context compacted ${formatTokens(item.beforeTokenCount)} → ${formatTokens(item.afterTokenCount)} tokens`;
+    return t("workLog.presentation.contextCompactedTokens", {
+      before: formatTokens(item.beforeTokenCount),
+      after: formatTokens(item.afterTokenCount),
+    });
   }
-  return "Context compacted";
+  return t("workLog.presentation.contextCompacted");
 }
 
 export interface WorkLogPresentationEntry {
@@ -540,37 +544,35 @@ function toolGroupActionCount(
 function toolGroupActionLabel(action: ToolGroupAction, count: number): string {
   switch (action) {
     case "link-pr":
-      return `Linked ${count} ${count === 1 ? "pull request" : "pull requests"}`;
+      return t("workLog.presentation.linkedPullRequests", { count });
     case "unlink-pr":
-      return `Unlinked ${count} ${count === 1 ? "pull request" : "pull requests"}`;
+      return t("workLog.presentation.unlinkedPullRequests", { count });
     case "watch-pr":
-      return `Watching ${count} ${count === 1 ? "pull request" : "pull requests"}`;
+      return t("workLog.presentation.watchingPullRequests", { count });
     case "unwatch-pr":
-      return `Stopped watching ${count} ${count === 1 ? "pull request" : "pull requests"}`;
+      return t("workLog.presentation.stoppedWatchingPullRequests", { count });
     case "list-prs":
-      return count === 1
-        ? "Checked linked pull requests"
-        : `Checked linked pull requests ${count} times`;
+      return t("workLog.presentation.checkedLinkedPullRequests", { count });
     case "read":
-      return `Read ${count} ${count === 1 ? "file" : "files"}`;
+      return t("workLog.presentation.readFiles", { count });
     case "edit":
-      return `Changed ${count} ${count === 1 ? "file" : "files"}`;
+      return t("workLog.presentation.changedFiles", { count });
     case "command":
-      return `Ran ${count} ${count === 1 ? "command" : "commands"}`;
+      return t("workLog.presentation.ranCommands", { count });
     case "thread-create":
-      return `Created ${count} ${count === 1 ? "thread" : "threads"}`;
+      return t("workLog.presentation.createdThreads", { count });
     case "device":
-      return `Used device controls ${count} ${count === 1 ? "time" : "times"}`;
+      return t("workLog.presentation.usedDeviceControls", { count });
     case "browser":
-      return `Used browser ${count} ${count === 1 ? "time" : "times"}`;
+      return t("workLog.presentation.usedBrowser", { count });
     case "search":
-      return `Searched the web ${count} ${count === 1 ? "time" : "times"}`;
+      return t("workLog.presentation.searchedWeb", { count });
     case "code-search":
-      return `Searched code ${count} ${count === 1 ? "time" : "times"}`;
+      return t("workLog.presentation.searchedCode", { count });
     case "other":
-      return `Used ${count} ${count === 1 ? "tool" : "tools"}`;
+      return t("workLog.presentation.usedTools", { count });
     case "update":
-      return `Received ${count} ${count === 1 ? "update" : "updates"}`;
+      return t("workLog.presentation.receivedUpdates", { count });
   }
 }
 
@@ -643,10 +645,11 @@ export function summarizeToolGroup(entries: ReadonlyArray<WorkLogPresentationEnt
   summary: string;
   hasFailure: boolean;
 } {
+  const listSeparator = t("workLog.presentation.listSeparator");
   const toolEntries = entries.filter((entry) => entry.itemType !== "reasoning");
   if (entries.length > 0 && toolEntries.length === 0) {
     return {
-      summary: entries.length === 1 ? "Thought" : `Thought (×${entries.length})`,
+      summary: t("workLog.presentation.thought", { count: entries.length }),
       hasFailure: false,
     };
   }
@@ -698,11 +701,13 @@ export function summarizeToolGroup(entries: ReadonlyArray<WorkLogPresentationEnt
       sourceNames.length < 2
         ? sourceNames[0]!
         : sourceNames.length === 2
-          ? sourceNames.join(" and ")
-          : `${sourceNames.slice(0, -1).join(", ")}, and ${sourceNames.at(-1)}`;
+          ? sourceNames.join(listSeparator)
+          : `${sourceNames.slice(0, -1).join(listSeparator)}${listSeparator}${sourceNames.at(-1)}`;
     const allIntegrations = sourceValues.every((source) => source.kind === "integration");
     labels.unshift(
-      `Used ${formattedNames}${allIntegrations ? ` ${sources.size === 1 ? "integration" : "integrations"}` : ""}`,
+      allIntegrations
+        ? t("workLog.presentation.usedIntegrations", { names: formattedNames })
+        : t("workLog.presentation.usedSources", { names: formattedNames }),
     );
   }
   const sourcedCount = entries.filter(
@@ -713,15 +718,15 @@ export function summarizeToolGroup(entries: ReadonlyArray<WorkLogPresentationEnt
   const remainingCount =
     entries.length - sourcedCount - selected.reduce((count, group) => count + group.count, 0);
   if (remainingCount > 0) {
-    labels.push(`Performed ${remainingCount} other ${remainingCount === 1 ? "action" : "actions"}`);
+    labels.push(t("workLog.presentation.performedOtherActions", { count: remainingCount }));
   }
   const sentenceLabels = labels.map((label, index) =>
     index === 0 ? label : label.charAt(0).toLowerCase() + label.slice(1),
   );
   const summary =
     sentenceLabels.length < 3
-      ? sentenceLabels.join(" and ")
-      : `${sentenceLabels.slice(0, -1).join(", ")}, and ${sentenceLabels.at(-1)}`;
+      ? sentenceLabels.join(listSeparator)
+      : `${sentenceLabels.slice(0, -1).join(listSeparator)}${listSeparator}${sentenceLabels.at(-1)}`;
   return { summary, hasFailure: summaries.some((group) => group.failedCount > 0) };
 }
 

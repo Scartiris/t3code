@@ -1,3 +1,4 @@
+import { t } from "@t3tools/i18n";
 import type * as AcpCompat from "./compat.ts";
 import * as Cause from "effect/Cause";
 import * as Effect from "effect/Effect";
@@ -291,7 +292,7 @@ export const makeAcpPatchedProtocol = Effect.fn("makeAcpPatchedProtocol")(functi
         Effect.mapError(
           (cause) =>
             new AcpError.AcpTransportError({
-              detail: "Failed to queue an outgoing ACP message",
+              detail: t("acpProtocol.protocol.queueMessageFailed"),
               cause,
             }),
         ),
@@ -299,7 +300,7 @@ export const makeAcpPatchedProtocol = Effect.fn("makeAcpPatchedProtocol")(functi
           (accepted) => accepted,
           () =>
             new AcpError.AcpTransportError({
-              detail: "The ACP output queue was closed before accepting a message",
+              detail: t("acpProtocol.protocol.outputQueueClosedForMessage"),
               cause: "Output queue closed",
             }),
         ),
@@ -378,7 +379,7 @@ export const makeAcpPatchedProtocol = Effect.fn("makeAcpPatchedProtocol")(functi
       _tag: "ClientProtocolError",
       error: new RpcClientError.RpcClientError({
         reason: new RpcClientError.RpcClientDefect({
-          message: "ACP protocol terminated.",
+          message: t("acpProtocol.protocol.terminated"),
           cause: error,
         }),
       }),
@@ -747,8 +748,8 @@ export const makeAcpPatchedProtocol = Effect.fn("makeAcpPatchedProtocol")(functi
         onFailure: (cause) => {
           const error = new AcpError.AcpTransportError({
             detail: Cause.hasInterruptsOnly(cause)
-              ? "The ACP output writer was interrupted while closing"
-              : "Failed to write an outgoing ACP message",
+              ? t("acpProtocol.protocol.outputWriterInterruptedWhileClosing")
+              : t("acpProtocol.protocol.writeMessageFailed"),
             cause,
           });
           return failOutgoingWrites(error).pipe(
@@ -769,7 +770,7 @@ export const makeAcpPatchedProtocol = Effect.fn("makeAcpPatchedProtocol")(functi
                 ? completeOutgoingWrites()
                 : (() => {
                     const error = new AcpError.AcpTransportError({
-                      detail: "ACP output writer ended before the protocol closed",
+                      detail: t("acpProtocol.protocol.outputWriterEndedBeforeClose"),
                       cause: "Output writer ended",
                     });
                     return failOutgoingWrites(error).pipe(
@@ -804,7 +805,7 @@ export const makeAcpPatchedProtocol = Effect.fn("makeAcpPatchedProtocol")(functi
           (error) =>
             new RpcClientError.RpcClientError({
               reason: new RpcClientError.RpcClientDefect({
-                message: "Failed to send ACP protocol message.",
+                message: t("acpProtocol.protocol.sendMessageFailed"),
                 cause: error,
               }),
             }),
@@ -874,7 +875,7 @@ export const makeAcpPatchedProtocol = Effect.fn("makeAcpPatchedProtocol")(functi
       Effect.mapError(
         (cause) =>
           new AcpError.AcpTransportError({
-            detail: "Failed to queue an outgoing ACP notification",
+            detail: t("acpProtocol.protocol.queueNotificationFailed"),
             cause,
           }),
       ),
@@ -882,7 +883,7 @@ export const makeAcpPatchedProtocol = Effect.fn("makeAcpPatchedProtocol")(functi
         (accepted) => accepted,
         () =>
           new AcpError.AcpTransportError({
-            detail: "The ACP output queue was closed before accepting a notification",
+            detail: t("acpProtocol.protocol.outputQueueClosedForNotification"),
             cause: "Output queue closed",
           }),
       ),

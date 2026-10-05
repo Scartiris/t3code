@@ -1,3 +1,4 @@
+import { t } from "@t3tools/shared/i18n";
 import type { DesktopUpdateActionResult, DesktopUpdateState } from "@t3tools/contracts";
 
 export type DesktopUpdateButtonAction = "download" | "install" | "none";
@@ -57,51 +58,64 @@ export function isDesktopUpdateButtonDisabled(state: DesktopUpdateState | null):
 
 export function getArm64IntelBuildWarningDescription(state: DesktopUpdateState): string {
   if (!shouldShowArm64IntelBuildWarning(state)) {
-    return "This install is using the correct architecture.";
+    return t("components.desktopUpdate.correctArchitecture");
   }
 
   const action = resolveDesktopUpdateButtonAction(state);
   if (action === "download") {
-    return "This Mac has Apple Silicon, but T3 Code is still running the Intel build under Rosetta. Download the available update to switch to the native Apple Silicon build.";
+    return t("components.desktopUpdate.appleSiliconDownloadUpdate");
   }
   if (action === "install") {
-    return "This Mac has Apple Silicon, but T3 Code is still running the Intel build under Rosetta. Restart to install the downloaded Apple Silicon build.";
+    return t("components.desktopUpdate.appleSiliconRestartToInstall");
   }
-  return "This Mac has Apple Silicon, but T3 Code is still running the Intel build under Rosetta. The next app update will replace it with the native Apple Silicon build.";
+  return t("components.desktopUpdate.appleSiliconNextUpdate");
 }
 
 export function getDesktopUpdateButtonTooltip(state: DesktopUpdateState): string {
+  const versionFallback = t("components.desktopUpdate.versionFallback");
   if (state.status === "available") {
-    return `Update ${state.availableVersion ?? "available"} ready to download`;
+    return t("components.desktopUpdate.updateReadyToDownload", {
+      version: state.availableVersion ?? versionFallback,
+    });
   }
   if (state.status === "downloading") {
     const progress =
       typeof state.downloadPercent === "number" ? ` (${Math.floor(state.downloadPercent)}%)` : "";
-    return `Downloading update${progress}`;
+    return t("components.desktopUpdate.downloadingUpdate", { progress });
   }
   if (state.status === "downloaded") {
-    return `Update ${state.downloadedVersion ?? state.availableVersion ?? "ready"} downloaded. Click to restart and install.`;
+    return t("components.desktopUpdate.updateDownloadedRestartToInstall", {
+      version: state.downloadedVersion ?? state.availableVersion ?? versionFallback,
+    });
   }
   if (state.status === "error") {
     if (state.errorContext === "download" && state.availableVersion) {
-      return `Download failed for ${state.availableVersion}. Click to retry.`;
+      return t("components.desktopUpdate.downloadFailedRetry", {
+        version: state.availableVersion,
+      });
     }
     if (state.errorContext === "install" && state.downloadedVersion) {
-      return `Install failed for ${state.downloadedVersion}. Click to retry.`;
+      return t("components.desktopUpdate.installFailedRetry", {
+        version: state.downloadedVersion,
+      });
     }
     if (state.downloadedVersion) {
-      return `Update ${state.downloadedVersion} downloaded. Click to restart and install.`;
+      return t("components.desktopUpdate.updateDownloadedRestartToInstall", {
+        version: state.downloadedVersion,
+      });
     }
-    return state.message ?? "Update failed";
+    return state.message ?? t("components.desktopUpdate.updateFailed");
   }
-  return "Up to date";
+  return t("components.desktopUpdate.upToDate");
 }
 
 export function getDesktopUpdateInstallConfirmationMessage(
   state: Pick<DesktopUpdateState, "availableVersion" | "downloadedVersion">,
 ): string {
   const version = state.downloadedVersion ?? state.availableVersion;
-  return `Install update${version ? ` ${version}` : ""} and restart T3 Code?\n\nAny running tasks will be interrupted. Make sure you're ready before continuing.`;
+  return t("components.desktopUpdate.installConfirmation", {
+    version: version ? ` ${version}` : "",
+  });
 }
 
 export function getDesktopUpdateActionError(result: DesktopUpdateActionResult): string | null {

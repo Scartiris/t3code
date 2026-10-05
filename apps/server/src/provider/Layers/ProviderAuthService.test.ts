@@ -19,6 +19,7 @@ import * as PubSub from "effect/PubSub";
 import * as Queue from "effect/Queue";
 import * as Stream from "effect/Stream";
 import * as SubscriptionRef from "effect/SubscriptionRef";
+import { t } from "@t3tools/shared/i18n";
 
 import * as ProjectionStore from "../../orchestration-v2/ProjectionStore.ts";
 import * as ProviderSessionManager from "../../orchestration-v2/ProviderSessionManager.ts";
@@ -433,7 +434,7 @@ describe("ProviderAuthService", () => {
       });
       for (const task of [service.start({ instanceId }, owner), service.logout({ instanceId })]) {
         const error = yield* task.pipe(Effect.flip);
-        assert.include(error.detail, "shared sign-in");
+        assert.include(error.detail, t("provider.providerAuthService.sharedSignInInProgress"));
       }
       assert.deepStrictEqual(actions, []);
     }),
@@ -454,7 +455,7 @@ describe("ProviderAuthService", () => {
       assert.strictEqual(actions.at(-1), "respond:browser");
       const unsupported = yield* makeHarness();
       const error = yield* unsupported.service.respond(request, owner).pipe(Effect.flip);
-      assert.include(error.detail, "does not accept");
+      assert.include(error.detail, t("provider.providerAuthService.interactionUnsupported"));
     }),
   );
   it.effect("stops routed sessions before sign-in, including for a disabled instance", () =>
@@ -596,14 +597,20 @@ describe("ProviderAuthService", () => {
       assert.instanceOf(error, ProviderSetupError);
       assert.strictEqual(error.instanceId, instanceId);
       assert.strictEqual(error.operation, "subscribe");
-      assert.include(error.detail, "no longer available");
+      assert.include(error.detail, t("provider.providerAuthService.instanceUnavailable"));
       assert.strictEqual(yield* Queue.take(controller.closedSubscriptions), owner);
     }),
   );
 
   it.effect.each([
-    { id: ProviderInstanceId.make("missing"), detail: "no longer available" },
-    { id: unsupportedInstanceId, detail: "does not support sign-in" },
+    {
+      id: ProviderInstanceId.make("missing"),
+      detail: t("provider.providerAuthService.instanceUnavailable"),
+    },
+    {
+      id: unsupportedInstanceId,
+      detail: t("provider.providerAuthService.signInUnsupported"),
+    },
   ])("rejects setup for unavailable or unsupported instance $id", ({ id, detail }) =>
     Effect.gen(function* () {
       const { service, actions } = yield* makeHarness();
@@ -893,7 +900,7 @@ it.effect.each(["start", "logout", "prompt"] as const)(
       assert.isFalse(harness.sessions.has(ThreadId.make("old-shared")));
       assert.isTrue(harness.sessions.has(ThreadId.make("replacement-shared")));
       const blocked = yield* Effect.flip(harness.service.logout({ instanceId }));
-      assert.include(blocked.detail, "shared sign-in");
+      assert.include(blocked.detail, t("provider.providerAuthService.sharedSignInInProgress"));
       assert.equal(replacementMutations, 0);
     }).pipe(Effect.scoped),
 );

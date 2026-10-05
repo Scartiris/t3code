@@ -20,6 +20,7 @@ import {
   type DesktopSnapShotEvent,
   type DesktopSnapShotId,
 } from "@t3tools/contracts";
+import { t } from "@t3tools/shared/i18n";
 import * as Clock from "effect/Clock";
 import * as Context from "effect/Context";
 import * as Crypto from "effect/Crypto";
@@ -92,19 +93,19 @@ import {
 const MAX_CAPTURE_WIDTH = 2_560;
 const MAX_CAPTURE_HEIGHT = 1_600;
 const SHORTCUT_COOLDOWN_NS = 200_000_000n;
-const WAYLAND_MODIFIER_PAIR_UNAVAILABLE_MESSAGE =
-  "Modifier-pair shortcuts aren't available in this Wayland session. Choose another shortcut or use Take snapshot from the command palette.";
+const WAYLAND_MODIFIER_PAIR_UNAVAILABLE_MESSAGE = t(
+  "snapShot.desktopSnapShot.waylandModifierPairUnavailable",
+);
 const FLASH_ANIMATION_DURATION_MS = 180;
 const FLASH_STATIC_DURATION_MS = 60;
 const FLASH_FRAME_INTERVAL_MS = 16;
 const FLASH_PEAK_OPACITY = 0.08;
 const MAC_SCREEN_CAPTURE_SETTINGS_URL = MAC_PERMISSION_SETTINGS_URLS["screen-recording"];
-const MAC_SCREEN_CAPTURE_PERMISSION_MESSAGE =
-  "Allow Screen Recording in System Settings, then restart T3 Code.";
-const MAC_ACCESSIBILITY_PERMISSION_MESSAGE =
-  "Allow Accessibility in System Settings, then restart T3 Code.";
-const MAC_BOTH_PERMISSIONS_MESSAGE =
-  "Allow Accessibility and Screen Recording in System Settings, then restart T3 Code.";
+const MAC_SCREEN_CAPTURE_PERMISSION_MESSAGE = t("snapShot.desktopSnapShot.allowScreenRecording");
+const MAC_ACCESSIBILITY_PERMISSION_MESSAGE = t("snapShot.desktopSnapShot.allowAccessibility");
+const MAC_BOTH_PERMISSIONS_MESSAGE = t(
+  "snapShot.desktopSnapShot.allowAccessibilityAndScreenRecording",
+);
 const MAC_PERMISSION_MESSAGES = new Set([
   MAC_SCREEN_CAPTURE_PERMISSION_MESSAGE,
   MAC_ACCESSIBILITY_PERMISSION_MESSAGE,
@@ -138,21 +139,21 @@ export class DesktopSnapShotError extends Schema.TaggedError<DesktopSnapShotErro
   override get message(): string {
     switch (this.operation) {
       case "list-pending":
-        return "Could not list pending snapshots.";
+        return t("snapShot.desktopSnapShot.listPendingFailed");
       case "read":
-        return "Could not read the snapshot.";
+        return t("snapShot.desktopSnapShot.readFailed");
       case "acknowledge":
-        return "Could not remove the snapshot.";
+        return t("snapShot.desktopSnapShot.removeFailed");
       case "unsupported":
-        return "SnapShots are not supported here.";
+        return t("snapShot.desktopSnapShot.unsupportedHere");
       case "disabled":
-        return "Enable SnapShots in Settings first.";
+        return t("snapShot.desktopSnapShot.disabledHint");
       case "no-window-selected":
-        return "No window was selected.";
+        return t("snapShot.desktopSnapShot.noWindowSelected");
       case "window-unavailable":
-        return "The active window is not available for capture.";
+        return t("snapShot.desktopSnapShot.activeWindowUnavailable");
       case "capture":
-        return "Could not capture the active window.";
+        return t("snapShot.desktopSnapShot.captureFailed");
     }
   }
 }
@@ -216,26 +217,27 @@ export class DesktopSnapShotSetupError extends Schema.TaggedError<DesktopSnapSho
   override get message(): string {
     if (this.action === "preview-config" || this.action === "apply-config") {
       if (this.reason === "unsupported-session")
-        return "Config setup requires a Niri or Hyprland session.";
+        return t("snapShot.desktopSnapShot.configSetupUnsupportedSession");
       return this.action === "preview-config"
-        ? "Couldn't prepare your capture shortcut changes."
-        : "Couldn't save your capture shortcut.";
+        ? t("snapShot.desktopSnapShot.previewConfigFailed")
+        : t("snapShot.desktopSnapShot.applyConfigFailed");
     }
     const kde = this.action === "install-kde-helper" || this.action === "remove-kde-helper";
     const hyprland =
       this.action === "install-hyprland-helper" || this.action === "remove-hyprland-helper";
     if (this.reason === "unsupported-session")
       return hyprland
-        ? "Helper setup requires a Hyprland Wayland session outside a sandbox."
+        ? t("snapShot.desktopSnapShot.hyprlandSetupUnsupportedSession")
         : kde
-          ? "Helper setup requires a KDE Plasma Wayland session outside a sandbox."
-          : "Extension setup requires a GNOME Wayland session outside a sandbox.";
-    if (this.reason === "shortcut-permissions") return "Could not open shortcut permissions.";
+          ? t("snapShot.desktopSnapShot.kdeSetupUnsupportedSession")
+          : t("snapShot.desktopSnapShot.gnomeSetupUnsupportedSession");
+    if (this.reason === "shortcut-permissions")
+      return t("snapShot.desktopSnapShot.shortcutPermissionsFailed");
     return hyprland
-      ? "Could not set up Hyprland capture."
+      ? t("snapShot.desktopSnapShot.hyprlandSetupFailed")
       : kde
-        ? "Could not set up KDE capture."
-        : "Could not set up the GNOME extension.";
+        ? t("snapShot.desktopSnapShot.kdeSetupFailed")
+        : t("snapShot.desktopSnapShot.gnomeSetupFailed");
   }
 }
 
@@ -306,7 +308,10 @@ function snapShotAppName(
   sourceName: string,
 ): string {
   const appName =
-    active?.owner.name.trim() || linuxWindow?.appName.trim() || sourceName.trim() || "Window";
+    active?.owner.name.trim() ||
+    linuxWindow?.appName.trim() ||
+    sourceName.trim() ||
+    t("snapShot.desktopSnapShot.windowLabel");
   if (active?.platform !== "windows") return appName;
   return appName.replace(/\.exe$/i, "").trim() || appName;
 }
@@ -475,7 +480,7 @@ async function captureSource({
         linuxFeedback = snapshot.feedback;
         if (linuxFeedback) onLinuxFeedback(linuxFeedback);
         linuxWindow = snapshot.window;
-        source = { name: linuxWindow?.title || "Active window" };
+        source = { name: linuxWindow?.title || t("snapShot.desktopSnapShot.activeWindowLabel") };
         png = snapshot.png;
       } else {
         const [selected] = await Electron.desktopCapturer.getSources({
@@ -678,12 +683,12 @@ function observedPairMessage(
 ): string {
   const modifier = snapShotShortcutModifierPair(shortcut);
   const label = snapShotModifierPairLabel(modifier, platform === "darwin");
-  const base = `${label} is observed and cannot be reserved exclusively.`;
+  const base = t("snapShot.desktopSnapShot.observedPairReserved", { label });
   if (modifier === "meta" && platform !== "darwin") {
-    return `${base} This key can also open the system's own menu.`;
+    return `${base} ${t("snapShot.desktopSnapShot.observedPairOpensSystemMenu")}`;
   }
   if (modifier === "alt" && platform === "win32") {
-    return `${base} This key can also activate app menu bars.`;
+    return `${base} ${t("snapShot.desktopSnapShot.observedPairActivatesMenuBars")}`;
   }
   return base;
 }
@@ -693,13 +698,16 @@ function probeGlobalShortcut(accelerator: string): DesktopSnapShotShortcutAvaila
     if (!Electron.globalShortcut.register(accelerator, () => undefined)) {
       return {
         available: false,
-        message: "This shortcut is already used by the system or another app.",
+        message: t("snapShot.desktopSnapShot.shortcutInUse"),
       };
     }
     Electron.globalShortcut.unregister(accelerator);
     return { available: true, message: null };
   } catch {
-    return { available: false, message: "The system could not register this shortcut." };
+    return {
+      available: false,
+      message: t("snapShot.desktopSnapShot.shortcutRegistrationFailed"),
+    };
   }
 }
 
@@ -1011,18 +1019,21 @@ export const make = Effect.gen(function* () {
   ) {
     const mode = captureMode(environment.platform);
     if (mode === "unavailable") {
-      return { available: false, message: "SnapShots are not supported on this platform." };
+      return {
+        available: false,
+        message: t("snapShot.desktopSnapShot.notSupportedOnPlatform"),
+      };
     }
     if (mode === "portal" && niriSocketPath()) {
       return {
         available: false,
-        message: "Configure the capture shortcut in your Niri config, not in T3 Code.",
+        message: t("snapShot.desktopSnapShot.configureShortcutInNiri"),
       };
     }
     if (mode === "portal" && isHyprlandCaptureSession()) {
       return {
         available: false,
-        message: "Change the capture binding in your Hyprland config, then save it.",
+        message: t("snapShot.desktopSnapShot.changeHyprlandBinding"),
       };
     }
     if (isModifierPairShortcut(shortcut)) {
@@ -1054,11 +1065,14 @@ export const make = Effect.gen(function* () {
         Effect.match({
           onSuccess: () => ({
             available: true,
-            message: "Your desktop will confirm this shortcut when you save it.",
+            message: t("snapShot.desktopSnapShot.desktopConfirmsShortcut"),
           }),
           onFailure: (error) => ({
             available: false,
-            message: error.cause instanceof Error ? error.cause.message : "Unsupported shortcut.",
+            message:
+              error.cause instanceof Error
+                ? error.cause.message
+                : t("snapShot.desktopSnapShot.unsupportedShortcut"),
           }),
         }),
       );
@@ -1139,8 +1153,8 @@ export const make = Effect.gen(function* () {
         message:
           mode === "unavailable"
             ? environment.platform === "linux"
-              ? "SnapShots require a Wayland session. X11 capture is not supported."
-              : "SnapShots are not supported on this platform."
+              ? t("snapShot.desktopSnapShot.waylandRequired")
+              : t("snapShot.desktopSnapShot.notSupportedOnPlatform")
             : null,
       });
       return;
@@ -1166,7 +1180,7 @@ export const make = Effect.gen(function* () {
         const { startNiriCaptureShortcut } = await import("./NiriCaptureShortcut.ts");
         return startNiriCaptureShortcut(linuxAppId, onCurrentShortcut, () => {
           void runPromise(
-            setShortcutFailure("The Niri capture endpoint disconnected. Restart T3 Code."),
+            setShortcutFailure(t("snapShot.desktopSnapShot.niriEndpointDisconnected")),
           ).catch(() => undefined);
         });
       }).pipe(
@@ -1187,8 +1201,8 @@ export const make = Effect.gen(function* () {
         shortcutConfigPath: niriCaptureConfigPath(),
         shortcutActionRegistered: registered,
         shortcutMessage: registered
-          ? "Set up the shortcut to add it to your Niri config."
-          : "Could not start the Niri capture endpoint. Another T3 Code instance may be using it.",
+          ? t("snapShot.desktopSnapShot.setUpShortcutForNiri")
+          : t("snapShot.desktopSnapShot.niriEndpointStartFailed"),
         message: null,
       });
       return;
@@ -1247,7 +1261,7 @@ export const make = Effect.gen(function* () {
             shortcutMessage:
               error.cause instanceof Error
                 ? error.cause.message
-                : "Could not connect to your desktop's shortcut service.",
+                : t("snapShot.desktopSnapShot.shortcutServiceUnavailable"),
           })),
         ),
       );
@@ -1532,7 +1546,7 @@ export const make = Effect.gen(function* () {
                   message:
                     error.cause instanceof Error
                       ? error.cause.message
-                      : "Could not check desktop capture support. Check your desktop session and try again.",
+                      : t("snapShot.desktopSnapShot.checkCaptureSupportFailed"),
                 }),
               ),
             )

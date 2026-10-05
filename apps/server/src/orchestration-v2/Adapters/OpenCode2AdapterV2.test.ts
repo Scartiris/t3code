@@ -22,6 +22,7 @@ import {
   type OrchestrationV2ProviderTurn,
   type ProviderReplayEntry,
 } from "@t3tools/contracts";
+import { t } from "@t3tools/shared/i18n";
 import * as Cause from "effect/Cause";
 import * as DateTime from "effect/DateTime";
 import * as Deferred from "effect/Deferred";
@@ -882,7 +883,10 @@ describe("OpenCode2 adapter", () => {
         Effect.forkScoped,
       );
       yield* runtime.startTurn(withLineage(thread));
-      assert.include((yield* Deferred.await(settled)) ?? "", "lost its connection to OpenCode");
+      assert.include(
+        (yield* Deferred.await(settled)) ?? "",
+        t("orchestration-v2.openCode2AdapterV2.backgroundResultLost"),
+      );
       assert.isFalse(yield* runtime.hasPendingBackgroundWork!);
       assert.isFalse(yield* runtime.hasPendingBackgroundWorkForThread!(thread));
     }).pipe(Effect.scoped),
@@ -1618,7 +1622,10 @@ describe("OpenCode2 adapter", () => {
       // The next turn must resume (and fail into a handoff), not reuse the dead session.
       const again = yield* runtime.startTurn(turnInput(thread)).pipe(Effect.flip);
       assert.equal(again._tag, "ProviderAdapterProtocolError");
-      assert.include(again.message, "not registered");
+      assert.include(
+        again.message,
+        t("orchestration-v2.openCode2AdapterV2.sessionNotRegistered", { sessionId: SESSION }),
+      );
     }).pipe(Effect.scoped),
   );
 
@@ -1634,7 +1641,10 @@ describe("OpenCode2 adapter", () => {
         })
         .pipe(Effect.flip);
       assert.equal(created._tag, "ProviderAdapterProtocolError");
-      assert.include(created.message, "OpenCode model 'big-pickle' must use provider/model format");
+      assert.include(
+        created.message,
+        t("orchestration-v2.openCode2AdapterV2.malformedModel", { model: "big-pickle" }),
+      );
     }).pipe(Effect.scoped),
   );
 
@@ -1645,7 +1655,10 @@ describe("OpenCode2 adapter", () => {
       yield* runtime.startTurn(turnInput(thread, { instanceId, model: "big-pickle" }));
       const refused = yield* Fiber.join(terminal);
       assert.equal(refused?.failure?.class, "validation_error");
-      assert.include(refused?.failure?.message, "must use provider/model format");
+      assert.include(
+        refused?.failure?.message,
+        t("orchestration-v2.openCode2AdapterV2.malformedModel", { model: "big-pickle" }),
+      );
     }).pipe(Effect.scoped),
   );
 

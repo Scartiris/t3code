@@ -7,6 +7,7 @@ import {
   type StaticScreenProps,
 } from "@react-navigation/native";
 import { AsyncResult } from "effect/unstable/reactivity";
+import { t } from "@t3tools/shared/i18n";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Alert, Linking, Platform, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -103,18 +104,21 @@ export function ConnectionsNewRouteScreen({
 
     if (permission.canAskAgain) {
       Alert.alert(
-        "Camera access needed",
-        "Allow camera access to scan an environment pairing QR code.",
+        t("connection.connectionsNewRouteScreen.cameraNeededTitle"),
+        t("connection.connectionsNewRouteScreen.cameraNeededBody"),
       );
       return;
     }
 
     Alert.alert(
-      "Camera access needed",
-      "Camera access was denied for this app. Open Settings to enable it.",
+      t("connection.connectionsNewRouteScreen.cameraNeededTitle"),
+      t("connection.connectionsNewRouteScreen.cameraDeniedBody"),
       [
-        { text: "Cancel", style: "cancel" },
-        { text: "Open Settings", onPress: () => void Linking.openSettings() },
+        { text: t("action.cancel"), style: "cancel" },
+        {
+          text: t("connection.connectionsNewRouteScreen.openSettings"),
+          onPress: () => void Linking.openSettings(),
+        },
       ],
     );
   }, [cameraPermission?.granted, requestCameraPermission]);
@@ -141,8 +145,10 @@ export function ConnectionsNewRouteScreen({
         setShowScanner(false);
       } catch (error) {
         Alert.alert(
-          "Invalid QR code",
-          error instanceof Error ? error.message : "Scanned QR code was not recognized.",
+          t("connection.connectionsNewRouteScreen.invalidQrTitle"),
+          error instanceof Error
+            ? error.message
+            : t("connection.connectionsNewRouteScreen.invalidQrBody"),
         );
       } finally {
         setTimeout(() => {
@@ -189,10 +195,16 @@ export function ConnectionsNewRouteScreen({
   return (
     <SettingsScreen
       formSheet={routeName === "ConnectionsNew"}
-      title={showScanner ? "Scan QR Code" : "Add Environment"}
+      title={
+        showScanner
+          ? t("connection.connectionsNewRouteScreen.scanQrTitle")
+          : t("connection.connectionsNewRouteScreen.addEnvironmentTitle")
+      }
       actions={[
         {
-          accessibilityLabel: showScanner ? "Close scanner" : "Scan QR code",
+          accessibilityLabel: showScanner
+            ? t("connection.connectionsNewRouteScreen.closeScanner")
+            : t("connection.connectionsNewRouteScreen.scanQrAction"),
           icon: showScanner ? "xmark" : Platform.OS === "ios" ? "qrcode.viewfinder" : "camera",
           tintColor: headerIconColor,
           onPress: () => {
@@ -228,12 +240,12 @@ export function ConnectionsNewRouteScreen({
             ) : (
               <View className="items-center gap-3 rounded-[24px] border-continuous bg-grouped-card px-5 py-8">
                 <Text className="text-center text-sm leading-normal text-foreground-muted">
-                  Camera permission is required to scan a QR code.
+                  {t("connection.connectionsNewRouteScreen.cameraPermissionRequired")}
                 </Text>
                 <ConnectionSheetButton
                   compact
                   icon="camera"
-                  label="Allow camera"
+                  label={t("connection.connectionsNewRouteScreen.allowCamera")}
                   tone="secondary"
                   onPress={() => {
                     void openScanner();
@@ -244,7 +256,7 @@ export function ConnectionsNewRouteScreen({
           ) : (
             <View collapsable={false} className="gap-4 rounded-[24px] bg-grouped-card p-4">
               <ConnectionFormField
-                label="Host"
+                label={t("connection.connectionsNewRouteScreen.hostLabel")}
                 autoCapitalize="none"
                 autoCorrect={false}
                 keyboardType="url"
@@ -254,7 +266,7 @@ export function ConnectionsNewRouteScreen({
               />
 
               <ConnectionFormField
-                label="Pairing code"
+                label={t("connection.connectionsNewRouteScreen.pairingCodeLabel")}
                 autoCapitalize="none"
                 autoCorrect={false}
                 placeholder="abc-123-xyz"
@@ -267,7 +279,11 @@ export function ConnectionsNewRouteScreen({
               <View className="android:flex-row android:justify-end">
                 <ConnectionSheetButton
                   icon="plus"
-                  label={isSubmitting ? "Pairing..." : "Add environment"}
+                  label={
+                    isSubmitting
+                      ? t("connection.connectionsNewRouteScreen.pairing")
+                      : t("connection.connectionsNewRouteScreen.addEnvironment")
+                  }
                   disabled={connectDisabled}
                   tone="primary"
                   onPress={() => {

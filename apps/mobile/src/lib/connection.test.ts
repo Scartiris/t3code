@@ -1,5 +1,6 @@
 import { afterEach, describe, expect, it, vi } from "vite-plus/test";
 import { EnvironmentId } from "@t3tools/contracts";
+import { t } from "@t3tools/shared/i18n";
 
 import { isRelayManagedConnection, toStableSavedRemoteConnection } from "./connection";
 import { authClientMetadata } from "./authClientMetadata";
@@ -40,7 +41,7 @@ describe("mobile remote connection records", () => {
 
   it("identifies mobile token exchanges for authorized-client presentation", () => {
     expect(authClientMetadata()).toEqual({
-      label: "T3 Code Mobile",
+      label: t("connection.clientMetadata.mobileLabel"),
       deviceType: "mobile",
       os: "iOS",
       osMajorVersion: 18,

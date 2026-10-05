@@ -4,6 +4,7 @@ import {
   type ServerSettings,
   type UnifiedSettings,
 } from "@t3tools/contracts";
+import { t } from "@t3tools/shared/i18n";
 import { useCallback, useMemo } from "react";
 
 import {
@@ -58,7 +59,7 @@ function useRunScopedPlan() {
       if (plan.unavailableReason) {
         toastManager.add({
           type: "warning",
-          title: "Setting not saved",
+          title: t("settings.useScopedSettings.settingNotSaved"),
           description: plan.unavailableReason,
         });
         return;
@@ -66,13 +67,19 @@ function useRunScopedPlan() {
       void persistScopedSettingsPatch(plan, persistServer, persistClientSettingsPatch).then(
         ({ failedEnvironments, savedEnvironmentCount }) => {
           if (failedEnvironments.length === 0) return;
+          const environments = failedEnvironments
+            .map((environment) => environment.label)
+            .join("，");
+          const savedElsewhere =
+            savedEnvironmentCount > 0 ? t("settings.useScopedSettings.otherEnvironmentsSaved") : "";
+          const couldNotUpdate = t("settings.useScopedSettings.couldNotUpdate", { environments });
           toastManager.add({
             type: "error",
             title:
               savedEnvironmentCount > 0
-                ? "Setting saved on some environments"
-                : "Setting not saved",
-            description: `Could not update ${failedEnvironments.map((environment) => environment.label).join(", ")}.${savedEnvironmentCount > 0 ? " The other selected environments saved the change." : ""}`,
+                ? t("settings.useScopedSettings.settingSavedOnSomeEnvironments")
+                : t("settings.useScopedSettings.settingNotSaved"),
+            description: `${couldNotUpdate}${savedElsewhere}`,
           });
         },
       );

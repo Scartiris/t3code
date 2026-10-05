@@ -1,4 +1,5 @@
 import { DEFAULT_SERVER_SETTINGS, EnvironmentId, ProjectId } from "@t3tools/contracts";
+import { t } from "@t3tools/shared/i18n";
 import { resolveProjectSettings } from "@t3tools/shared/projectSettings";
 import { describe, expect, it } from "vite-plus/test";
 
@@ -16,8 +17,8 @@ describe("settingInheritanceLayers", () => {
       "defaultAutoPull",
     );
     expect(layers.map((layer) => [layer.label, layer.value, layer.effective])).toEqual([
-      ["Laptop", "Inherits", false],
-      ["Default", "Off", true],
+      ["Laptop", t("settings.settingInheritance.inherits"), false],
+      [t("settings.settingInheritance.default"), t("settings.settingInheritance.off"), true],
     ]);
   });
 
@@ -34,9 +35,9 @@ describe("settingInheritanceLayers", () => {
       "defaultAutoPull",
     );
     expect(layers.map((layer) => [layer.label, layer.value, layer.effective])).toEqual([
-      ["Project", "Off", true],
-      ["Laptop", "On", false],
-      ["Default", "Off", false],
+      [t("settings.settingInheritance.project"), t("settings.settingInheritance.off"), true],
+      ["Laptop", t("settings.settingInheritance.on"), false],
+      [t("settings.settingInheritance.default"), t("settings.settingInheritance.off"), false],
     ]);
     const inherited = settingInheritanceLayers(
       {
@@ -49,9 +50,9 @@ describe("settingInheritanceLayers", () => {
       "defaultAutoPull",
     );
     expect(inherited.map((layer) => [layer.value, layer.effective])).toEqual([
-      ["Inherits", false],
-      ["On", true],
-      ["Off", false],
+      [t("settings.settingInheritance.inherits"), false],
+      [t("settings.settingInheritance.on"), true],
+      [t("settings.settingInheritance.off"), false],
     ]);
   });
 
@@ -68,10 +69,10 @@ describe("settingInheritanceLayers", () => {
       "defaultThreadEnvMode",
     );
     expect(fromFile.map((layer) => [layer.label, layer.value, layer.effective])).toEqual([
-      ["Project", "Inherits", false],
-      ["Laptop", "Inherits", false],
-      ["t3.json", "New worktree", true],
-      ["Default", "Current checkout", false],
+      [t("settings.settingInheritance.project"), t("settings.settingInheritance.inherits"), false],
+      ["Laptop", t("settings.settingInheritance.inherits"), false],
+      ["t3.json", t("workspace.newWorktree"), true],
+      [t("settings.settingInheritance.default"), t("workspace.currentCheckout"), false],
     ]);
     const settings = { ...DEFAULT_SERVER_SETTINGS, defaultThreadEnvMode: "local" as const };
     const fromEnvironment = settingInheritanceLayers(
@@ -85,10 +86,10 @@ describe("settingInheritanceLayers", () => {
       "defaultThreadEnvMode",
     );
     expect(fromEnvironment.map((layer) => [layer.value, layer.effective])).toEqual([
-      ["Inherits", false],
-      ["Current checkout", true],
-      ["Inherits", false],
-      ["Current checkout", false],
+      [t("settings.settingInheritance.inherits"), false],
+      [t("workspace.currentCheckout"), true],
+      [t("settings.settingInheritance.inherits"), false],
+      [t("workspace.currentCheckout"), false],
     ]);
   });
 });

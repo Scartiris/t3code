@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vite-plus/test";
 import type { ResolvedKeybindingsConfig } from "@t3tools/contracts";
+import { t } from "@t3tools/shared/i18n";
 import { DEFAULT_RESOLVED_KEYBINDINGS } from "@t3tools/shared/keybindings";
 
 import {
@@ -42,14 +43,14 @@ describe("KeybindingsSettings.logic", () => {
     }
   });
   it("finds the editable shortcut for sending the first queued message", () => {
-    expect(buildKeybindingRows(DEFAULT_RESOLVED_KEYBINDINGS, "first queued")).toContainEqual(
+    expect(buildKeybindingRows(DEFAULT_RESOLVED_KEYBINDINGS, "首条排队")).toContainEqual(
       expect.objectContaining({
         command: "thread.steerQueuedMessage",
         key: "mod+shift+enter",
       }),
     );
   });
-  it.each(["pu", "pull request", "copy link", "thread id"])(
+  it.each(["拉取", "拉取请求", "复制链接", "会话 ID"])(
     "finds the copy link shortcut with %s",
     (query) => {
       const rows = buildKeybindingRows(DEFAULT_RESOLVED_KEYBINDINGS, query);
@@ -231,7 +232,7 @@ describe("KeybindingsSettings.logic", () => {
     });
     expect(parseWhenExpressionDraft("editorFocus &&")).toEqual({
       ok: false,
-      message: "Use variables with !, &&, ||, and parentheses.",
+      message: t("settings.keybindingsSettingsLogic.invalidWhenExpression"),
     });
 
     expect(parseWhenExpressionDraft("!(terminalFocus || modelPickerOpen)")).toEqual({
@@ -253,17 +254,29 @@ describe("KeybindingsSettings.logic", () => {
     const group = { type: "and", left: condition, right: negatedCondition } as const;
     const negatedGroup = { type: "not", node: group } as const;
 
-    expect(whenNodeRemoveLabel(group, 0)).toBe("Clear all conditions");
-    expect(whenNodeRemoveLabel(condition, 1)).toBe("Remove condition");
-    expect(whenNodeRemoveLabel(negatedCondition, 1)).toBe("Remove condition");
-    expect(whenNodeRemoveLabel(group, 1)).toBe("Remove group and its conditions");
-    expect(whenNodeRemoveLabel(negatedGroup, 1)).toBe("Remove group and its conditions");
+    expect(whenNodeRemoveLabel(group, 0)).toBe(
+      t("settings.keybindingsSettingsLogic.clearAllConditions"),
+    );
+    expect(whenNodeRemoveLabel(condition, 1)).toBe(
+      t("settings.keybindingsSettingsLogic.removeCondition"),
+    );
+    expect(whenNodeRemoveLabel(negatedCondition, 1)).toBe(
+      t("settings.keybindingsSettingsLogic.removeCondition"),
+    );
+    expect(whenNodeRemoveLabel(group, 1)).toBe(
+      t("settings.keybindingsSettingsLogic.removeGroupAndConditions"),
+    );
+    expect(whenNodeRemoveLabel(negatedGroup, 1)).toBe(
+      t("settings.keybindingsSettingsLogic.removeGroupAndConditions"),
+    );
   });
 
   it("formats static and project script command labels", () => {
     expect(commandLabel("commandPalette.toggle")).toBe("Command Palette: Toggle");
     expect(commandLabel("themeEditor.toggle")).toBe("Theme Editor: Toggle");
-    expect(commandLabel("script.setup-db.run")).toBe("Run Script: Setup Db");
+    expect(commandLabel("script.setup-db.run")).toBe(
+      t("settings.keybindingsSettingsLogic.runScript", { name: "Setup Db" }),
+    );
   });
 
   it("builds known when variable options from defaults without frontend labels", () => {

@@ -2,6 +2,7 @@ import { describe, expect, it } from "vite-plus/test";
 
 import { MessageId, RunId, type ReviewDiffPreviewSource } from "@t3tools/contracts";
 import type { ThreadCheckpointSummary } from "@t3tools/client-runtime/state/thread-checkpoints";
+import { t } from "@t3tools/shared/i18n";
 
 import {
   applyReviewDiffMetadata,
@@ -139,7 +140,7 @@ describe("buildReviewSectionItems", () => {
       expect.objectContaining({
         id: "git:branch-range",
         kind: "branch-range",
-        title: "Changes",
+        title: t("review.reviewSheet.sectionChanges"),
         diff: null,
         isLoading: true,
       }),
@@ -265,7 +266,7 @@ describe("buildReviewParsedDiff", () => {
       return;
     }
 
-    expect(parsed.notice).toContain("server size cap");
+    expect(parsed.notice).toContain(t("review.reviewModel.diffSizeCapNotice"));
     expect(parsed.fileCount).toBe(1);
     expect(parsed.files[0]?.rows[0]).toMatchObject({
       kind: "hunk",
@@ -283,7 +284,7 @@ describe("buildReviewParsedDiff", () => {
     expect(preview).toMatchObject({
       kind: "suppressed",
       reason: "non-text",
-      title: "Non-text file",
+      title: t("review.reviewModel.nonTextFile"),
       actionLabel: null,
     });
   });
@@ -309,8 +310,8 @@ describe("buildReviewParsedDiff", () => {
     expect(preview).toMatchObject({
       kind: "suppressed",
       reason: "large",
-      title: "Large diff",
-      actionLabel: "Load diff",
+      title: t("review.reviewModel.largeDiff"),
+      actionLabel: t("review.reviewModel.loadDiff"),
     });
   });
 });
@@ -341,7 +342,7 @@ describe("applyReviewDiffMetadata", () => {
     expect(result.additions).toBe(4100);
     expect(result.deletions).toBe(3020);
     expect(result.files[0]?.additions).toBe(4000);
-    expect(result.notice).toContain("Counts include all changes");
+    expect(result.notice).toContain(t("components.diffPanel.totalsIncludeAllChanges"));
     expect(applyReviewDiffMetadata(parsed, null)).toEqual(parsed);
   });
 });

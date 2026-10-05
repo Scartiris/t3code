@@ -1,4 +1,5 @@
 import type { EnvironmentId } from "@t3tools/contracts";
+import { t } from "@t3tools/shared/i18n";
 import { useCallback } from "react";
 import { View } from "react-native";
 
@@ -31,7 +32,10 @@ export function WorkspaceFilePreviewError(props: {
     return (
       <View className="flex-1 bg-sheet">
         <EnvironmentConnectionNotice
-          environmentLabel={environment.presentation?.entry.target.label ?? "Environment"}
+          environmentLabel={
+            environment.presentation?.entry.target.label ??
+            t("files.workspaceFilePreviewError.environment")
+          }
           connection={
             environment.presentation?.connection ?? {
               phase: "available",
@@ -39,7 +43,7 @@ export function WorkspaceFilePreviewError(props: {
               traceId: null,
             }
           }
-          resourceName="preview"
+          resourceName={t("files.workspaceFilePreviewError.resourceName")}
           onRetry={retryConnection}
         />
       </View>
@@ -49,9 +53,9 @@ export function WorkspaceFilePreviewError(props: {
   return (
     <View className="flex-1 items-center justify-center bg-sheet px-6">
       <EmptyState
-        title="Preview unavailable"
-        detail="This file may be missing, unsupported, or unavailable on this environment."
-        actionLabel="Try again"
+        title={t("files.workspaceFilePreviewError.previewUnavailable")}
+        detail={t("files.workspaceFilePreviewError.previewUnavailableDetail")}
+        actionLabel={t("files.workspaceFilePreviewError.tryAgain")}
         onAction={props.onRetry}
       />
     </View>

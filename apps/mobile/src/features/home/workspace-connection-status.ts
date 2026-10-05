@@ -1,3 +1,5 @@
+import { t } from "@t3tools/shared/i18n";
+
 import type { WorkspaceState } from "../../state/workspaceModel";
 
 export interface WorkspaceConnectionStatusPresentation {
@@ -17,18 +19,26 @@ function shouldShowWorkspaceConnectionStatus(state: WorkspaceState): boolean {
 }
 
 function workspaceConnectionStatusLabel(state: WorkspaceState): string {
-  if (state.networkStatus === "offline") return "You are offline";
+  if (state.networkStatus === "offline") {
+    return t("connection.environmentConnectionNotice.offline");
+  }
   if (state.connectingEnvironments.length === 1) {
-    return `Reconnecting to ${state.connectingEnvironments[0]!.environmentLabel}`;
+    return t("connection.environmentConnectionNotice.reconnecting", {
+      environmentLabel: state.connectingEnvironments[0]!.environmentLabel,
+    });
   }
   if (state.connectingEnvironments.length > 1) {
-    return `Reconnecting ${state.connectingEnvironments.length} environments`;
+    return t("home.workspaceConnectionStatus.reconnectingEnvironments", {
+      count: state.connectingEnvironments.length,
+    });
   }
   if (state.connectionError !== null) return state.connectionError;
   if (state.hasPendingShellSnapshot) {
-    return state.hasLoadedShellSnapshot ? "Syncing threads..." : "Loading threads...";
+    return state.hasLoadedShellSnapshot
+      ? t("home.workspaceConnectionStatus.syncingThreads")
+      : t("threads.threadNavigationSidebar.loadingThreads");
   }
-  return "Not connected";
+  return t("settings.connectionsSettings.notConnected");
 }
 
 /** Header-title presentation of the connection state, or null while connected. */

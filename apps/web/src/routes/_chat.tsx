@@ -1,3 +1,4 @@
+import { t } from "@t3tools/shared/i18n";
 import { Outlet, createFileRoute, redirect, useParams } from "@tanstack/react-router";
 import { useAtomValue } from "@effect/atom-react";
 import { useEffect, useMemo } from "react";
@@ -145,8 +146,8 @@ function ChatRouteGlobalShortcuts() {
           toastManager.add(
             stackedThreadToast({
               type: "info",
-              title: "Preview is desktop-only",
-              description: "Open T3 Code in the desktop app to use the in-app preview.",
+              title: t("routes.chat.previewDesktopOnly"),
+              description: t("routes.chat.previewDesktopOnlyDescription"),
             }),
           );
           return;

@@ -10,6 +10,7 @@ import {
   type ProjectId,
   WS_METHODS,
 } from "@t3tools/contracts";
+import { t } from "@t3tools/shared/i18n";
 import * as Cause from "effect/Cause";
 import * as DateTime from "effect/DateTime";
 import * as Effect from "effect/Effect";
@@ -93,7 +94,9 @@ export class VcsActionUnavailableError extends Schema.TaggedError<VcsActionUnava
   },
 ) {
   override get message(): string {
-    return `Source control operation '${this.operation.replaceAll("_", " ")}' is unavailable.`;
+    return t("gitActions.vcsAction.operationUnavailable", {
+      operation: this.operation.replaceAll("_", " "),
+    });
   }
 }
 
@@ -110,8 +113,8 @@ export class VcsActionRemoteFailureError extends Schema.TaggedError<VcsActionRem
   },
 ) {
   override get message(): string {
-    const phase = this.phase === null ? "execution" : this.phase;
-    return `Source control action '${this.action}' failed during ${phase}.`;
+    const phase = this.phase === null ? t("gitActions.vcsAction.executionPhase") : this.phase;
+    return t("gitActions.vcsAction.actionFailedDuringPhase", { action: this.action, phase });
   }
 }
 
@@ -126,7 +129,7 @@ export class VcsActionMissingTerminalEventError extends Schema.TaggedError<VcsAc
   },
 ) {
   override get message(): string {
-    return `Source control action '${this.action}' ended without a terminal result.`;
+    return t("gitActions.vcsAction.actionMissingTerminalEvent", { action: this.action });
   }
 }
 
@@ -138,7 +141,7 @@ export class VcsActionTargetKeyParseError extends Schema.TaggedError<VcsActionTa
   },
 ) {
   override get message(): string {
-    return `Invalid source control action target key (${this.keyLength} characters).`;
+    return t("gitActions.vcsAction.targetKeyInvalid", { count: this.keyLength });
   }
 }
 
@@ -231,7 +234,7 @@ function failVcsActionState(
     ...EMPTY_VCS_ACTION_STATE,
     operation,
     actionId,
-    error: error instanceof Error ? error.message : "Source control action failed.",
+    error: error instanceof Error ? error.message : t("gitActions.vcsAction.actionFailed"),
   };
 }
 
@@ -362,7 +365,7 @@ export function applyVcsActionProgressEvent(
         actionId: event.actionId,
         action: event.action,
         operation: "run_change_request",
-        currentLabel: `Running ${event.hookName}...`,
+        currentLabel: t("gitActions.vcsAction.runningHook", { hook: event.hookName }),
         hookName: event.hookName,
         hookStartedAtMs: now,
         lastOutputLine: null,
@@ -459,6 +462,7 @@ export function createVcsActionManager<R, E>(
           stateAtom,
           beginVcsActionState({
             operation: "run_change_request",
+            // Sentinel compared by GitActionsControl.logic.ts, so it stays English.
             label: "Running source control action",
             actionId: input.actionId,
           }),

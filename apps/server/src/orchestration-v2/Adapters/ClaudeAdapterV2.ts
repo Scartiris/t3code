@@ -39,6 +39,7 @@ import {
   CLAUDE_RESUME_COMPACTION_NEVER_ANSWER,
   formatClaudeResumeCompactionQuestion,
 } from "@t3tools/shared/claudeCompaction";
+import { t } from "@t3tools/shared/i18n";
 import {
   type ChatAttachment,
   ClaudeSettings,
@@ -353,7 +354,7 @@ export class ClaudeBackgroundWorkBlocksQueryReplacementError extends Schema.Tagg
   {},
 ) {
   override get message(): string {
-    return "Claude is still running background agents or commands, and this model or setting change would end them. Wait for them to finish, or press Stop, then send the message again.";
+    return t("orchestration-v2.claudeAdapterV2.backgroundWorkBlocksQueryReplacement");
   }
 }
 
@@ -2280,25 +2281,25 @@ function terminalResultError(
     case "api_error":
       return failureHint ?? "Claude gave up after repeated API errors.";
     case "malformed_tool_use_exhausted":
-      return "Claude gave up after repeated malformed tool calls.";
+      return t("orchestration-v2.claudeAdapterV2.malformedToolCallsGaveUp");
     case "budget_exhausted":
-      return "Claude stopped: the turn's token budget was exhausted.";
+      return t("orchestration-v2.claudeAdapterV2.turnTokenBudgetExhausted");
     case "structured_output_retry_exhausted":
-      return "Claude could not produce the requested structured output.";
+      return t("orchestration-v2.claudeAdapterV2.structuredOutputUnavailable");
     case "tool_deferred_unavailable":
-      return "Claude could not resume a deferred tool call: the tool is no longer available.";
+      return t("orchestration-v2.claudeAdapterV2.deferredToolUnavailable");
     case "turn_setup_failed":
-      return "Claude could not start the turn.";
+      return t("orchestration-v2.claudeAdapterV2.turnStartFailed");
     case "blocking_limit":
-      return "Claude stopped: a usage limit blocked the request.";
+      return t("orchestration-v2.claudeAdapterV2.usageLimitBlocked");
     case "rapid_refill_breaker":
-      return "Claude stopped: the context refilled too quickly after compaction.";
+      return t("orchestration-v2.claudeAdapterV2.contextRefilledTooQuickly");
     case "prompt_too_long":
-      return "Claude stopped: the prompt exceeds the model's context window.";
+      return t("orchestration-v2.claudeAdapterV2.promptExceedsContextWindow");
     case "image_error":
-      return "Claude stopped: an image in the conversation could not be processed.";
+      return t("orchestration-v2.claudeAdapterV2.imageUnprocessable");
     case "model_error":
-      return "Claude stopped: the model returned an error.";
+      return t("orchestration-v2.claudeAdapterV2.modelError");
     default:
       return undefined;
   }
@@ -2447,9 +2448,9 @@ function providerFailureFromResult(
       : "provider_error";
   const listedError = resultUserFacingError(message);
   const structuredError = isOverloadedResult(message)
-    ? "Claude API is overloaded (529). Try again shortly."
+    ? t("orchestration-v2.claudeAdapterV2.apiOverloaded")
     : message.subtype === "success" && message.api_error_status === 429
-      ? "Claude API rate limit reached. Try again later."
+      ? t("orchestration-v2.claudeAdapterV2.apiRateLimited")
       : terminalResultError(message.terminal_reason, failureHint);
   if (message.subtype !== "success") {
     return makeProviderFailure({
@@ -7767,7 +7768,7 @@ export const createClaudeAdapterV2 = Effect.fn("ClaudeAdapterV2Driver.create")(
           new ProviderAdapterDriverCreateError({
             driver: CLAUDE_PROVIDER,
             instanceId: input.instanceId,
-            detail: "Failed to create Claude Agent SDK adapter.",
+            detail: t("orchestration-v2.claudeAdapterV2.adapterCreateFailed"),
             cause,
           }),
       ),

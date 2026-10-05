@@ -21,6 +21,7 @@ import {
 } from "@t3tools/contracts";
 import { resolveUserMessagePresentation } from "@t3tools/client-runtime/user-message";
 import { summarizeToolGroup } from "@t3tools/client-runtime/work-log/presentation";
+import { t } from "@t3tools/shared/i18n";
 import * as DateTime from "effect/DateTime";
 import { describe, expect, it } from "vite-plus/test";
 
@@ -628,7 +629,7 @@ describe("buildThreadFeed", () => {
     );
 
     expect(activities).toHaveLength(1);
-    expect(activities[0]?.summary).toBe("Run interrupted");
+    expect(activities[0]?.summary).toBe(t("threads.threadActivity.runInterrupted"));
     expect(activities[0]?.detail).toBe("Run interrupted before provider start");
     expect(
       deriveThreadFeedPresentation(
@@ -832,7 +833,7 @@ describe("buildThreadFeed", () => {
     expect(collapsed[2]).toMatchObject({
       type: "run-fold",
       createdAt: "2026-06-20T00:00:02.000Z",
-      label: "Worked for 2.0s",
+      label: t("threads.threadActivity.workedFor", { duration: "2.0s" }),
     });
 
     const expanded = deriveThreadFeedPresentation(feed, latestRun, new Set([runId]));
@@ -1044,10 +1045,10 @@ describe("buildThreadFeed", () => {
     const settled = deriveThreadFeedPresentation(feed(false), null, new Set());
     expect(shape(settled)).toEqual([
       "user:launch",
-      "fold:Worked for 8.0s",
+      `fold:${t("threads.threadActivity.workedFor", { duration: "8.0s" })}`,
       "assistant:launch-answer",
       "user:resume",
-      "fold:Worked for 8.0s",
+      `fold:${t("threads.threadActivity.workedFor", { duration: "8.0s" })}`,
       "assistant:resume-answer",
     ]);
     const launchFold = settled.find((entry) => entry.type === "run-fold");
@@ -1056,11 +1057,11 @@ describe("buildThreadFeed", () => {
       shape(deriveThreadFeedPresentation(feed(false), null, new Set([launchFold.runId]))),
     ).toEqual([
       "user:launch",
-      "fold:Worked for 8.0s",
+      `fold:${t("threads.threadActivity.workedFor", { duration: "8.0s" })}`,
       "work-toggle",
       "assistant:launch-answer",
       "user:resume",
-      "fold:Worked for 8.0s",
+      `fold:${t("threads.threadActivity.workedFor", { duration: "8.0s" })}`,
       "assistant:resume-answer",
     ]);
 
@@ -1078,7 +1079,7 @@ describe("buildThreadFeed", () => {
       ),
     ).toEqual([
       "user:launch",
-      "fold:Worked for 8.0s",
+      `fold:${t("threads.threadActivity.workedFor", { duration: "8.0s" })}`,
       "assistant:launch-answer",
       "user:resume",
       "work-toggle",
@@ -1165,7 +1166,7 @@ describe("buildThreadFeed", () => {
       true,
     );
     expect(presented.find((entry) => entry.type === "work-toggle")).toMatchObject({
-      summary: "Running vp",
+      summary: `${t("threads.threadActivity.commandRunning")} vp`,
       live: true,
       shimmer: true,
     });
@@ -1277,7 +1278,7 @@ describe("buildThreadFeed", () => {
       groupId: "work-group:activity-neutral",
       hiddenCount: 3,
       expanded: false,
-      summary: "Ran 3 commands",
+      summary: t("workLog.presentation.ranCommands", { count: 3 }),
     });
 
     const expanded = deriveThreadFeedPresentation(
@@ -1381,7 +1382,10 @@ describe("buildThreadFeed", () => {
     expect(presented).toMatchObject([
       {
         type: "work-toggle",
-        summary: "Ran 2 commands and sent messages to 3 threads",
+        summary: [
+          t("workLog.presentation.ranCommands", { count: 2 }),
+          "sent messages to 3 threads",
+        ].join(t("workLog.presentation.listSeparator")),
         hiddenCount: 5,
         hasFailure: false,
       },
@@ -1429,7 +1433,9 @@ describe("buildThreadFeed", () => {
       new Set(),
     );
     expect(presented.find((entry) => entry.type === "work-toggle")).toMatchObject({
-      summary: "Listed projects 1 time and cloned 1 repository",
+      summary: ["Listed projects 1 time", "cloned 1 repository"].join(
+        t("workLog.presentation.listSeparator"),
+      ),
       hasFailure: true,
     });
   });
@@ -1511,10 +1517,13 @@ describe("retained v2 feed presentation", () => {
           {
             summary:
               status === "running"
-                ? "Compacting context"
+                ? t("workLog.presentation.compactingContext")
                 : status === "completed"
-                  ? "Context compacted 899K → 19K tokens"
-                  : "Context compacted",
+                  ? t("workLog.presentation.contextCompactedTokens", {
+                      before: "899K",
+                      after: "19K",
+                    })
+                  : t("workLog.presentation.contextCompacted"),
           },
         ],
       });
@@ -1600,7 +1609,9 @@ describe("retained v2 feed presentation", () => {
           entry.type === "activity-group" &&
           entry.activities[0]?.projectedItem.item.type === "compaction",
       ),
-    ).toMatchObject({ activities: [{ summary: "Context compacted" }] });
+    ).toMatchObject({
+      activities: [{ summary: t("workLog.presentation.contextCompacted") }],
+    });
   });
 
   it("retains assistant image attachments from the wire", () => {
@@ -1658,7 +1669,7 @@ describe("retained v2 feed presentation", () => {
     );
     expect(presented[0]).toMatchObject({
       type: "work-toggle",
-      summary: "Used Editor",
+      summary: t("workLog.presentation.usedSources", { names: "Editor" }),
       toolSurface: "computer",
       toolIcon: icon,
     });
@@ -2141,8 +2152,10 @@ it("uses a compact reasoning preview and a short expanded heading", () => {
     toolLifecycleStatus: "inProgress" as const,
   };
   expect(workEntryRowLabel(entry)).toBe("Check **ordering**. Then run the test.");
-  expect(workEntryRowLabel(entry, true)).toBe("Thinking");
-  expect(workEntryRowLabel({ ...entry, toolLifecycleStatus: "completed" }, true)).toBe("Thought");
+  expect(workEntryRowLabel(entry, true)).toBe(t("threads.threadActivity.thinking"));
+  expect(workEntryRowLabel({ ...entry, toolLifecycleStatus: "completed" }, true)).toBe(
+    t("threads.threadActivity.thought"),
+  );
 });
 
 it("keeps search output in expanded details rather than the compact label", () => {
@@ -2188,7 +2201,8 @@ it.each(["First paragraph.\n\nSecond paragraph.", ""])(
       expect(
         rows.some(
           (row) =>
-            row.type === "thinking" || (row.type === "work-toggle" && row.summary === "Thinking"),
+            row.type === "thinking" ||
+            (row.type === "work-toggle" && row.summary === t("threads.threadActivity.thinking")),
         ),
       ).toBe(true);
     }
@@ -2231,7 +2245,9 @@ it("stops stranded thinking after a steer and follows the next thought or tool",
   const header = afterSteer.find((row) => row.type === "work-toggle");
   if (header?.type !== "work-toggle") throw new Error("Expected thought toggle");
   const expanded = rows([first, steer], new Set([header.groupId]));
-  expect(expanded.find((row) => row.type === "work-toggle")).toMatchObject({ summary: "Thought" });
+  expect(expanded.find((row) => row.type === "work-toggle")).toMatchObject({
+    summary: t("threads.threadActivity.thought"),
+  });
   expect(expanded.find((row) => row.type === "activity-group")).toMatchObject({
     activities: [{ lifecycleStatus: "completed", workEntry: { toolLifecycleStatus: "completed" } }],
   });
@@ -2243,7 +2259,10 @@ it("stops stranded thinking after a steer and follows the next thought or tool",
     const live = rows(items).filter((row) => row.type === "work-toggle" && row.shimmer);
     expect(live).toHaveLength(1);
     expect(live[0]).toMatchObject({
-      summary: items.at(-1)!.type === "reasoning" ? "next-thought" : "Running vp",
+      summary:
+        items.at(-1)!.type === "reasoning"
+          ? "next-thought"
+          : `${t("threads.threadActivity.commandRunning")} vp`,
     });
   }
   expect(first.status).toBe("running");
@@ -2278,7 +2297,7 @@ it("previews a settled thought in its collapsed header and labels its expanded h
     new Set([header.groupId]),
   );
   expect(expanded.find((row) => row.type === "work-toggle")).toMatchObject({
-    summary: "Thought",
+    summary: t("threads.threadActivity.thought"),
     continuesWorkLog: true,
   });
   const detail = expanded.find((row) => row.type === "activity-group");

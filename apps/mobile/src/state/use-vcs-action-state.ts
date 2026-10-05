@@ -1,5 +1,6 @@
 import { useAtomValue } from "@effect/atom-react";
 import { type VcsActionState, type VcsActionTarget } from "@t3tools/client-runtime/state/vcs";
+import { t } from "@t3tools/shared/i18n";
 import { Atom } from "effect/unstable/reactivity";
 import { useCallback, useEffect, useRef, useState } from "react";
 
@@ -71,7 +72,7 @@ function formatElapsedSeconds(ms: number | null): string | null {
   if (ms === null) return null;
   const elapsed = Math.max(0, Math.floor((Date.now() - ms) / 1000));
   if (elapsed < 2) return null;
-  return `Running for ${elapsed}s`;
+  return t("state.useVcsActionState.runningFor", { elapsed });
 }
 
 export function useGitActionProgress(target: VcsActionTarget): GitActionProgress {

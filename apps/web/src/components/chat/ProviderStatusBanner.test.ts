@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vite-plus/test";
 import { ProviderDriverKind, ProviderInstanceId, type ServerProvider } from "@t3tools/contracts";
+import { t } from "@t3tools/shared/i18n";
 import {
   getProviderStatusBannerKey,
   getProviderStatusMessage,
@@ -117,7 +118,7 @@ describe("compatibility banners", () => {
       auth: { status: "unauthenticated" },
     };
     expect(getProviderStatusMessage(unauthenticated)).toBe(
-      "Sign in via the CLI to authenticate again.",
+      t("chat.providerStatusBanner.signInViaCli"),
     );
     expect(getProviderStatusMessage({ ...unauthenticated, message: "Credentials expired" })).toBe(
       "Credentials expired",

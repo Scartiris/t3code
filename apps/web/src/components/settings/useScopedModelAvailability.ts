@@ -1,4 +1,5 @@
 import type { ProviderInstanceId, UnifiedSettings } from "@t3tools/contracts";
+import { t } from "@t3tools/shared/i18n";
 import { useCallback } from "react";
 
 import { getCustomModelOptionsByInstance } from "../../modelSelection";
@@ -45,7 +46,11 @@ export function useScopedModelDisabledReason(
           entry.driverKind !== sourceEntry?.driverKind ||
           !options?.some((option) => option.slug === model && !option.isUnavailable)
         ) {
-          return `This model is unavailable on ${environment?.label ?? "a selected environment"}. Select that environment to choose its model separately.`;
+          const environmentLabel =
+            environment?.label ?? t("settings.useScopedModelAvailability.aSelectedEnvironment");
+          return t("settings.useScopedModelAvailability.unavailableOnEnvironment", {
+            environment: environmentLabel,
+          });
         }
       }
       return null;

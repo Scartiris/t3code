@@ -1,6 +1,7 @@
 "use client";
 
 import { Dialog as SheetPrimitive } from "@base-ui/react/dialog";
+import { t } from "@t3tools/shared/i18n";
 import { XIcon } from "lucide-react";
 import type { CSSProperties } from "react";
 import { cn } from "~/lib/utils";
@@ -109,7 +110,7 @@ function SheetPopup({
           {children}
           {showCloseButton && (
             <SheetPrimitive.Close
-              aria-label="Close"
+              aria-label={t("ui.sheet.close")}
               className="absolute end-2 top-2"
               render={<Button size="icon" variant="ghost" />}
             >

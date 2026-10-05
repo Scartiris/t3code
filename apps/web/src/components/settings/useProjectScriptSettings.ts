@@ -11,6 +11,7 @@ import {
   type ResolvedKeybindingsConfig,
   type ServerSettings,
 } from "@t3tools/contracts";
+import { t } from "@t3tools/shared/i18n";
 import { resolveProjectScripts } from "@t3tools/shared/projectScripts";
 import { clearProjectSettingsOverrides } from "@t3tools/shared/projectSettings";
 import * as Cause from "effect/Cause";
@@ -38,8 +39,8 @@ function reportScriptFailure(result: AtomCommandResult<unknown, unknown>) {
     const error = squashAtomCommandFailure(result);
     toastManager.add({
       type: "error",
-      title: "Failed to save project actions",
-      description: error instanceof Error ? error.message : "An error occurred.",
+      title: t("settings.useProjectScriptSettings.saveProjectActionsFailed"),
+      description: error instanceof Error ? error.message : t("error.generic"),
     });
   }
   return mapAtomCommandResult(result, () => undefined);
@@ -76,8 +77,12 @@ export function useProjectScriptSettings(
     keybinding?: string | null,
   ): Promise<AtomCommandResult<void, unknown>> {
     if (savingRef.current || targets.length === 0) {
-      const message = "No available machine, or another action change is saving.";
-      toastManager.add({ type: "error", title: "Actions not saved", description: message });
+      const message = t("settings.useProjectScriptSettings.noAvailableEnvironment");
+      toastManager.add({
+        type: "error",
+        title: t("settings.useProjectScriptSettings.actionsNotSaved"),
+        description: message,
+      });
       return AsyncResult.failure(Cause.fail(new Error(message)));
     }
     savingRef.current = true;

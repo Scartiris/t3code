@@ -1,4 +1,5 @@
 import { EnvironmentId, MessageId, ThreadId } from "@t3tools/contracts";
+import { t } from "@t3tools/shared/i18n";
 import * as Schema from "effect/Schema";
 import { Atom, type AtomRegistry } from "effect/unstable/reactivity";
 
@@ -27,7 +28,12 @@ export class ThreadOutboxManagerError extends Schema.TaggedError<ThreadOutboxMan
   },
 ) {
   override get message(): string {
-    return `Thread outbox operation ${this.operation} failed for environment ${this.environmentId ?? "unknown"}, thread ${this.threadId ?? "unknown"}, message ${this.messageId ?? "unknown"}.`;
+    return t("state.threadOutboxManager.operationFailed", {
+      operation: this.operation,
+      environmentId: this.environmentId ?? t("state.threadOutboxManager.unknown"),
+      threadId: this.threadId ?? t("state.threadOutboxManager.unknown"),
+      messageId: this.messageId ?? t("state.threadOutboxManager.unknown"),
+    });
   }
 }
 

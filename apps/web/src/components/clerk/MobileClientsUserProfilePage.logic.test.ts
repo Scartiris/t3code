@@ -1,4 +1,5 @@
 import type { RelayClientDeviceRecord } from "@t3tools/contracts/relay";
+import { t } from "@t3tools/shared/i18n";
 import { describe, expect, it } from "vite-plus/test";
 
 import {
@@ -33,7 +34,12 @@ describe("mobile client presentation", () => {
 
     expect(mobileClientPlatformLabel(client)).toBe("iOS 18 · T3 Code 1.2.3");
     expect(mobileClientNotificationDetail(client)).toBe(
-      "Alerts enabled for approvals, completions.",
+      t("clerk.mobileClientsUserProfilePage.alertsEnabledFor", {
+        types: [
+          t("clerk.mobileClientsUserProfilePage.alertApprovals"),
+          t("clerk.mobileClientsUserProfilePage.alertCompletions"),
+        ].join(", "),
+      }),
     );
   });
 
@@ -50,7 +56,7 @@ describe("mobile client presentation", () => {
       mobileClientNotificationDetail(
         device({ notifications: { ...device().notifications, enabled: false } }),
       ),
-    ).toBe("Push notifications are disabled on this device.");
+    ).toBe(t("clerk.mobileClientsUserProfilePage.pushNotificationsDisabled"));
     expect(
       mobileClientNotificationDetail(
         device({
@@ -63,7 +69,7 @@ describe("mobile client presentation", () => {
           },
         }),
       ),
-    ).toBe("Push notifications are enabled, but no alert types are selected.");
+    ).toBe(t("clerk.mobileClientsUserProfilePage.alertsEnabledNoTypesSelected"));
   });
 
   it("handles missing app versions and invalid update timestamps", () => {
@@ -71,6 +77,8 @@ describe("mobile client presentation", () => {
       "iOS · T3 Code 1.2.3",
     );
     expect(mobileClientPlatformLabel(device({ appVersion: null }))).toBe("iOS 18");
-    expect(mobileClientUpdatedAtLabel("not-a-date")).toBe("Update time unavailable");
+    expect(mobileClientUpdatedAtLabel("not-a-date")).toBe(
+      t("clerk.mobileClientsUserProfilePage.updatedAtUnavailable"),
+    );
   });
 });

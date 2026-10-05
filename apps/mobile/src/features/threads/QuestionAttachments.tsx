@@ -3,6 +3,7 @@ import { AppTextInput as TextInput } from "../../components/AppText";
 import { useNativePaste } from "../../lib/useNativePaste";
 import { convertPastedImagesToAttachments } from "../../lib/composerImages";
 import { PROVIDER_SEND_TURN_MAX_ATTACHMENTS, type UserInputQuestion } from "@t3tools/contracts";
+import { t } from "@t3tools/shared/i18n";
 import { useAtomValue } from "@effect/atom-react";
 import { Alert, View } from "react-native";
 import { useEffect, useRef, useState } from "react";
@@ -100,11 +101,17 @@ export function QuestionAttachments(props: {
           (appAtomRegistry.get(questionAttachmentPreparationAtom)[key] ?? 0) > 0
         ) {
           if (append(key, images) > 0)
-            Alert.alert("Could not paste image", "Too many attachments.");
+            Alert.alert(
+              t("threads.questionAttachments.couldNotPasteImage"),
+              t("threads.questionAttachments.tooManyAttachments"),
+            );
         } else await releaseUnusedComposerAttachmentFiles(images);
       })
       .catch((error) =>
-        Alert.alert("Could not paste image", error instanceof Error ? error.message : "Try again."),
+        Alert.alert(
+          t("threads.questionAttachments.couldNotPasteImage"),
+          error instanceof Error ? error.message : t("threads.questionAttachments.tryAgain"),
+        ),
       )
       .finally(() => changeQuestionAttachmentPreparation(key, -1));
   });
@@ -145,9 +152,15 @@ export function QuestionAttachments(props: {
       }
       const rejected = append(key, picked);
       if (result.error || rejected > 0)
-        Alert.alert("Could not attach file", result.error ?? "Too many attachments.");
+        Alert.alert(
+          t("threads.questionAttachments.couldNotAttachFile"),
+          result.error ?? t("threads.questionAttachments.tooManyAttachments"),
+        );
     } catch (error) {
-      Alert.alert("Could not attach file", error instanceof Error ? error.message : "Try again.");
+      Alert.alert(
+        t("threads.questionAttachments.couldNotAttachFile"),
+        error instanceof Error ? error.message : t("threads.questionAttachments.tryAgain"),
+      );
     } finally {
       changeQuestionAttachmentPreparation(key, -1);
     }
@@ -193,7 +206,7 @@ export function QuestionAttachments(props: {
           onChangeText={props.onChangeText}
           onFocus={() => props.onInputFocusChange?.(true)}
           onBlur={() => props.onInputFocusChange?.(false)}
-          placeholder="Or type a custom answer"
+          placeholder={t("threads.questionAttachments.customAnswerPlaceholder")}
           className="min-h-[54px] rounded-2xl border border-input-border bg-input px-3.5 py-3 font-sans text-base text-foreground"
         />
       </TextInputWrapper>

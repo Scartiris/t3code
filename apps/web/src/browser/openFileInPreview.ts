@@ -11,6 +11,7 @@ import {
   type AtomCommandResult,
   mapAtomCommandResult,
 } from "@t3tools/client-runtime/state/runtime";
+import { t } from "@t3tools/shared/i18n";
 import * as Cause from "effect/Cause";
 import * as Data from "effect/Data";
 import { AsyncResult } from "effect/unstable/reactivity";
@@ -42,7 +43,7 @@ export class BrowserSettingsReadError extends Data.TaggedError("BrowserSettingsR
   readonly cause: unknown;
 }> {
   override get message(): string {
-    return "Saved browser settings could not be loaded.";
+    return t("browser.openFileInPreview.savedBrowserSettingsLoadFailed");
   }
 }
 
@@ -105,7 +106,7 @@ export async function openFileInPreview<AssetError, PreviewError>(input: {
     return AsyncResult.failure(
       Cause.fail(
         new BrowserPreviewUnavailableError({
-          message: "The integrated browser is unavailable in this runtime.",
+          message: t("browser.openFileInPreview.integratedBrowserUnavailable"),
         }),
       ),
     );

@@ -2,6 +2,7 @@ import * as NodeFileSystem from "@effect/platform-node/NodeFileSystem";
 import * as NodeHttpClient from "@effect/platform-node/NodeHttpClient";
 import * as NodeServices from "@effect/platform-node/NodeServices";
 import { assert, describe, it } from "@effect/vitest";
+import { t } from "@t3tools/shared/i18n";
 import * as Effect from "effect/Effect";
 import * as FileSystem from "effect/FileSystem";
 import * as Layer from "effect/Layer";
@@ -405,7 +406,7 @@ describe("DesktopServerExposure", () => {
         assert.deepEqual(endpoints, [
           {
             id: "desktop-loopback:3773",
-            label: "This machine",
+            label: t("backend.desktopServerExposure.thisMachine"),
             provider: {
               id: "desktop-core",
               label: "Desktop",
@@ -421,11 +422,11 @@ describe("DesktopServerExposure", () => {
             },
             source: "desktop-core",
             status: "available",
-            description: "Loopback endpoint for this desktop app.",
+            description: t("backend.desktopServerExposure.thisMachineDescription"),
           },
           {
             id: "desktop-lan:http://192.168.1.20:3773",
-            label: "Local network",
+            label: t("backend.desktopServerExposure.localNetwork"),
             provider: {
               id: "desktop-core",
               label: "Desktop",
@@ -442,11 +443,11 @@ describe("DesktopServerExposure", () => {
             source: "desktop-core",
             status: "available",
             isDefault: true,
-            description: "Reachable from devices on the same network.",
+            description: t("backend.desktopServerExposure.localNetworkDescription"),
           },
           {
             id: "manual:https://desktop.example.ts.net",
-            label: "Custom HTTPS",
+            label: t("backend.desktopServerExposure.customHttps"),
             provider: {
               id: "manual",
               label: "Manual",
@@ -462,11 +463,11 @@ describe("DesktopServerExposure", () => {
             },
             source: "user",
             status: "unknown",
-            description: "User-configured HTTPS endpoint for this desktop backend.",
+            description: t("backend.desktopServerExposure.customHttpsDescription"),
           },
           {
             id: "manual:http://desktop.example.test:3773",
-            label: "Custom endpoint",
+            label: t("backend.desktopServerExposure.customEndpoint"),
             provider: {
               id: "manual",
               label: "Manual",
@@ -482,7 +483,7 @@ describe("DesktopServerExposure", () => {
             },
             source: "user",
             status: "unknown",
-            description: "User-configured endpoint for this desktop backend.",
+            description: t("backend.desktopServerExposure.customEndpointDescription"),
           },
         ]);
       }),

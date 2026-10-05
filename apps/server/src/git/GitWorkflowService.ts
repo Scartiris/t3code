@@ -27,6 +27,7 @@ import {
   type VcsStatusRemoteResult,
   type VcsStatusResult,
 } from "@t3tools/contracts";
+import { t } from "@t3tools/shared/i18n";
 
 import * as GitManager from "./GitManager.ts";
 import * as GitVcsDriver from "../vcs/GitVcsDriver.ts";
@@ -170,7 +171,7 @@ export const make = Effect.gen(function* () {
           new GitManagerError({
             operation,
             cwd,
-            detail: "Failed to resolve the VCS driver for this Git workflow.",
+            detail: t("git.gitWorkflowService.vcsDriverResolveFailed"),
             cause,
           }),
       ),
@@ -179,7 +180,11 @@ export const make = Effect.gen(function* () {
       return yield* new GitManagerError({
         operation,
         cwd,
-        detail: `The ${operation} workflow currently supports Git repositories only; detected ${handle.kind}. (${cwd})`,
+        detail: t("git.gitWorkflowService.workflowRequiresGitRepository", {
+          operation,
+          kind: handle.kind,
+          cwd,
+        }),
       });
     }
   });
@@ -195,7 +200,7 @@ export const make = Effect.gen(function* () {
             operation,
             command: "vcs-route",
             cwd,
-            detail: "Failed to resolve the VCS driver for this Git command.",
+            detail: t("git.gitWorkflowService.vcsDriverResolveFailedForCommand"),
             cause,
           }),
       ),
@@ -205,7 +210,10 @@ export const make = Effect.gen(function* () {
         operation,
         command: "vcs-route",
         cwd,
-        detail: `The ${operation} command currently supports Git repositories only; detected ${handle.kind}.`,
+        detail: t("git.gitWorkflowService.commandRequiresGitRepository", {
+          operation,
+          kind: handle.kind,
+        }),
       });
     }
   });
@@ -230,7 +238,11 @@ export const make = Effect.gen(function* () {
         return yield* new GitManagerError({
           operation,
           cwd,
-          detail: `The ${operation} workflow currently supports Git repositories only; detected ${handle.kind}. (${cwd})`,
+          detail: t("git.gitWorkflowService.workflowRequiresGitRepository", {
+            operation,
+            kind: handle.kind,
+            cwd,
+          }),
         });
       }
       return true;
@@ -260,7 +272,10 @@ export const make = Effect.gen(function* () {
         operation,
         command: "vcs-route",
         cwd,
-        detail: `The ${operation} command currently supports Git repositories only; detected ${handle.kind}.`,
+        detail: t("git.gitWorkflowService.commandRequiresGitRepository", {
+          operation,
+          kind: handle.kind,
+        }),
       });
     }
     return true;

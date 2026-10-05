@@ -1,3 +1,4 @@
+import { t } from "@t3tools/shared/i18n";
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it, vi } from "vite-plus/test";
 
@@ -114,8 +115,8 @@ describe("QueuedRunsControl attachments and edit mode", () => {
 
     expect(html).toContain("https://assets.test/attachment-1");
     expect(html).toContain("Queued with a screenshot");
-    expect(html).toContain("Edit queued message");
-    expect(html).toContain("Reorder queued message");
+    expect(html).toContain(t("chat.queuedRunsControl.edit"));
+    expect(html).toContain(t("chat.queuedRunsControl.reorder"));
     expect(html).not.toContain("Move queued message up");
   });
 

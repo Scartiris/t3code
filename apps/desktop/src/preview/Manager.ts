@@ -36,6 +36,7 @@ import type {
   PreviewAutomationWaitForInput,
 } from "@t3tools/contracts";
 import { HostProcessPlatform } from "@t3tools/shared/hostProcess";
+import { t } from "@t3tools/shared/i18n";
 import { normalizePreviewUrl } from "@t3tools/shared/preview";
 import {
   BrowserWindow,
@@ -199,7 +200,7 @@ const buildPreviewPictureInPictureDataUrl = (): string => {
     </style>
   </head>
   <body>
-    <img id="preview-frame" alt="Live browser preview">
+    <img id="preview-frame" alt="${t("preview.manager.pictureInPictureAlt")}">
     <script>
       const frame = document.getElementById("preview-frame");
       window.previewPictureInPicture.onFrame((next) => {
@@ -1181,7 +1182,7 @@ const makeNativeOperations = Effect.fn("PreviewManager.makeOperations")(function
             ...current,
             consoleEntries: pushBounded(current.consoleEntries, {
               level: "error",
-              text: String(details["text"] ?? "Uncaught exception"),
+              text: String(details["text"] ?? t("preview.manager.uncaughtException")),
               timestamp,
               source: "exception",
             }),
@@ -1248,7 +1249,9 @@ const makeNativeOperations = Effect.fn("PreviewManager.makeOperations")(function
                   ...request,
                   status: null,
                   failed: true,
-                  errorText: String(params["errorText"] ?? "Network request failed"),
+                  errorText: String(
+                    params["errorText"] ?? t("preview.manager.networkRequestFailed"),
+                  ),
                   timestamp,
                 })
               : current.networkEntries,
@@ -3294,7 +3297,10 @@ const makeNativeOperations = Effect.fn("PreviewManager.makeOperations")(function
               height: PICTURE_IN_PICTURE_INITIAL_HEIGHT,
               minWidth: PICTURE_IN_PICTURE_MIN_WIDTH,
               minHeight: PICTURE_IN_PICTURE_MIN_HEIGHT,
-              title: title.length > 0 ? `Preview · ${title}` : "Browser preview",
+              title:
+                title.length > 0
+                  ? t("preview.manager.pictureInPictureTitle", { title })
+                  : t("preview.manager.pictureInPictureFallbackTitle"),
               show: false,
               alwaysOnTop: true,
               autoHideMenuBar: true,

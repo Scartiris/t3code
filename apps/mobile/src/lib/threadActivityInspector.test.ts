@@ -11,6 +11,7 @@ import {
   type OrchestrationV2ProjectedTurnItem,
   type OrchestrationV2TurnItem,
 } from "@t3tools/contracts";
+import { t } from "@t3tools/shared/i18n";
 import * as DateTime from "effect/DateTime";
 import { describe, expect, it } from "vite-plus/test";
 
@@ -92,17 +93,26 @@ describe("buildThreadActivityInspector", () => {
     const model = buildThreadActivityInspector(activityFor(item), support, sourceThreadId);
     expect(model.fields).toEqual(
       expect.arrayContaining([
-        { label: "Duration", value: "2.0s" },
-        { label: "Run", value: "completed" },
-        { label: "Working directory", value: "/workspace/project" },
-        { label: "Visibility", value: "inherited" },
+        { label: t("threads.threadActivityInspector.duration"), value: "2.0s" },
+        { label: t("threads.threadActivityInspector.run"), value: "completed" },
+        {
+          label: t("threads.threadActivityInspector.workingDirectory"),
+          value: "/workspace/project",
+        },
+        { label: t("threads.threadActivityInspector.visibility"), value: "inherited" },
       ]),
     );
     expect(model.blocks).toEqual(
       expect.arrayContaining([
-        expect.objectContaining({ label: "Command", value: "vp check" }),
-        expect.objectContaining({ label: "Exit", value: "Process exited with code 0" }),
-        expect.objectContaining({ label: "Attempt history" }),
+        expect.objectContaining({
+          label: t("threads.threadActivityInspector.command"),
+          value: "vp check",
+        }),
+        expect.objectContaining({
+          label: t("threads.threadActivityInspector.exit"),
+          value: t("chat.v2ItemInspector.processExited", { code: 0 }),
+        }),
+        expect.objectContaining({ label: t("threads.threadActivityInspector.attemptHistory") }),
       ]),
     );
     expect(model.blocks.some((block) => block.label === "Output")).toBe(false);
@@ -165,7 +175,10 @@ describe("buildThreadActivityInspector", () => {
     );
     expect(dynamicModel.blocks).toEqual(
       expect.arrayContaining([
-        expect.objectContaining({ label: "Input", value: expect.stringContaining('"nested"') }),
+        expect.objectContaining({
+          label: t("chat.v2ItemInspector.input"),
+          value: expect.stringContaining('"nested"'),
+        }),
       ]),
     );
     expect(dynamicModel.structuredDetails).toContain('"type": "dynamic_tool"');
@@ -186,7 +199,10 @@ describe("buildThreadActivityInspector", () => {
     };
     const model = buildThreadActivityInspector(activityFor(item), EMPTY_V2_ITEM_SUPPORT, threadId);
     expect(model.fileLinks).toEqual([{ label: `modify ${item.fileName}`, path: item.fileName }]);
-    expect(model.fields).toContainEqual({ label: "Changes", value: "+2 −1" });
+    expect(model.fields).toContainEqual({
+      label: t("threads.threadActivityInspector.changes"),
+      value: "+2 −1",
+    });
     expect(model.blocks).toEqual([]);
     expect(model.structuredDetails).not.toContain("RAW_");
     expect(model.structuredDetails).toContain(item.fileName);
@@ -262,11 +278,11 @@ describe("buildThreadActivityInspector", () => {
     );
 
     expect(model.fields).toContainEqual({
-      label: "Delegated task",
+      label: t("threads.threadActivityInspector.delegatedTask"),
       value: "provider native · running",
     });
     expect(model.blocks).toContainEqual({
-      label: "Progress",
+      label: t("threads.threadActivityInspector.progress"),
       value: "Reading projection tests",
       monospaced: false,
     });

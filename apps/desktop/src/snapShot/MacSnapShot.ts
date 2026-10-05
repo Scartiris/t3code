@@ -4,6 +4,7 @@ import * as NodeChildProcess from "node:child_process";
 import * as NodeFSP from "node:fs/promises";
 
 import * as Electron from "electron";
+import { t } from "@t3tools/shared/i18n";
 import type { ActiveWindow } from "./ActiveWindow.ts";
 
 const MAC_SCREEN_CAPTURE_PATH = "/usr/sbin/screencapture";
@@ -63,7 +64,8 @@ export async function captureMacWindowSnapshot(
   if (png !== capturedPng) await NodeFSP.writeFile(outputPath, png);
   return {
     source: {
-      name: active.title.trim() || active.owner.name.trim() || "Window",
+      name:
+        active.title.trim() || active.owner.name.trim() || t("snapShot.macSnapShot.windowLabel"),
     },
     png,
   };

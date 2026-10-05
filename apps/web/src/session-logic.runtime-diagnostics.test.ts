@@ -1,4 +1,5 @@
 import { RunId, ThreadId, TurnItemId, type OrchestrationV2TurnItem } from "@t3tools/contracts";
+import { t } from "@t3tools/shared/i18n";
 import * as DateTime from "effect/DateTime";
 import { describe, expect, it } from "vite-plus/test";
 
@@ -100,8 +101,12 @@ describe("runtime diagnostics in the v2 work log", () => {
       }),
     );
 
-    expect(workEntryDisplayLabel(entry, undefined)).toBe("Retrying provider (2/5)");
-    expect(entry.detail).toBe(`${retainedMessage} Retrying in 1.5s.`);
+    expect(workEntryDisplayLabel(entry, undefined)).toBe(
+      t("web.sessionLogic.retryingProvider", { progress: "2/5" }),
+    );
+    expect(entry.detail).toBe(
+      `${retainedMessage}${t("web.sessionLogic.retryingInSeconds", { seconds: "1.5" })}`,
+    );
   });
 
   it("keeps a diagnostic separate from adjacent tool summaries", () => {

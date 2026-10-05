@@ -7,6 +7,7 @@
  * @module provider/Drivers/CursorDriver
  */
 import { CursorSettings, ProviderDriverKind, ProviderSetupError } from "@t3tools/contracts";
+import { t } from "@t3tools/shared/i18n";
 import * as Effect from "effect/Effect";
 import * as Crypto from "effect/Crypto";
 import * as FileSystem from "effect/FileSystem";
@@ -110,7 +111,7 @@ export const CursorDriver: ProviderDriver<CursorSettings, CursorDriverEnv> = {
             new ProviderDriverError({
               driver: DRIVER_KIND,
               instanceId,
-              detail: "Could not open the Cursor credential store.",
+              detail: t("provider.cursorDriver.credentialStoreOpenFailed"),
               cause,
             }),
         ),
@@ -131,7 +132,7 @@ export const CursorDriver: ProviderDriver<CursorSettings, CursorDriverEnv> = {
                     new ProviderSetupError({
                       instanceId,
                       operation: "start",
-                      detail: provider.message ?? "Could not verify the Cursor sign-in. Try again.",
+                      detail: provider.message ?? t("provider.cursorDriver.signInVerifyFailed"),
                     }),
                   ),
             ),
@@ -186,7 +187,7 @@ export const CursorDriver: ProviderDriver<CursorSettings, CursorDriverEnv> = {
             new ProviderDriverError({
               driver: DRIVER_KIND,
               instanceId,
-              detail: "Failed to build Cursor orchestration adapter.",
+              detail: t("provider.cursorDriver.orchestrationAdapterBuildFailed"),
               cause,
             }),
         ),
@@ -249,7 +250,9 @@ export const CursorDriver: ProviderDriver<CursorSettings, CursorDriverEnv> = {
             new ProviderDriverError({
               driver: DRIVER_KIND,
               instanceId,
-              detail: `Failed to build Cursor snapshot: ${cause.message ?? String(cause)}`,
+              detail: t("provider.cursorDriver.snapshotBuildFailed", {
+                message: cause.message ?? String(cause),
+              }),
               cause,
             }),
         ),
@@ -277,7 +280,7 @@ export const CursorDriver: ProviderDriver<CursorSettings, CursorDriverEnv> = {
                       new ProviderDriverError({
                         driver: DRIVER_KIND,
                         instanceId,
-                        detail: `Failed to discover Cursor skills for '${cwd}'`,
+                        detail: t("provider.cursorDriver.skillsDiscoverFailed", { cwd }),
                         cause,
                       }),
                   ),

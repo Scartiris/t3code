@@ -11,6 +11,7 @@ import { act, type ReactNode, type ReactElement, type ComponentProps } from "rea
 import { create, type ReactTestRenderer } from "react-test-renderer";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vite-plus/test";
 import { DraftId, useComposerDraftStore } from "~/composerDraftStore";
+import { t } from "@t3tools/shared/i18n";
 
 const { newThread, prepareThread, refresh, Wrapper, Trigger } = vi.hoisted(() => ({
   newThread: vi.fn(),
@@ -239,14 +240,19 @@ async function click(label: string) {
   );
 }
 
+/**
+ * The handoff actions the panel offers, as `[name, rendered label]`. The name drives the
+ * expectations below; the label is what the panel actually renders, so localized copy is read
+ * from the catalog while the stubbed summary and code tabs keep their own mock labels.
+ */
 const actions = [
-  "Resolve conflicts",
-  "Ask a question",
-  "Explain this PR",
-  "Fix findings in this thread",
-  "Fix check",
-  "Add to agent",
-];
+  ["Resolve conflicts", t("pullRequest.pullRequestDetailPanel.resolveConflicts")],
+  ["Ask a question", t("pullRequest.pullRequestDetailPanel.askQuestion")],
+  ["Explain this PR", t("pullRequest.pullRequestDetailPanel.explainThisPr")],
+  ["Fix findings in this thread", t("pullRequest.pullRequestDetail.fixFindingsInThisThread")],
+  ["Fix check", "Fix check"],
+  ["Add to agent", "Add to agent"],
+] as const;
 
 // The surface ChatView opens for `detail`, and the thread states it can be opened beside. The
 // context prop is derived here the way ChatView derives it, so a wrong answer from the thread's
@@ -306,15 +312,22 @@ describe.each([
     await act(async () => render());
     const checkout = renderer.root
       .findAllByType("button")
-      .filter((node) => node.props["aria-label"] === "Check out");
+      .filter(
+        (node) => node.props["aria-label"] === t("pullRequest.pullRequestDetailPanel.checkOut"),
+      );
     expect(checkout).toHaveLength(thread === stackThread ? 0 : 1);
   });
 
-  it.each(actions)("%s writes to the correct composer", async (action) => {
+  it.each(actions)("%s writes to the correct composer", async (action, label) => {
     if (target) useComposerDraftStore.getState().setPrompt(target, "Keep my draft");
     await act(async () => render());
-    if (action === "Add to agent") await click("Code");
-    await click(target ? action : action.replace("in this thread", "in a thread"));
+    if (action === "Add to agent") await click(t("pullRequest.pullRequestDetailPanel.tabCode"));
+    // Only the findings handoff renames itself for a threadless surface; every other label holds.
+    const clickLabel =
+      !target && action === "Fix findings in this thread"
+        ? t("pullRequest.pullRequestDetail.fixFindingsInAThread")
+        : label;
+    await click(clickLabel);
     const draft = useComposerDraftStore.getState().getComposerDraft(target ?? newDraftId);
     if (action === "Resolve conflicts") expect(draft?.prompt).toContain("resolve every conflict");
     else if (action === "Fix check") expect(draft?.prompt).toContain("Fix the failing check");

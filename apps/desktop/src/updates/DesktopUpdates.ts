@@ -7,6 +7,7 @@ import {
   type DesktopUpdateCheckResult,
   type DesktopUpdateState,
 } from "@t3tools/contracts";
+import { t } from "@t3tools/shared/i18n";
 import * as Cause from "effect/Cause";
 import * as Context from "effect/Context";
 import * as DateTime from "effect/DateTime";
@@ -255,16 +256,16 @@ function getAutoUpdateDisabledReason(args: {
   hasUpdateFeedConfig: boolean;
 }): string | null {
   if (!args.hasUpdateFeedConfig) {
-    return "Automatic updates are not available because no update feed is configured.";
+    return t("updates.desktopUpdates.noUpdateFeed");
   }
   if (args.isDevelopment || !args.isPackaged) {
-    return "Automatic updates are only available in packaged production builds.";
+    return t("updates.desktopUpdates.packagedOnly");
   }
   if (args.disabledByEnv) {
-    return "Automatic updates are disabled by the T3CODE_DISABLE_AUTO_UPDATE setting.";
+    return t("updates.desktopUpdates.disabledByEnv");
   }
   if (args.platform === "linux" && !args.appImage && !args.isDebPackage) {
-    return "Automatic updates on Linux require the AppImage or the .deb package.";
+    return t("updates.desktopUpdates.linuxRequiresPackage");
   }
   return null;
 }

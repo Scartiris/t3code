@@ -25,6 +25,7 @@ import {
   collectComposerContextReferences,
   sanitizeComposerContextLabel,
 } from "@t3tools/shared/composerContextReferences";
+import { t } from "@t3tools/shared/i18n";
 
 import {
   type ComposerContextReference,
@@ -53,7 +54,7 @@ const PREVIEW_LABEL_MAX_CHARS = 48;
  * Clamp at the same boundary so an oversized selection still sends, marked where it was cut,
  * rather than failing to encode at send time.
  */
-const TRUNCATION_MARKER = "\n… truncated …";
+const TRUNCATION_MARKER = t("web.composerContextRecords.truncationMarker");
 
 function clampContextText(value: string, max: number): string {
   if (value.length <= max) return value;
@@ -73,7 +74,7 @@ export function reviewCommentContextLabel(comment: ReviewCommentPresentation): s
   }
   const diffRange = /^([+-])(\d+)(?: to \1(\d+))?$/u.exec(comment.rangeLabel);
   const rangeLabel = diffRange
-    ? `L${diffRange[2]}${diffRange[3] ? ` to L${diffRange[3]}` : ""}${diffRange[1] === "-" ? " (before)" : ""}`
+    ? `L${diffRange[2]}${diffRange[3] ? t("web.composerContextRecords.diffRangeEnd", { end: diffRange[3] }) : ""}${diffRange[1] === "-" ? t("web.composerContextRecords.diffRangeBefore") : ""}`
     : comment.rangeLabel;
   return `${basename(comment.filePath)} ${rangeLabel}`;
 }
@@ -95,6 +96,13 @@ function pullRequestContextNumber(comment: ReviewCommentPresentation): number | 
 
 export type PullRequestContextDisplayState = "open" | "draft" | "merged" | "closed";
 
+const PULL_REQUEST_CONTEXT_KIND_LABELS = {
+  open: t("web.composerContextRecords.openPullRequest"),
+  draft: t("web.composerContextRecords.draftPullRequest"),
+  merged: t("web.composerContextRecords.mergedPullRequest"),
+  closed: t("web.composerContextRecords.closedPullRequest"),
+} as const satisfies Record<PullRequestContextDisplayState, string>;
+
 export function pullRequestContextDisplayState(
   comment: ReviewCommentPresentation,
 ): PullRequestContextDisplayState | null {
@@ -105,8 +113,8 @@ export function pullRequestContextDisplayState(
 
 export function pullRequestContextKindLabel(comment: ReviewCommentPresentation): string {
   const state = pullRequestContextDisplayState(comment);
-  if (state === null) return "Pull request";
-  return `${state[0]!.toUpperCase()}${state.slice(1)} pull request`;
+  if (state === null) return t("web.composerContextRecords.pullRequest");
+  return PULL_REQUEST_CONTEXT_KIND_LABELS[state];
 }
 
 export function previewAnnotationContextLabel(annotation: PreviewAnnotationPayload): string {
@@ -116,7 +124,9 @@ export function previewAnnotationContextLabel(annotation: PreviewAnnotationPaylo
       ? `${comment.slice(0, PREVIEW_LABEL_MAX_CHARS - 1)}…`
       : comment;
   }
-  return annotation.pageTitle?.trim() || "Preview annotation";
+  return (
+    annotation.pageTitle?.trim() || t("components.composerContextPresentation.previewAnnotation")
+  );
 }
 
 export function terminalContextReference(context: TerminalContextDraft): ComposerContextReference {
@@ -216,11 +226,24 @@ export function reviewCommentContextRecord(
 
 function previewAnnotationTargetSummary(annotation: PreviewAnnotationPayload): string {
   const parts: string[] = [];
-  const plural = (count: number, noun: string) => `${count} ${noun}${count === 1 ? "" : "s"}`;
   if (annotation.elements.length > 0)
-    parts.push(plural(annotation.elements.length, "selected element"));
-  if (annotation.regions.length > 0) parts.push(plural(annotation.regions.length, "marked region"));
-  if (annotation.strokes.length > 0) parts.push(plural(annotation.strokes.length, "drawing"));
+    parts.push(
+      t("components.composerContextPresentation.elementCount", {
+        count: annotation.elements.length,
+      }),
+    );
+  if (annotation.regions.length > 0)
+    parts.push(
+      t("components.composerContextPresentation.regionCount", {
+        count: annotation.regions.length,
+      }),
+    );
+  if (annotation.strokes.length > 0)
+    parts.push(
+      t("components.composerContextPresentation.drawingCount", {
+        count: annotation.strokes.length,
+      }),
+    );
   return parts.join(", ");
 }
 

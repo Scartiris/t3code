@@ -1,15 +1,16 @@
 import { sanitizeNewRefName } from "@t3tools/shared/git";
+import { t } from "@t3tools/shared/i18n";
 
 type WorkspaceMode = "local" | "worktree";
 
 export function resolveNewTaskWorkspaceLabel(input: {
   readonly workspaceMode: WorkspaceMode;
   readonly worktreePath: string | null;
-}): "Current checkout" | "Current worktree" | "New worktree" {
+}): string {
   if (input.workspaceMode === "worktree") {
-    return "New worktree";
+    return t("workspace.newWorktree");
   }
-  return input.worktreePath ? "Current worktree" : "Current checkout";
+  return input.worktreePath ? t("workspace.currentWorktree") : t("workspace.currentCheckout");
 }
 
 export function resolveNewTaskBranchWorktreePath(input: {
@@ -65,7 +66,7 @@ export function resolveNewTaskBranchLabel(input: {
   readonly workspaceMode: WorkspaceMode;
 }): string {
   if (!input.branchName) {
-    return "Choose branch";
+    return t("threads.newTaskContextPresentation.chooseBranch");
   }
 
   if (input.workspaceMode === "local") {
@@ -73,7 +74,7 @@ export function resolveNewTaskBranchLabel(input: {
   }
 
   const baseRef = input.startFromOrigin ? `origin/${input.branchName}` : input.branchName;
-  return `From ${baseRef}`;
+  return t("git.fromRef", { ref: baseRef });
 }
 
 export function shouldCheckoutNewTaskBranch(input: {

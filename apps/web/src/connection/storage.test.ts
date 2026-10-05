@@ -4,6 +4,7 @@ import {
 } from "@t3tools/client-runtime/connection";
 import { EnvironmentId } from "@t3tools/contracts";
 import { ConnectionCatalogDocument } from "@t3tools/client-runtime/platform";
+import { t } from "@t3tools/shared/i18n";
 import { describe, expect, it } from "@effect/vitest";
 import * as Effect from "effect/Effect";
 import * as Deferred from "effect/Deferred";
@@ -83,7 +84,7 @@ describe("makeCatalogBackend", () => {
       const error = yield* backend.write("{}").pipe(Effect.flip);
 
       expect(error).toBeInstanceOf(ConnectionTransientError);
-      expect(error.message).toContain("Desktop secure storage is unavailable");
+      expect(error.message).toContain(t("connection.storage.desktopSecureStorageUnavailable"));
       expect(setConnectionCatalog).toHaveBeenCalledWith("{}");
     }),
   );

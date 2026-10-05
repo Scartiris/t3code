@@ -2,6 +2,7 @@
 import * as NodeFSP from "node:fs/promises";
 import * as NodeURL from "node:url";
 import type { SnapShotKeyChord } from "@t3tools/contracts";
+import { t } from "@t3tools/shared/i18n";
 import { nativeImage } from "electron";
 
 // Linux helpers that need no D-Bus. Keep this module free of dbus-next so the main
@@ -95,8 +96,7 @@ export function portalShortcutTrigger(shortcut: SnapShotKeyChord): string {
   const keysym =
     KEY_NAMES[key] ??
     (/^[a-z0-9]$/.test(key) || /^f([1-9]|1\d|2[0-4])$/.test(key) ? key.toUpperCase() : undefined);
-  if (!keysym)
-    throw new Error("This key isn't supported as a Wayland capture shortcut. Choose another key.");
+  if (!keysym) throw new Error(t("snapShot.linuxCaptureSession.unsupportedWaylandKey"));
   return [
     shortcut.ctrlKey || shortcut.modKey ? "CTRL" : null,
     shortcut.altKey ? "ALT" : null,
@@ -113,10 +113,10 @@ const MAX_PNG_BYTES = 32 * 1024 * 1024;
 
 export function resizeLinuxCapture(png: Buffer): Buffer {
   if (png.length > MAX_PNG_BYTES || !png.subarray(0, 8).equals(PNG_HEADER)) {
-    throw new Error("Invalid or oversized window screenshot.");
+    throw new Error(t("snapShot.linuxCaptureSession.invalidScreenshot"));
   }
   const image = nativeImage.createFromBuffer(png);
-  if (image.isEmpty()) throw new Error("The window screenshot is empty.");
+  if (image.isEmpty()) throw new Error(t("snapShot.linuxCaptureSession.emptyScreenshot"));
   const { width, height } = image.getSize();
   const scale = Math.min(2_560 / width, 1_600 / height, 1);
   return scale < 1
@@ -135,12 +135,13 @@ export async function readPortalPng(uri: string): Promise<Buffer> {
   const file = await NodeFSP.open(NodeURL.fileURLToPath(uri), "r");
   try {
     const stat = await file.stat();
-    if (!stat.isFile() || stat.size > MAX_PNG_BYTES) throw new Error("Invalid screenshot file.");
+    if (!stat.isFile() || stat.size > MAX_PNG_BYTES)
+      throw new Error(t("snapShot.linuxCaptureSession.invalidScreenshotFile"));
     const buffer = Buffer.alloc(stat.size);
     let offset = 0;
     while (offset < buffer.length) {
       const { bytesRead } = await file.read(buffer, offset, buffer.length - offset, offset);
-      if (!bytesRead) throw new Error("Incomplete screenshot file.");
+      if (!bytesRead) throw new Error(t("snapShot.linuxCaptureSession.incompleteScreenshotFile"));
       offset += bytesRead;
     }
     return resizeLinuxCapture(buffer);

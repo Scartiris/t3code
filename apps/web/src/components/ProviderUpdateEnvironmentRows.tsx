@@ -1,3 +1,4 @@
+import { t } from "@t3tools/shared/i18n";
 import { CheckIcon } from "lucide-react";
 import { type ReactNode, useCallback, useMemo, useRef, useState } from "react";
 import type { EnvironmentId, ServerProvider } from "@t3tools/contracts";
@@ -65,7 +66,10 @@ function toProviderUpdateOutcome(input: {
     const error = squashAtomCommandFailure(input.result);
     return {
       status: "rejected",
-      reason: error instanceof Error ? error : new Error("Provider update failed."),
+      reason:
+        error instanceof Error
+          ? error
+          : new Error(t("components.providerUpdateEnvironmentRows.updateFailed")),
     };
   }
 
@@ -127,14 +131,14 @@ function EnvironmentUpdateRow({
     case "unchanged":
       trailing = (
         <Button size="xs" variant="outline" onClick={onUpdate}>
-          Retry
+          {t("components.providerUpdateEnvironmentRows.retry")}
         </Button>
       );
       break;
     default:
       trailing = (
         <Button size="xs" variant="outline" onClick={onUpdate}>
-          Update
+          {t("components.providerUpdateEnvironmentRows.update")}
         </Button>
       );
       break;
@@ -261,7 +265,10 @@ export function ProviderUpdateEnvironmentRows({
         inFlightEnvironmentsRef.current.delete(environmentId);
         clearPending(environmentId);
         setErrorByEnvironment((previous) =>
-          new Map(previous).set(environmentId, "Update timed out — try again."),
+          new Map(previous).set(
+            environmentId,
+            t("components.providerUpdateEnvironmentRows.updateTimedOut"),
+          ),
         );
       }, PENDING_EXPIRY_MS);
       try {
@@ -283,7 +290,10 @@ export function ProviderUpdateEnvironmentRows({
             } catch (error) {
               return {
                 status: "rejected",
-                reason: error instanceof Error ? error : new Error("Provider update failed."),
+                reason:
+                  error instanceof Error
+                    ? error
+                    : new Error(t("components.providerUpdateEnvironmentRows.updateFailed")),
               };
             }
           }),
@@ -308,7 +318,7 @@ export function ProviderUpdateEnvironmentRows({
           setErrorByEnvironment((previous) =>
             new Map(previous).set(
               environmentId,
-              "This environment isn’t connected — try again once it reconnects.",
+              t("components.providerUpdateEnvironmentRows.environmentDisconnected"),
             ),
           );
           return;
@@ -341,7 +351,9 @@ export function ProviderUpdateEnvironmentRows({
           setErrorByEnvironment((previous) =>
             new Map(previous).set(
               environmentId,
-              error instanceof Error ? error.message : "Provider update failed.",
+              error instanceof Error
+                ? error.message
+                : t("components.providerUpdateEnvironmentRows.updateFailed"),
             ),
           );
         }

@@ -14,6 +14,7 @@ import { HttpClient, HttpClientResponse } from "effect/unstable/http";
 import { beforeEach } from "vite-plus/test";
 
 import { OpenCodeSettings } from "@t3tools/contracts";
+import { t } from "@t3tools/shared/i18n";
 import * as ServerConfig from "../../config.ts";
 import * as OpenCodeRuntime from "../opencodeRuntime.ts";
 import * as OpenCodeServerOwner from "../OpenCodeServerOwner.ts";
@@ -729,7 +730,7 @@ it.layer(testLayer)("checkOpenCodeProviderStatus with configured server URL", (i
 
       NodeAssert.equal(snapshot.status, "error");
       NodeAssert.equal(snapshot.models.length, 0);
-      NodeAssert.match(snapshot.message ?? "", /v1\.14\.18 is too old/);
+      NodeAssert.equal(snapshot.message, t("provider.openCodeProvider.connectFailed"));
       NodeAssert.equal(runtimeMock.state.sdkClientInputs.length, 0);
     }),
   );

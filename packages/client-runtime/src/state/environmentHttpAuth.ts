@@ -4,6 +4,7 @@ import {
   ORCHESTRATION_PROTOCOL_HEADER,
   ORCHESTRATION_PROTOCOL_VERSION_TEXT,
 } from "@t3tools/contracts";
+import { t } from "@t3tools/shared/i18n";
 import * as Result from "effect/Result";
 import { FetchHttpClient, type HttpMethod } from "effect/unstable/http";
 
@@ -76,7 +77,7 @@ const buildEnvironmentAuthHeaders = (
     }
     if (Option.isNone(signer)) {
       return yield* new RemoteEnvironmentAuthFetchError({
-        message: "No DPoP signer is available to authorize the environment request.",
+        message: t("environmentHttpAuth.environmentHttpAuth.noDpopSigner"),
         cause: authorization._tag,
       });
     }
@@ -86,7 +87,7 @@ const buildEnvironmentAuthHeaders = (
         Effect.mapError(
           (cause) =>
             new RemoteEnvironmentAuthFetchError({
-              message: "Could not create the environment request authorization proof.",
+              message: t("environmentHttpAuth.environmentHttpAuth.requestProofFailed"),
               cause,
             }),
         ),
@@ -134,7 +135,7 @@ export const executeAuthenticatedEnvironmentHttpRequest = Effect.fn(
         const remote = input.remoteAuthorization;
         if (remote === undefined || Option.isNone(remote)) {
           return yield* new RemoteEnvironmentAuthFetchError({
-            message: "No relay authorization service is available for the environment request.",
+            message: t("environmentHttpAuth.environmentHttpAuth.noRelayAuthorizationService"),
             cause: input.prepared.target._tag,
           });
         }
@@ -147,7 +148,7 @@ export const executeAuthenticatedEnvironmentHttpRequest = Effect.fn(
             Effect.mapError(
               (cause) =>
                 new RemoteEnvironmentAuthFetchError({
-                  message: "Could not authorize the environment request.",
+                  message: t("environmentHttpAuth.environmentHttpAuth.couldNotAuthorizeRequest"),
                   cause,
                 }),
             ),
@@ -192,7 +193,7 @@ export const executeAuthenticatedEnvironmentHttpRequest = Effect.fn(
           continue;
         }
         return yield* new RemoteEnvironmentAuthFetchError({
-          message: "The environment rejected the renewed session authorization.",
+          message: t("environmentHttpAuth.environmentHttpAuth.renewedSessionRejected"),
           cause: result.success,
         });
       }

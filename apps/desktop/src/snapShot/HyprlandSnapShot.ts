@@ -6,6 +6,7 @@ import * as NodePath from "node:path";
 import * as NodeURL from "node:url";
 import * as Schema from "effect/Schema";
 import type { DesktopCaptureHelperState } from "@t3tools/contracts";
+import { t } from "@t3tools/shared/i18n";
 import type { LinuxWindowSnapshot } from "./LinuxSnapShot.ts";
 import { readPortalPng } from "./linuxCaptureSession.ts";
 import { startNativeCaptureFeedback } from "./NativeCaptureFeedback.ts";
@@ -19,7 +20,8 @@ export function hyprlandCaptureExecutable(paths: HyprlandCapturePaths) {
 }
 
 function hyprlandCaptureBinding(appId: string, lua: boolean): string {
-  if (!/^[A-Za-z0-9_.-]+$/.test(appId)) throw new Error("Invalid capture application ID.");
+  if (!/^[A-Za-z0-9_.-]+$/.test(appId))
+    throw new Error(t("snapShot.hyprlandSnapShot.invalidApplicationId"));
   const action = `${appId}:${HYPRLAND_CAPTURE_ACTION}`;
   return lua
     ? `hl.bind("CTRL + SHIFT + 2", hl.dsp.global("${action}"))`
@@ -54,12 +56,7 @@ function run(executable: string, args: string[], signal?: AbortSignal): Promise<
       { timeout: 20_000, maxBuffer: 128 * 1024, encoding: "utf8", ...(signal ? { signal } : {}) },
       (error, stdout, stderr) => {
         if (error)
-          reject(
-            new Error(
-              stderr.trim() ||
-                "Hyprland capture did not respond. Check capture setup and try again.",
-            ),
-          );
+          reject(new Error(stderr.trim() || t("snapShot.hyprlandSnapShot.captureNoResponse")));
         else resolve(stdout);
       },
     );
@@ -72,7 +69,7 @@ async function regularFile(path: string): Promise<Buffer | undefined> {
   });
   if (!stat) return undefined;
   if (!stat.isFile() || stat.isSymbolicLink())
-    throw new Error("The capture helper must be a regular file, not a link.");
+    throw new Error(t("snapShot.hyprlandSnapShot.helperMustBeRegularFile"));
   return NodeFSP.readFile(path);
 }
 const decodeCapabilities = Schema.decodeUnknownSync(
@@ -90,28 +87,25 @@ export class HyprlandCaptureSetup {
       if (!installed)
         return {
           status: "not-installed",
-          message: "Install the bundled helper to capture the window you're using.",
+          message: t("snapShot.hyprlandSnapShot.helperMissingForCapture"),
         };
       const bundle = await regularFile(this.paths.bundle);
-      if (!bundle)
-        throw new Error(
-          "The Hyprland capture helper is missing from this build. Update or reinstall T3 Code.",
-        );
+      if (!bundle) throw new Error(t("snapShot.hyprlandSnapShot.helperMissingFromBuild"));
       if (!installed.equals(bundle))
         return {
           status: "update-required",
-          message: "Update the bundled capture helper to continue.",
+          message: t("snapShot.hyprlandSnapShot.updateHelper"),
         };
       return {
         status: "ready",
-        message:
-          "Helper ready. Hyprland may ask for screen-sharing permission on your first capture.",
+        message: t("snapShot.hyprlandSnapShot.helperReady"),
         ...decodeCapabilities(await run(hyprlandCaptureExecutable(this.paths), ["check"])),
       };
     } catch (error) {
       return {
         status: "error",
-        message: error instanceof Error ? error.message : "Couldn't check Hyprland capture access.",
+        message:
+          error instanceof Error ? error.message : t("snapShot.hyprlandSnapShot.checkFailed"),
       };
     }
   }
@@ -123,14 +117,14 @@ export class HyprlandCaptureSetup {
       return undefined;
     });
     if (stat && (!stat.isDirectory() || stat.isSymbolicLink()))
-      throw new Error("The capture helper directory must not be a link.");
+      throw new Error(t("snapShot.hyprlandSnapShot.helperDirectoryNotLink"));
     await regularFile(executable);
     if (action === "remove-hyprland-helper") {
       await NodeFSP.rm(executable, { force: true });
       return;
     }
     const bundle = await regularFile(this.paths.bundle);
-    if (!bundle) throw new Error("The Hyprland capture helper is missing from this build.");
+    if (!bundle) throw new Error(t("snapShot.hyprlandSnapShot.helperNotBundled"));
     await NodeFSP.mkdir(directory, { recursive: true });
     const staging = await NodeFSP.mkdtemp(NodePath.join(directory, ".install-"));
     try {

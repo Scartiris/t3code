@@ -1,3 +1,4 @@
+import { t } from "@t3tools/shared/i18n";
 import { describe, expect, it, vi } from "vite-plus/test";
 
 import {
@@ -44,9 +45,12 @@ describe("external chat link context menu", () => {
 
     expect(harness.showContextMenu).toHaveBeenCalledWith(
       [
-        { id: "open-in-preview", label: "Open in integrated browser" },
-        { id: "open-external", label: "Open in system browser" },
-        { id: "copy-link", label: "Copy Link" },
+        {
+          id: "open-in-preview",
+          label: t("components.chatMarkdown.openInIntegratedBrowser"),
+        },
+        { id: "open-external", label: t("preview.previewChromeRow.openInSystemBrowser") },
+        { id: "copy-link", label: t("desktop.contextMenu.copyLink") },
       ],
       { x: 12, y: 24 },
     );
@@ -67,8 +71,8 @@ describe("external chat link context menu", () => {
 
     expect(harness.showContextMenu).toHaveBeenCalledWith(
       [
-        { id: "open-external", label: "Open in system browser" },
-        { id: "copy-link", label: "Copy Link" },
+        { id: "open-external", label: t("preview.previewChromeRow.openInSystemBrowser") },
+        { id: "copy-link", label: t("desktop.contextMenu.copyLink") },
       ],
       { x: 4, y: 8 },
     );
@@ -86,8 +90,8 @@ describe("external chat link context menu", () => {
   });
 
   it.each([
-    ["link-to-thread", "Link to thread", true],
-    ["unlink-from-thread", "Unlink from thread", false],
+    ["link-to-thread", t("pullRequest.pullRequestThreadLinks.linkToThread"), true],
+    ["unlink-from-thread", t("pullRequest.threadPullRequestsPanel.unlinkFromThread"), false],
   ] as const)("offers and runs the %s action", async (action, label, linked) => {
     const harness = createHarness(action);
     const href = "https://github.com/pingdotgg/t3code/pull/42";

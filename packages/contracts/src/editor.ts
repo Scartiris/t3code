@@ -1,3 +1,4 @@
+import { t } from "@t3tools/i18n";
 import * as Schema from "effect/Schema";
 import { TrimmedNonEmptyString } from "./baseSchemas.ts";
 
@@ -164,7 +165,7 @@ export class ExternalLauncherUnknownEditorError extends Schema.TaggedError<Exter
   },
 ) {
   override get message(): string {
-    return `Unknown editor: ${this.editor}`;
+    return t("contractErrors.editor.unknownEditor", { editor: this.editor });
   }
 }
 
@@ -175,7 +176,7 @@ export class ExternalLauncherUnsupportedEditorError extends Schema.TaggedError<E
   },
 ) {
   override get message(): string {
-    return `Unsupported editor: ${this.editor}`;
+    return t("contractErrors.editor.unsupportedEditor", { editor: this.editor });
   }
 }
 
@@ -187,7 +188,7 @@ export class ExternalLauncherCommandNotFoundError extends Schema.TaggedError<Ext
   },
 ) {
   override get message(): string {
-    return `Editor command not found: ${this.command}`;
+    return t("contractErrors.editor.commandNotFound", { command: this.command });
   }
 }
 
@@ -205,7 +206,10 @@ export class ExternalLauncherBrowserSpawnError extends Schema.TaggedError<Extern
   },
 ) {
   override get message(): string {
-    return `Failed to launch browser target '${this.target}' with '${[this.command, ...this.args].join(" ")}'`;
+    return t("contractErrors.editor.browserSpawnFailed", {
+      target: this.target,
+      command: [this.command, ...this.args].join(" "),
+    });
   }
 }
 
@@ -218,7 +222,11 @@ export class ExternalLauncherEditorSpawnError extends Schema.TaggedError<Externa
   },
 ) {
   override get message(): string {
-    return `Failed to launch '${this.target}' in ${this.editor} with '${[this.command, ...this.args].join(" ")}'`;
+    return t("contractErrors.editor.editorSpawnFailed", {
+      target: this.target,
+      editor: this.editor,
+      command: [this.command, ...this.args].join(" "),
+    });
   }
 }
 

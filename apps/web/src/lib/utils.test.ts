@@ -1,11 +1,12 @@
+import { t } from "@t3tools/shared/i18n";
 import { describe, assert, it } from "vite-plus/test";
 import { getLocalFileManagerName, isWindowsPlatform } from "./utils";
 
 describe("getLocalFileManagerName", () => {
   it.each([
-    ["MacIntel", "Finder"],
-    ["Win32", "File Explorer"],
-    ["Linux", "Files"],
+    ["MacIntel", t("web.utils.finder")],
+    ["Win32", t("web.utils.fileExplorer")],
+    ["Linux", t("web.utils.files")],
   ])("uses the %s file manager name", (platform, expected) => {
     assert.strictEqual(getLocalFileManagerName(platform), expected);
   });

@@ -1,3 +1,4 @@
+import { t } from "@t3tools/shared/i18n";
 import { describe, expect, it } from "vite-plus/test";
 import {
   captureConfigBinding,
@@ -124,7 +125,9 @@ describe("Hyprland capture config edits", () => {
     "return {}",
     '--[[\nhl.bind("CTRL + SHIFT + 2", hl.dsp.global("com.t3tools.T3Code:capture-window"))\n]]',
   ])("does not guess how to edit complex Lua", (source) => {
-    expect(() => editCaptureConfig(source, "hyprland-lua", app, "install")).toThrow("manual edit");
+    expect(() => editCaptureConfig(source, "hyprland-lua", app, "install")).toThrow(
+      t("snapShot.captureConfigEdit.luaManualEditRequired"),
+    );
   });
   it.each(['Ctrl+"\nexec', "Ctrl+;", "2", "Mod+2"])(
     "rejects unsafe or ambiguous keys: %s",

@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vite-plus/test";
 import { ProviderDriverKind, type ModelCapabilities } from "@t3tools/contracts";
+import { t } from "@t3tools/shared/i18n";
 
 import {
   DESCRIPTOR_PRESETS_BY_KIND,
@@ -17,6 +18,8 @@ const draft = (overrides: Partial<CustomModelDraft>): CustomModelDraft => ({
   descriptors: [],
   ...overrides,
 });
+
+const optionPosition = (index: number) => t("settings.customModelEditor.optionIndex", { index });
 
 describe("customModelEditor.logic", () => {
   it("round-trips a definition through the draft, marking the current value as default", () => {
@@ -241,19 +244,29 @@ describe("customModelEditor.logic", () => {
     });
 
     expect(validateDraft(draft({ descriptors: [select("", [{ id: "a" }])] }))).toBe(
-      "Option 1 needs an id.",
+      t("settings.customModelEditor.validationNeedsId", { position: optionPosition(1) }),
     );
     expect(
       validateDraft(
         draft({ descriptors: [select("effort", [{ id: "a" }]), select("effort", [{ id: "b" }])] }),
       ),
-    ).toBe('Option 2: id "effort" is used twice.');
+    ).toBe(
+      t("settings.customModelEditor.validationDuplicateId", {
+        position: optionPosition(2),
+        id: "effort",
+      }),
+    );
     expect(validateDraft(draft({ descriptors: [select("effort", [])] }))).toBe(
-      "Option 1 needs at least one choice.",
+      t("settings.customModelEditor.validationNeedsChoice", { position: optionPosition(1) }),
     );
     expect(
       validateDraft(draft({ descriptors: [select("effort", [{ id: "a" }, { id: "a" }])] })),
-    ).toBe('Option 1: choice "a" is used twice.');
+    ).toBe(
+      t("settings.customModelEditor.validationDuplicateChoice", {
+        position: optionPosition(1),
+        choiceId: "a",
+      }),
+    );
     expect(validateDraft(draft({ descriptors: [select("effort", [{ id: "a" }])] }))).toBeNull();
   });
 });

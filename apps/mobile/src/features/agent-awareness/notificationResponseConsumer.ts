@@ -1,3 +1,4 @@
+import { t } from "@t3tools/shared/i18n";
 import type { NotificationResponse } from "expo-notifications";
 import * as Schema from "effect/Schema";
 
@@ -10,7 +11,9 @@ export class NotificationNavigationError extends Schema.TaggedError<Notification
   },
 ) {
   override get message(): string {
-    return `Failed to ${this.operation} the last notification response.`;
+    return t("agentAwareness.notificationResponseConsumer.lastResponseFailed", {
+      operation: this.operation,
+    });
   }
 }
 

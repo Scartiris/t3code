@@ -6,6 +6,7 @@ import {
 } from "@t3tools/client-runtime/state/runtime";
 import type { EnvironmentProject } from "@t3tools/client-runtime/state/shell";
 import type { EnvironmentId } from "@t3tools/contracts";
+import { t } from "@t3tools/shared/i18n";
 import { useCallback } from "react";
 
 import { stackedThreadToast, toastManager } from "~/components/ui/toast";
@@ -19,7 +20,7 @@ function reportScratchFailure(title: string, error: unknown) {
     stackedThreadToast({
       type: "error",
       title,
-      description: error instanceof Error ? error.message : "An error occurred.",
+      description: error instanceof Error ? error.message : t("error.generic"),
     }),
   );
 }
@@ -65,7 +66,7 @@ export function useScratchProject() {
   const openScratchProject = useCallback(
     async (
       environmentId: EnvironmentId,
-      failureTitle = "Could not start without a project",
+      failureTitle = t("hooks.useScratchProject.startWithoutProjectFailed"),
     ): Promise<EnvironmentProject | null> => {
       const result = await openScratch({ environmentId, input: {} });
       if (result._tag === "Success") return result.value;
@@ -82,7 +83,8 @@ export function useScratchProject() {
       const project = await openScratchProject(environmentId);
       if (project) {
         await handleNewThread(scopeProjectRef(project.environmentId, project.id)).catch(
-          (error: unknown) => reportScratchFailure("Could not start without a project", error),
+          (error: unknown) =>
+            reportScratchFailure(t("hooks.useScratchProject.startWithoutProjectFailed"), error),
         );
       }
     },

@@ -1,4 +1,5 @@
 import { EnvironmentId } from "@t3tools/contracts";
+import { t } from "@t3tools/shared/i18n";
 import * as Arr from "effect/Array";
 import * as Context from "effect/Context";
 import * as Effect from "effect/Effect";
@@ -26,7 +27,7 @@ export class MobileStorageDecodeError extends Schema.TaggedError<MobileStorageDe
   },
 ) {
   override get message(): string {
-    return `Failed to decode mobile storage value for key ${this.key}.`;
+    return t("persistence.mobileStorage.decodeFailed", { key: this.key });
   }
 }
 
@@ -38,7 +39,7 @@ export class MobileStorageEncodeError extends Schema.TaggedError<MobileStorageEn
   },
 ) {
   override get message(): string {
-    return `Failed to encode mobile storage value for key ${this.key}.`;
+    return t("persistence.mobileStorage.encodeFailed", { key: this.key });
   }
 }
 
@@ -47,7 +48,7 @@ export class MobileDeviceIdGenerationError extends Schema.TaggedError<MobileDevi
   { cause: Schema.Defect() },
 ) {
   override get message(): string {
-    return "Failed to generate the mobile agent-awareness device id.";
+    return t("persistence.mobileStorage.deviceIdGenerationFailed");
   }
 }
 

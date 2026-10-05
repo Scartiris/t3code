@@ -8,6 +8,7 @@ import {
   PullRequestOperationError,
   type ThreadPullRequestKey,
 } from "@t3tools/contracts";
+import { t } from "@t3tools/shared/i18n";
 import * as Effect from "effect/Effect";
 import * as Schema from "effect/Schema";
 import * as SqlClient from "effect/unstable/sql/SqlClient";
@@ -67,7 +68,7 @@ export const listLinkedPullRequestThreads = Effect.fn("listLinkedPullRequestThre
     (cause) =>
       new PullRequestOperationError({
         operation: "linkedThreads",
-        detail: "Could not load linked threads.",
+        detail: t("pullRequest.linkedThreads.linkedThreadsUnreadable"),
         cause,
       }),
   ),

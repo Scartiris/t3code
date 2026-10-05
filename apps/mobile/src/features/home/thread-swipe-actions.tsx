@@ -1,6 +1,7 @@
 import { SymbolView } from "../../components/AppSymbol";
 import { ControlPillMenu } from "../../components/ControlPill";
 import type { MenuAction } from "@react-native-menu/menu";
+import { t } from "@t3tools/shared/i18n";
 import * as Haptics from "expo-haptics";
 import {
   createContext,
@@ -88,10 +89,10 @@ function resolveSecondaryAction(input: {
   if (input.secondaryAction === null) return null;
   if (input.secondaryAction === undefined) {
     return {
-      accessibilityLabel: `Delete ${input.threadTitle}`,
+      accessibilityLabel: t("home.threadSwipeActions.deleteA11y", { title: input.threadTitle }),
       tone: "danger",
       icon: "trash",
-      label: "Delete",
+      label: t("home.threadSwipeActions.delete"),
       onPress: () => {
         input.close();
         input.onDelete();

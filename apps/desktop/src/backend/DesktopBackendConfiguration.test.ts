@@ -1,5 +1,6 @@
 import * as NodeServices from "@effect/platform-node/NodeServices";
 import { assert, describe, it } from "@effect/vitest";
+import { t } from "@t3tools/shared/i18n";
 import * as Effect from "effect/Effect";
 import * as FileSystem from "effect/FileSystem";
 import * as Layer from "effect/Layer";
@@ -1266,12 +1267,18 @@ describe("DesktopBackendConfiguration", () => {
       });
 
       yield* Effect.gen(function* () {
+        const environment = yield* DesktopEnvironment.DesktopEnvironment;
         const configuration = yield* DesktopBackendConfiguration.DesktopBackendConfiguration;
         const config = yield* configuration.resolveWsl({ port: 5050, distro: "Ubuntu" });
         const failure = Option.getOrThrow(config.preflightFailure);
 
         assert.isTrue(failure.fatal);
-        assert.include(failure.reason, "missing server entry");
+        assert.include(
+          failure.reason,
+          t("backend.desktopBackendConfiguration.missingServerEntry", {
+            path: environment.path.join(environment.appRoot, "apps/server/dist/bin.mjs"),
+          }),
+        );
       }).pipe(
         Effect.provide(
           DesktopBackendConfiguration.layer.pipe(

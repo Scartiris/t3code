@@ -2,6 +2,7 @@ import { filePreviewDelimiter, parseDelimitedPreview } from "@t3tools/shared/del
 import type { EnvironmentId } from "@t3tools/contracts";
 import { readFilePreviewResponse } from "@t3tools/client-runtime/file-preview";
 import { filePreviewKind, FILE_TEXT_PREVIEW_MAX_BYTES } from "@t3tools/shared/filePreview";
+import { t } from "@t3tools/shared/i18n";
 import { fetch } from "expo/fetch";
 import { File } from "expo-file-system";
 import { useEffect, useMemo, useRef, useState } from "react";
@@ -81,13 +82,17 @@ export function useAttachmentDocument(input: {
     void refresh()
       .then((url) => {
         if (cancelled) return;
-        if (!url) throw new Error("Reconnect to this environment and try again.");
+        if (!url) throw new Error(t("media.mediaActions.reconnectEnvironment"));
         textReadUrl.current = { uri: url, authorizedAt: Date.now() };
         setRemoteUri(url);
       })
       .catch((cause: unknown) => {
         if (!cancelled)
-          setError(cause instanceof Error ? cause.message : "The attachment is unavailable.");
+          setError(
+            cause instanceof Error
+              ? cause.message
+              : t("files.attachmentFilePreview.attachmentUnavailable"),
+          );
       });
     return () => {
       cancelled = true;
@@ -114,7 +119,11 @@ export function useAttachmentDocument(input: {
       })
       .catch((cause: unknown) => {
         if (!controller.signal.aborted)
-          setError(cause instanceof Error ? cause.message : "The local file is unavailable.");
+          setError(
+            cause instanceof Error
+              ? cause.message
+              : t("files.attachmentDocument.localFileUnavailable"),
+          );
       });
     return () => {
       controller.abort();
@@ -139,7 +148,7 @@ export function useAttachmentDocument(input: {
           let target = authorized?.uri ?? uri;
           if (!authorized || Date.now() - authorized.authorizedAt > STALE_URL_MS) {
             const refreshed = await refresh();
-            if (!refreshed) throw new Error("Reconnect to this environment and try again.");
+            if (!refreshed) throw new Error(t("media.mediaActions.reconnectEnvironment"));
             target = refreshed;
             if (!controller.signal.aborted) {
               // Keep the source-read URL and its age together without restarting active media.
@@ -161,7 +170,9 @@ export function useAttachmentDocument(input: {
       })
       .catch((cause: unknown) => {
         if (!controller.signal.aborted)
-          setContentError(cause instanceof Error ? cause.message : "Could not read this file.");
+          setContentError(
+            cause instanceof Error ? cause.message : t("files.attachmentDocument.couldNotReadFile"),
+          );
       });
     return () => controller.abort();
   }, [uri, needsText, revision, sizeBytes, refresh]);
@@ -180,8 +191,8 @@ export function useAttachmentDocument(input: {
     } catch (cause) {
       if (controller.signal.aborted) return;
       Alert.alert(
-        "Could not share file",
-        cause instanceof Error ? cause.message : "Please try again.",
+        t("files.attachmentDocument.couldNotShareFile"),
+        cause instanceof Error ? cause.message : t("files.attachmentFileScreen.tryAgain"),
       );
     } finally {
       if (shareController.current === controller) shareController.current = null;

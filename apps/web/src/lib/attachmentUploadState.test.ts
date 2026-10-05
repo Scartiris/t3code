@@ -1,4 +1,5 @@
 import { EnvironmentId } from "@t3tools/contracts";
+import { t } from "@t3tools/shared/i18n";
 import { describe, expect, it } from "vite-plus/test";
 
 import {
@@ -34,7 +35,7 @@ describe("attachmentUploadBlockReason", () => {
           "image-1": { status: "uploading", environmentId, progress: 0.5 },
         },
       }),
-    ).toBe("Attachments still uploading");
+    ).toBe(t("web.attachmentUploadState.attachmentsStillUploading"));
   });
 
   it("asks the user to retry or remove failed uploads", () => {
@@ -46,7 +47,7 @@ describe("attachmentUploadBlockReason", () => {
           "image-1": { status: "failed", environmentId, reason: "Upload failed" },
         },
       }),
-    ).toBe("Retry or remove the failed attachment");
+    ).toBe(t("web.attachmentUploadState.retryOrRemoveFailedAttachments"));
   });
 
   it("does not accept an upload from another environment", () => {
@@ -62,7 +63,7 @@ describe("attachmentUploadBlockReason", () => {
           },
         },
       }),
-    ).toBe("Attachment still uploading");
+    ).toBe(t("web.attachmentUploadState.attachmentsStillUploading"));
   });
 });
 

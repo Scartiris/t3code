@@ -1,4 +1,5 @@
 import type { DesktopUpdateState } from "@t3tools/contracts";
+import { t } from "@t3tools/shared/i18n";
 import { isValidElement, type MouseEvent, type ReactElement, type ReactNode } from "react";
 import { beforeEach, describe, expect, it, vi } from "vite-plus/test";
 
@@ -92,9 +93,9 @@ describe("SidebarUpdateReleaseNotes", () => {
       "https://github.com/pingdotgg/t3code/releases/tag/v0.0.36-nightly.1",
     ]);
     expect(anchors.map(({ props }) => textContent(props.children))).toEqual([
-      "View release on GitHub",
-      "1 more change on GitHub",
-      "2 more changes on GitHub",
+      t("sidebar.sidebarUpdateReleaseNotes.viewReleaseOnGitHub"),
+      t("sidebar.sidebarUpdateReleaseNotes.moreChangesOnGitHub", { count: 1 }),
+      t("sidebar.sidebarUpdateReleaseNotes.moreChangesOnGitHub", { count: 2 }),
     ]);
   });
 
@@ -108,7 +109,9 @@ describe("SidebarUpdateReleaseNotes", () => {
     );
 
     expect(anchors.at(-1)?.props.href).toBe("https://github.com/pingdotgg/t3code/releases");
-    expect(textContent(anchors.at(-1)?.props.children)).toBe("1 older release on GitHub");
+    expect(textContent(anchors.at(-1)?.props.children)).toBe(
+      t("sidebar.sidebarUpdateReleaseNotes.olderReleasesOnGitHub", { count: 1 }),
+    );
   });
 
   it("shows plural history text for multiple omitted releases", () => {
@@ -120,7 +123,9 @@ describe("SidebarUpdateReleaseNotes", () => {
       }),
     );
 
-    expect(textContent(anchors.at(-1)?.props.children)).toBe("3 older releases on GitHub");
+    expect(textContent(anchors.at(-1)?.props.children)).toBe(
+      t("sidebar.sidebarUpdateReleaseNotes.olderReleasesOnGitHub", { count: 3 }),
+    );
   });
 
   it("reports a release link that fails to open", async () => {
@@ -145,7 +150,7 @@ describe("SidebarUpdateReleaseNotes", () => {
       );
       expect(testState.addToast).toHaveBeenCalledWith({
         type: "error",
-        title: "Unable to open release notes",
+        title: t("components.desktopUpdateToast.releaseNotesFailed"),
       });
     });
   });

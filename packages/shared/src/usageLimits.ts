@@ -17,6 +17,7 @@ import {
   type ServerProviderUsageWindow,
   type UsageLimitSourceSnapshots,
 } from "@t3tools/contracts";
+import { t } from "@t3tools/shared/i18n";
 
 import * as DateTime from "effect/DateTime";
 
@@ -33,18 +34,18 @@ export function usesChatGptSharing(provider: ServerProvider | null | undefined):
 export const CURSOR_USAGE_WINDOWS = [
   {
     id: "totalPercentUsed",
-    label: "Overall",
-    description: "Combined usage across both allowances, not a third quota.",
+    label: t("usageLimits.usageLimits.overallLabel"),
+    description: t("usageLimits.usageLimits.overallDescription"),
   },
   {
     id: "autoPercentUsed",
-    label: "Cursor Models",
-    description: "Grok and Composer use this first. Auto can use either pool.",
+    label: t("usageLimits.usageLimits.cursorModelsLabel"),
+    description: t("usageLimits.usageLimits.cursorModelsDescription"),
   },
   {
     id: "apiPercentUsed",
-    label: "Other Models",
-    description: "Claude, GPT, and Gemini use this pool. Grok and Composer fall back here.",
+    label: t("usageLimits.usageLimits.otherModelsLabel"),
+    description: t("usageLimits.usageLimits.otherModelsDescription"),
   },
 ] as const;
 
@@ -100,7 +101,10 @@ export function collectExternalUsageLinks(presentations: LimitPresentations) {
     for (const provider of providersWithLimits(presentation.serverConfig?.providers ?? [])) {
       const external = provider.usageLimits?.externalUsage;
       if (external && provider.auth.status === "authenticated") {
-        const account = `${provider.displayName ?? provider.instanceId} on ${presentation.entry.target.label}`;
+        const account = t("usageLimits.usageLimits.accountOnEnvironment", {
+          account: provider.displayName ?? provider.instanceId,
+          environment: presentation.entry.target.label,
+        });
         links.set(external.url, {
           ...external,
           message: provider.usageLimits?.unavailable?.message,
@@ -310,7 +314,8 @@ export function collectLimitNotices(presentations: LimitPresentations): readonly
       if (source.error) {
         notices.push(`${label(environmentLabel, source.label)}: ${source.error}`);
       } else if (source.accounts.length === 0) {
-        notices.push(`${label(environmentLabel, source.label)}: No accounts reported.`);
+        const noAccounts = t("usageLimits.usageLimits.noAccountsReported");
+        notices.push(`${label(environmentLabel, source.label)}: ${noAccounts}`);
       }
     }
   }
@@ -477,12 +482,12 @@ function poolWindows(accounts: readonly LimitAccount[], now: number): readonly L
 /** The one-line status under a provider heading when there are no bars to draw. */
 export function limitsNotice(limits: ServerProviderUsageLimits): string | null {
   if (limits.unavailable?.reason === "unsupported") {
-    return limits.unavailable.message ?? "This account has no subscription limits.";
+    return limits.unavailable.message ?? t("usageLimits.usageLimits.noSubscriptionLimits");
   }
   if (limits.unavailable?.reason === "probeFailed") {
-    return limits.unavailable.message ?? "Could not read limits.";
+    return limits.unavailable.message ?? t("usageLimits.usageLimits.readLimitsFailed");
   }
-  return limits.windows.length === 0 ? "No limits reported." : null;
+  return limits.windows.length === 0 ? t("usageLimits.usageLimits.noLimitsReported") : null;
 }
 
 /** Quota left in the window, 0..100. Bars and labels show what remains, as Codex does. */
@@ -545,7 +550,7 @@ export function formatResetsIn(window: ServerProviderUsageWindow, now: number): 
 /** Limit commands are served by T3 from the same snapshots as Usage → Limits. */
 export const USAGE_LIMITS_COMMAND = {
   name: "usage-limits",
-  description: "Show this provider's usage limits",
+  description: t("usageLimits.usageLimits.commandDescription"),
 } satisfies ServerProviderSlashCommand;
 
 /** Handled by the client without sending a turn; anything with arguments stays an ordinary prompt. */

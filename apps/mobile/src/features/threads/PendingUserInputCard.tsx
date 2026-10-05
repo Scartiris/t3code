@@ -2,6 +2,7 @@ import { RequestActionButton } from "./RequestActionButton";
 import { QuestionAttachments } from "./QuestionAttachments";
 import type { RuntimeRequestId } from "@t3tools/contracts";
 import type { ThreadUserInputQuestion } from "@t3tools/client-runtime/state/thread-requests";
+import { t } from "@t3tools/shared/i18n";
 import { useCallback, useRef } from "react";
 import { Platform, Pressable, ScrollView, View, type LayoutChangeEvent } from "react-native";
 import Animated, {
@@ -174,17 +175,17 @@ export function PendingUserInputCard(props: PendingUserInputCardProps) {
     >
       <Pressable
         accessibilityRole="button"
-        accessibilityLabel={`Expand user input, ${questionCount} question${
-          questionCount === 1 ? "" : "s"
-        }`}
+        accessibilityLabel={t("threads.pendingUserInputCard.expandLabel", {
+          count: questionCount,
+        })}
         onPress={props.onToggleCollapsed}
         className="min-h-10 flex-1 flex-row items-center gap-2 active:opacity-70"
       >
         <Text className="font-t3-bold text-2xs uppercase tracking-[1.1px] text-foreground-secondary">
-          User input needed
+          {t("threads.pendingUserInputCard.userInputNeeded")}
         </Text>
         <Text className="font-sans text-xs text-foreground-muted">
-          {questionCount} question{questionCount === 1 ? "" : "s"}
+          {t("threads.pendingUserInputCard.questionCount", { count: questionCount })}
         </Text>
         <View className="flex-1" />
         <SymbolView
@@ -196,7 +197,7 @@ export function PendingUserInputCard(props: PendingUserInputCardProps) {
       </Pressable>
       {props.onStopThread ? (
         <ControlPill
-          accessibilityLabel="Stop"
+          accessibilityLabel={t("threads.pendingUserInputCard.stop")}
           icon="stop.fill"
           variant="danger"
           className="h-9 w-9"
@@ -234,15 +235,17 @@ export function PendingUserInputCard(props: PendingUserInputCardProps) {
     >
       <Pressable
         accessibilityRole="button"
-        accessibilityLabel="Collapse user input"
+        accessibilityLabel={t("threads.pendingUserInputCard.collapseLabel")}
         onPress={props.onToggleCollapsed}
         className="flex-row items-start gap-2"
       >
         <View className="flex-1 gap-2.5">
           <Text className="font-t3-bold text-2xs uppercase tracking-[1.1px] text-foreground-secondary">
-            User input needed
+            {t("threads.pendingUserInputCard.userInputNeeded")}
           </Text>
-          <Text className="font-t3-bold text-lg text-foreground">Fill in the pending answers</Text>
+          <Text className="font-t3-bold text-lg text-foreground">
+            {t("threads.pendingUserInputCard.fillInPendingAnswers")}
+          </Text>
         </View>
         <View className="h-8 w-8 items-center justify-center rounded-full bg-subtle-strong">
           <SymbolView
@@ -264,8 +267,7 @@ export function PendingUserInputCard(props: PendingUserInputCardProps) {
       >
         {!canRespond ? (
           <Text className="font-sans text-sm leading-5 text-adaptive-neutral-600-400">
-            The provider process for this request is no longer available. Interrupt or restart the
-            run to continue.
+            {t("threads.pendingUserInputCard.providerUnavailable")}
           </Text>
         ) : null}
         {props.pendingUserInput.questions.map((question) => {
@@ -339,7 +341,7 @@ export function PendingUserInputCard(props: PendingUserInputCardProps) {
         })}
       </ScrollView>
       <RequestActionButton
-        label="Submit answers"
+        label={t("threads.pendingUserInputCard.submitAnswers")}
         size="large"
         tone={props.answers ? "primary" : "secondary"}
         disabled={responseDisabled || props.answers === null}
@@ -353,7 +355,7 @@ export function PendingUserInputCard(props: PendingUserInputCardProps) {
           onPress={() => void props.onDismiss()}
         >
           <Text className="font-t3-bold text-sm text-foreground-muted">
-            Dismiss without answering
+            {t("threads.pendingUserInputCard.dismissWithoutAnswering")}
           </Text>
         </Pressable>
       ) : null}

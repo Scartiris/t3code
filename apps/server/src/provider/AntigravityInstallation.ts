@@ -6,6 +6,7 @@ import {
   HostProcessEnvironment,
   HostProcessPlatform,
 } from "@t3tools/shared/hostProcess";
+import { t } from "@t3tools/shared/i18n";
 import { resolveNodeExecutable, nodeRuntimeUnavailableMessage } from "@t3tools/shared/nodeRuntime";
 import * as Clock from "effect/Clock";
 import * as Cause from "effect/Cause";
@@ -168,7 +169,11 @@ const openArchive = Effect.fn("AntigravityInstallation.openArchive")(function* (
           if (error || !zip) {
             resume(
               Effect.fail(
-                installationError("extract", "Could not open the verified archive.", error),
+                installationError(
+                  "extract",
+                  t("provider.antigravityInstallation.openVerifiedArchiveFailed"),
+                  error,
+                ),
               ),
             );
             return;
@@ -179,7 +184,11 @@ const openArchive = Effect.fn("AntigravityInstallation.openArchive")(function* (
             closed = true;
           });
           zip.on("error", (cause: unknown) => {
-            archiveError = installationError("extract", "The archive could not be read.", cause);
+            archiveError = installationError(
+              "extract",
+              t("provider.antigravityInstallation.archiveUnreadable"),
+              cause,
+            );
           });
           resume(
             Effect.succeed({
@@ -197,7 +206,13 @@ const openArchive = Effect.fn("AntigravityInstallation.openArchive")(function* (
                 const onError = (cause: unknown) => {
                   zip.removeListener("close", onClose);
                   finish(
-                    Effect.die(installationError("extract", "Could not close the archive.", cause)),
+                    Effect.die(
+                      installationError(
+                        "extract",
+                        t("provider.antigravityInstallation.closeArchiveFailed"),
+                        cause,
+                      ),
+                    ),
                   );
                 };
                 zip.once("close", onClose);
@@ -233,7 +248,15 @@ const openArchive = Effect.fn("AntigravityInstallation.openArchive")(function* (
     };
     const onError = (cause: unknown) => {
       cleanup();
-      resume(Effect.fail(installationError("extract", "The archive could not be read.", cause)));
+      resume(
+        Effect.fail(
+          installationError(
+            "extract",
+            t("provider.antigravityInstallation.archiveUnreadable"),
+            cause,
+          ),
+        ),
+      );
     };
     opened.zip.once("entry", onEntry);
     opened.zip.once("end", onEnd);
@@ -249,7 +272,11 @@ const openArchive = Effect.fn("AntigravityInstallation.openArchive")(function* (
           resume(
             cause || !readable
               ? Effect.fail(
-                  installationError("extract", "Could not read an archive member.", cause),
+                  installationError(
+                    "extract",
+                    t("provider.antigravityInstallation.archiveMemberReadFailed"),
+                    cause,
+                  ),
                 )
               : Effect.succeed(readable),
           );
@@ -311,7 +338,7 @@ export const makeAntigravityInstallation = Effect.fn("AntigravityInstallation.ma
     if (info.type !== "File" || Number(info.size) > RECORD_MAX_BYTES) {
       return yield* installationError(
         "resolve",
-        "The managed runtime record is invalid. Reinstall Antigravity.",
+        t("provider.antigravityInstallation.managedRecordInvalid"),
       );
     }
     const contents = yield* fs.readFileString(filePath);
@@ -350,7 +377,7 @@ export const makeAntigravityInstallation = Effect.fn("AntigravityInstallation.ma
     ) {
       return yield* installationError(
         "resolve",
-        "The managed Antigravity runtime is incomplete. Reinstall it.",
+        t("provider.antigravityInstallation.managedRuntimeIncomplete"),
       );
     }
     return {
@@ -417,7 +444,7 @@ export const makeAntigravityInstallation = Effect.fn("AntigravityInstallation.ma
         }
         return yield* installationError(
           "resolve",
-          "The custom Antigravity executable or its localharness_external sibling is missing or not executable.",
+          t("provider.antigravityInstallation.customExecutableUnusable"),
         );
       }
       if (yield* fs.exists(activePath)) {
@@ -431,15 +458,12 @@ export const makeAntigravityInstallation = Effect.fn("AntigravityInstallation.ma
       return yield* installationError(
         "resolve",
         releaseAsset
-          ? "Antigravity is not installed. Install it in this environment or set a custom executable path."
-          : `Google does not publish an Antigravity runtime for ${platform}-${arch}. Use a supported environment or a custom executable.`,
+          ? t("provider.antigravityInstallation.notInstalled")
+          : t("provider.antigravityInstallation.platformUnsupported", { platform, arch }),
       );
     },
     Effect.mapError(
-      wrapFailure(
-        "resolve",
-        "Could not read the Antigravity installation. Reinstall it or set a custom executable path.",
-      ),
+      wrapFailure("resolve", t("provider.antigravityInstallation.readInstallationFailed")),
     ),
   );
 
@@ -505,7 +529,7 @@ export const makeAntigravityInstallation = Effect.fn("AntigravityInstallation.ma
         ) {
           return yield* installationError(
             "verify",
-            "The downloaded runtime did not identify as the expected Google Antigravity release.",
+            t("provider.antigravityInstallation.downloadedRuntimeMismatch"),
           );
         }
       },
@@ -514,10 +538,7 @@ export const makeAntigravityInstallation = Effect.fn("AntigravityInstallation.ma
       Effect.provideService(ChildProcessSpawner.ChildProcessSpawner, spawner),
       Effect.provideService(Crypto.Crypto, crypto),
       Effect.mapError(
-        wrapFailure(
-          "verify",
-          "The downloaded Antigravity runtime could not start in this environment.",
-        ),
+        wrapFailure("verify", t("provider.antigravityInstallation.downloadedRuntimeStartFailed")),
       ),
     );
 
@@ -563,10 +584,7 @@ export const makeAntigravityInstallation = Effect.fn("AntigravityInstallation.ma
         },
         Effect.scoped,
         Effect.mapError(
-          wrapFailure(
-            "activate",
-            "Could not activate Antigravity. The previous runtime is unchanged. Check for locked files and try again.",
-          ),
+          wrapFailure("activate", t("provider.antigravityInstallation.activateFailed")),
         ),
         Effect.uninterruptible,
       );
@@ -576,10 +594,10 @@ export const makeAntigravityInstallation = Effect.fn("AntigravityInstallation.ma
         if (existing.version !== asset.version) {
           return yield* installationError(
             "verify",
-            "The existing managed release has the wrong version. Remove it before reinstalling.",
+            t("provider.antigravityInstallation.existingReleaseVersionMismatch"),
           );
         }
-        yield* report("verifying", "Checking the installed runtime.");
+        yield* report("verifying", t("provider.antigravityInstallation.checkingInstalledRuntime"));
         yield* validate(existing, asset.version).pipe(
           Effect.scoped,
           Effect.timeout(VALIDATION_TIMEOUT),
@@ -599,7 +617,9 @@ export const makeAntigravityInstallation = Effect.fn("AntigravityInstallation.ma
       ) {
         return yield* installationError(
           "download",
-          `Antigravity needs at least ${Math.ceil(required / 1024 / 1024)} MiB of free space to install.`,
+          t("provider.antigravityInstallation.insufficientFreeSpace", {
+            size: Math.ceil(required / 1024 / 1024),
+          }),
         );
       }
       const staging = yield* fs.makeTempDirectoryScoped({
@@ -629,7 +649,7 @@ export const makeAntigravityInstallation = Effect.fn("AntigravityInstallation.ma
         ) {
           return yield* installationError(
             "download",
-            "The Antigravity download size did not match the pinned release.",
+            t("provider.antigravityInstallation.downloadSizeMismatch"),
           );
         }
         yield* response.stream.pipe(
@@ -639,7 +659,7 @@ export const makeAntigravityInstallation = Effect.fn("AntigravityInstallation.ma
               if (downloadedBytes > asset.archiveBytes) {
                 return yield* installationError(
                   "download",
-                  "The Antigravity download exceeded the pinned release size.",
+                  t("provider.antigravityInstallation.downloadSizeExceeded"),
                 );
               }
               hash.update(chunk);
@@ -659,17 +679,17 @@ export const makeAntigravityInstallation = Effect.fn("AntigravityInstallation.ma
       if (downloadedBytes !== asset.archiveBytes || hash.digest("hex") !== asset.sha256) {
         return yield* installationError(
           "download",
-          "The Antigravity download failed its size or SHA-256 check. Nothing was installed.",
+          t("provider.antigravityInstallation.downloadChecksumFailed"),
         );
       }
 
-      yield* report("extracting", "Extracting the verified runtime.");
+      yield* report("extracting", t("provider.antigravityInstallation.extracting"));
       yield* Effect.gen(function* () {
         const archive = yield* openArchive(archivePath);
         if (archive.entryCount !== 2) {
           return yield* installationError(
             "extract",
-            "The archive must contain exactly the Antigravity executable and its harness.",
+            t("provider.antigravityInstallation.archiveMemberSetInvalid"),
           );
         }
         const seen = new Set<string>();
@@ -693,7 +713,7 @@ export const makeAntigravityInstallation = Effect.fn("AntigravityInstallation.ma
           ) {
             return yield* installationError(
               "extract",
-              "The archive contains an unexpected, unsafe, or incorrectly sized member.",
+              t("provider.antigravityInstallation.archiveUnsafeMember"),
             );
           }
           seen.add(entry.fileName);
@@ -702,7 +722,7 @@ export const makeAntigravityInstallation = Effect.fn("AntigravityInstallation.ma
             let extractedBytes = 0;
             yield* EffectNodeStream.fromReadable<Uint8Array, AntigravityInstallationError>({
               evaluate: () => readable,
-              onError: wrapFailure("extract", "Could not extract the Antigravity runtime."),
+              onError: wrapFailure("extract", t("provider.antigravityInstallation.extractFailed")),
             }).pipe(
               Stream.tap((chunk) =>
                 Effect.gen(function* () {
@@ -710,7 +730,7 @@ export const makeAntigravityInstallation = Effect.fn("AntigravityInstallation.ma
                   if (extractedBytes > expected.bytes) {
                     return yield* installationError(
                       "extract",
-                      "An archive member exceeded its pinned size.",
+                      t("provider.antigravityInstallation.archiveMemberTooLarge"),
                     );
                   }
                 }),
@@ -720,14 +740,17 @@ export const makeAntigravityInstallation = Effect.fn("AntigravityInstallation.ma
               ),
             );
             if (extractedBytes !== expected.bytes) {
-              return yield* installationError("extract", "An archive member was truncated.");
+              return yield* installationError(
+                "extract",
+                t("provider.antigravityInstallation.archiveMemberTruncated"),
+              );
             }
           }).pipe(Effect.scoped);
         }
         if (!seen.has(asset.executable.name) || !seen.has(asset.harness.name)) {
           return yield* installationError(
             "extract",
-            "The archive is missing the Antigravity executable or its harness.",
+            t("provider.antigravityInstallation.archiveMissingFiles"),
           );
         }
       }).pipe(Effect.scoped);
@@ -736,7 +759,7 @@ export const makeAntigravityInstallation = Effect.fn("AntigravityInstallation.ma
         yield* fs.chmod(path.join(pairDirectory, asset.executable.name), 0o755);
         yield* fs.chmod(path.join(pairDirectory, asset.harness.name), 0o755);
       }
-      yield* report("verifying", "Checking the downloaded runtime.");
+      yield* report("verifying", t("provider.antigravityInstallation.checkingDownloadedRuntime"));
       yield* validate(
         {
           executablePath: path.join(pairDirectory, asset.executable.name),
@@ -770,14 +793,14 @@ export const makeAntigravityInstallation = Effect.fn("AntigravityInstallation.ma
                 : Effect.fail(
                     installationError(
                       "activate",
-                      "Another installation published a different Antigravity release.",
+                      t("provider.antigravityInstallation.anotherInstallPublished"),
                     ),
                   ),
             ),
             Effect.mapError(() =>
               installationError(
                 "activate",
-                "Could not publish the Antigravity runtime. The previous release is unchanged. Try again.",
+                t("provider.antigravityInstallation.publishRuntimeFailed"),
                 cause,
               ),
             ),
@@ -787,12 +810,7 @@ export const makeAntigravityInstallation = Effect.fn("AntigravityInstallation.ma
       yield* activate();
     },
     Effect.scoped,
-    Effect.mapError(
-      wrapFailure(
-        "install",
-        "Could not install Antigravity. Check free disk space and directory access, then try again.",
-      ),
-    ),
+    Effect.mapError(wrapFailure("install", t("provider.antigravityInstallation.installFailed"))),
   );
 
   const start = gate
@@ -803,7 +821,7 @@ export const makeAntigravityInstallation = Effect.fn("AntigravityInstallation.ma
         if (!releaseAsset) {
           return yield* installationError(
             "start",
-            `Google does not publish an Antigravity runtime for ${platform}-${arch}. Use a supported remote environment or a custom executable.`,
+            t("provider.antigravityInstallation.platformUnsupportedRemote", { platform, arch }),
           );
         }
         const operationId = yield* crypto.randomUUIDv4;
@@ -816,7 +834,7 @@ export const makeAntigravityInstallation = Effect.fn("AntigravityInstallation.ma
           version: releaseAsset.version,
           installedVersion: current.installedVersion,
           canRemove: current.canRemove,
-          message: "Downloading Google's official Antigravity runtime.",
+          message: t("provider.antigravityInstallation.downloading"),
         };
         yield* SubscriptionRef.set(state, next);
         const work = install(releaseAsset).pipe(
@@ -831,10 +849,10 @@ export const makeAntigravityInstallation = Effect.fn("AntigravityInstallation.ma
                     ...value,
                     phase: cancelled ? "cancelled" : "failed",
                     message: cancelled
-                      ? "Installation cancelled. The previous runtime is unchanged."
+                      ? t("provider.antigravityInstallation.installCancelled")
                       : Option.isSome(error)
                         ? error.value.detail
-                        : "Could not finish the Antigravity installation. Check disk space and directory access.",
+                        : t("provider.antigravityInstallation.installIncomplete"),
                   } satisfies ProviderInstallState;
                 })
               : Effect.void,
@@ -851,7 +869,7 @@ export const makeAntigravityInstallation = Effect.fn("AntigravityInstallation.ma
         return next;
       }).pipe(Effect.uninterruptible),
     )
-    .pipe(Effect.mapError(wrapFailure("start", "Could not start the Antigravity installation.")));
+    .pipe(Effect.mapError(wrapFailure("start", t("provider.antigravityInstallation.startFailed"))));
 
   const cancel = Effect.fn("AntigravityInstallation.cancel")(function* (operationId: string) {
     return yield* gate.withPermit(
@@ -860,7 +878,7 @@ export const makeAntigravityInstallation = Effect.fn("AntigravityInstallation.ma
         if (current.operationId !== operationId) {
           return yield* installationError(
             "cancel",
-            "This installation is no longer current. Refresh its status before cancelling.",
+            t("provider.antigravityInstallation.installationNotCurrent"),
           );
         }
         if (running?.operationId === operationId && isRunning(current)) {
@@ -878,7 +896,7 @@ export const makeAntigravityInstallation = Effect.fn("AntigravityInstallation.ma
           if (isRunning(yield* SubscriptionRef.get(state)) || leases.size > 0) {
             return yield* installationError(
               "remove",
-              "Stop Antigravity sessions and sign-in flows before removing its managed runtime.",
+              t("provider.antigravityInstallation.stopSessionsBeforeRemove"),
             );
           }
           const realManaged = yield* fs.realPath(managedDirectory).pipe(Effect.option);
@@ -889,7 +907,7 @@ export const makeAntigravityInstallation = Effect.fn("AntigravityInstallation.ma
               if (Option.isSome(selected) && selected.value.managedVersionDirectory) {
                 return yield* installationError(
                   "remove",
-                  "A provider instance has a custom path inside this managed runtime. Clear that path before removing it.",
+                  t("provider.antigravityInstallation.customPathInManagedRuntime"),
                 );
               }
               const resolved = yield* fs.realPath(binaryPath).pipe(Effect.option);
@@ -897,7 +915,7 @@ export const makeAntigravityInstallation = Effect.fn("AntigravityInstallation.ma
               if (candidate.startsWith(`${realManaged.value}${path.sep}`)) {
                 return yield* installationError(
                   "remove",
-                  "A provider instance has a custom path inside this managed runtime. Clear that path before removing it.",
+                  t("provider.antigravityInstallation.customPathInManagedRuntime"),
                 );
               }
             }
@@ -919,12 +937,7 @@ export const makeAntigravityInstallation = Effect.fn("AntigravityInstallation.ma
         }).pipe(Effect.uninterruptible),
       );
     },
-    Effect.mapError(
-      wrapFailure(
-        "remove",
-        "Could not remove the managed Antigravity runtime. Check for open processes and try again.",
-      ),
-    ),
+    Effect.mapError(wrapFailure("remove", t("provider.antigravityInstallation.removeFailed"))),
   );
 
   yield* Effect.gen(function* () {
@@ -945,7 +958,7 @@ export const makeAntigravityInstallation = Effect.fn("AntigravityInstallation.ma
           ({
             ...current,
             phase: "failed",
-            message: "The managed Antigravity runtime is incomplete. Remove it and reinstall.",
+            message: t("provider.antigravityInstallation.managedRuntimeIncompleteRemove"),
           }) satisfies ProviderInstallState,
       ),
     ),

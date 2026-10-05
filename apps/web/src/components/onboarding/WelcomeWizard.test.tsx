@@ -2,6 +2,7 @@
 import { act } from "react";
 import { createRoot, type Root } from "react-dom/client";
 import { EnvironmentId, ProjectId } from "@t3tools/contracts";
+import { t } from "@t3tools/shared/i18n";
 import { afterEach, beforeEach, expect, it, vi } from "vite-plus/test";
 
 const mocks = vi.hoisted(() => ({
@@ -137,9 +138,9 @@ it("enters the workspace after a partial import and warns after navigation finis
   });
   const onDone = vi.fn(() => navigation);
   await act(async () => root.render(<WelcomeWizard localAvailable onDone={onDone} />));
-  await click("Continue");
-  await click("Continue");
-  await click("Import 1 project");
+  await click(t("onboarding.welcomeWizard.continue"));
+  await click(t("onboarding.welcomeWizard.continue"));
+  await click(t("onboarding.welcomeWizard.importProjects", { count: 1 }));
   expect(onDone).toHaveBeenCalledWith({
     environmentId: EnvironmentId.make("test-env"),
     projectId: ProjectId.make("test-project"),
@@ -149,7 +150,10 @@ it("enters the workspace after a partial import and warns after navigation finis
   expect(mocks.toast).toHaveBeenCalledWith(
     expect.objectContaining({
       type: "warning",
-      description: "Imported 28 threads. 1 thread could not be imported.",
+      description: t("onboarding.welcomeWizard.importWarningPartial", {
+        imported: 28,
+        skipped: 1,
+      }),
     }),
   );
   expect(mocks.toast.mock.invocationCallOrder[0]).toBeGreaterThan(
@@ -161,8 +165,8 @@ it.each([
   [0, 0, null],
   [29, 0, null],
   [1, 0, null],
-  [0, 1, "1 thread could not be imported."],
-  [0, 2, "2 threads could not be imported."],
+  [0, 1, t("onboarding.welcomeWizard.importWarningSkipped", { count: 1 })],
+  [0, 2, t("onboarding.welcomeWizard.importWarningSkipped", { count: 2 })],
 ] as const)(
   "finishes setup with %i imported and %i skipped threads",
   async (importedCount, skippedCount, warning) => {
@@ -172,14 +176,14 @@ it.each([
     });
     const onDone = vi.fn();
     await act(async () => root.render(<WelcomeWizard localAvailable onDone={onDone} />));
-    await click("Continue");
-    await click("Continue");
-    await click("Import 1 project");
+    await click(t("onboarding.welcomeWizard.continue"));
+    await click(t("onboarding.welcomeWizard.continue"));
+    await click(t("onboarding.welcomeWizard.importProjects", { count: 1 }));
     expect(onDone).toHaveBeenCalledOnce();
     if (warning === null && importedCount > 0) {
       expect(mocks.toast).toHaveBeenCalledWith({
         type: "success",
-        title: `Imported ${importedCount} ${importedCount === 1 ? "thread" : "threads"}`,
+        title: t("onboarding.welcomeWizard.importedThreadsTitle", { count: importedCount }),
       });
     } else if (warning === null) {
       expect(mocks.toast).not.toHaveBeenCalled();
@@ -195,20 +199,26 @@ it("keeps setup open when saving completion fails and preserves the import warni
   mocks.complete.mockRejectedValueOnce(new Error("settings unavailable"));
   const onDone = vi.fn();
   await act(async () => root.render(<WelcomeWizard localAvailable onDone={onDone} />));
-  await click("Continue");
-  await click("Continue");
-  await click("Import 1 project");
+  await click(t("onboarding.welcomeWizard.continue"));
+  await click(t("onboarding.welcomeWizard.continue"));
+  await click(t("onboarding.welcomeWizard.importProjects", { count: 1 }));
   expect(onDone).not.toHaveBeenCalled();
   expect(mocks.toast).toHaveBeenCalledWith(
-    expect.objectContaining({ type: "error", title: "Could not finish setup" }),
+    expect.objectContaining({
+      type: "error",
+      title: t("onboarding.welcomeWizard.finishSetupFailedTitle"),
+    }),
   );
-  await click("Do not import projects");
+  await click(t("onboarding.welcomeWizard.doNotImportProjects"));
   expect(onDone).toHaveBeenCalledOnce();
   expect(mocks.importThreads).toHaveBeenCalledOnce();
   expect(mocks.toast).toHaveBeenLastCalledWith(
     expect.objectContaining({
       type: "warning",
-      description: "Imported 28 threads. 1 thread could not be imported.",
+      description: t("onboarding.welcomeWizard.importWarningPartial", {
+        imported: 28,
+        skipped: 1,
+      }),
     }),
   );
 });

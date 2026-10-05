@@ -1,4 +1,5 @@
 import type { EnvironmentId } from "@t3tools/contracts";
+import { t } from "@t3tools/shared/i18n";
 import { SymbolView } from "../../components/AppSymbol";
 import { MaterialScreenContent } from "../../components/MaterialScreenContent";
 import { useCallback, useMemo, useState, type ComponentProps } from "react";
@@ -56,7 +57,7 @@ export function ThreadFileNavigatorPane(props: {
     () =>
       [
         {
-          accessibilityLabel: "Close files",
+          accessibilityLabel: t("files.threadFileNavigatorPane.closeFiles"),
           icon: { name: "xmark", type: "sfSymbol" as const },
           identifier: "thread-file-navigator-close",
           onPress: toggleAuxiliaryPane,
@@ -107,7 +108,7 @@ export function ThreadFileNavigatorPane(props: {
               hideShadow={false}
               navigationItemStyle="editor"
               subtitle={props.projectName}
-              title="Files"
+              title={t("files.threadFileNavigatorPane.title")}
               titleColor={foregroundColor}
               titleFontSize={17}
               titleFontWeight="700"
@@ -128,7 +129,7 @@ export function ThreadFileNavigatorPane(props: {
                     setSearchQuery(event.nativeEvent.text ?? "");
                   }}
                   placement="integratedButton"
-                  placeholder="Search files"
+                  placeholder={t("files.threadFileNavigatorPane.searchFiles")}
                   textColor={foregroundColor}
                   tintColor={foregroundColor}
                 />
@@ -160,14 +161,16 @@ export function ThreadFileNavigatorPane(props: {
         ) : (
           <View className="h-12 flex-row items-center gap-2 px-3">
             <View className="min-w-0 flex-1">
-              <Text className="text-sm font-t3-bold text-foreground">Files</Text>
+              <Text className="text-sm font-t3-bold text-foreground">
+                {t("files.threadFileNavigatorPane.title")}
+              </Text>
               <Text className="text-xs text-foreground-muted" numberOfLines={1}>
                 {props.projectName}
               </Text>
             </View>
             <Pressable
               accessibilityRole="button"
-              accessibilityLabel="Refresh files"
+              accessibilityLabel={t("files.threadFileNavigatorPane.refreshFiles")}
               hitSlop={8}
               className="h-8 w-8 items-center justify-center rounded-full active:bg-subtle"
               onPress={entriesQuery.refresh}
@@ -190,12 +193,12 @@ export function ThreadFileNavigatorPane(props: {
               type="monochrome"
             />
             <TextInput
-              accessibilityLabel="Search files"
+              accessibilityLabel={t("files.threadFileNavigatorPane.searchFiles")}
               autoCapitalize="none"
               autoCorrect={false}
               clearButtonMode="while-editing"
               className="min-h-10 flex-1 rounded-xl py-2 text-sm"
-              placeholder="Search files"
+              placeholder={t("files.threadFileNavigatorPane.searchFiles")}
               value={searchQuery}
               onChangeText={setSearchQuery}
             />

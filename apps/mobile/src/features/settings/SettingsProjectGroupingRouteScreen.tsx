@@ -1,6 +1,7 @@
 import { ScreenScrollView as ScrollView } from "../../components/ScreenScrollView";
 import { useAtomSet, useAtomValue } from "@effect/atom-react";
 import type { SidebarProjectGroupingMode } from "@t3tools/contracts";
+import { t } from "@t3tools/shared/i18n";
 import { AsyncResult } from "effect/unstable/reactivity";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
@@ -20,18 +21,18 @@ const GROUPING_OPTIONS: ReadonlyArray<{
 }> = [
   {
     mode: "repository",
-    label: "Group by repository",
-    description: "Matching repositories appear as one project.",
+    label: t("settings.settingsProjectGroupingRouteScreen.groupByRepository"),
+    description: t("settings.settingsProjectGroupingRouteScreen.groupByRepositoryDescription"),
   },
   {
     mode: "repository_path",
-    label: "Group by repository path",
-    description: "Keep monorepo paths separate.",
+    label: t("settings.settingsProjectGroupingRouteScreen.groupByRepositoryPath"),
+    description: t("settings.settingsProjectGroupingRouteScreen.groupByRepositoryPathDescription"),
   },
   {
     mode: "separate",
-    label: "Keep separate",
-    description: "Show every workspace as its own project.",
+    label: t("settings.settingsProjectGroupingRouteScreen.keepSeparate"),
+    description: t("settings.settingsProjectGroupingRouteScreen.keepSeparateDescription"),
   },
 ];
 
@@ -45,7 +46,7 @@ export function SettingsProjectGroupingRouteScreen() {
     : null;
 
   return (
-    <SettingsScreen title="Organization">
+    <SettingsScreen title={t("settings.group.organization")}>
       <ScrollView
         contentInsetAdjustmentBehavior="automatic"
         showsVerticalScrollIndicator={false}
@@ -53,7 +54,7 @@ export function SettingsProjectGroupingRouteScreen() {
         contentContainerClassName="gap-3 px-5 pt-4"
         contentContainerStyle={{ paddingBottom: Math.max(insets.bottom, 18) + 18 }}
       >
-        <SettingsSection title="Project grouping">
+        <SettingsSection title={t("settings.option.projectGrouping")}>
           {GROUPING_OPTIONS.map((option, index) => (
             <SettingsChoiceRow
               key={option.mode}

@@ -17,6 +17,7 @@ import {
   HostProcessEnvironment,
   HostProcessPlatform,
 } from "@t3tools/shared/hostProcess";
+import { t } from "@t3tools/shared/i18n";
 import {
   mergePathEntries,
   resolveSpawnCommand,
@@ -694,7 +695,7 @@ export const makeAcpRegistryCatalog = Effect.fn("AcpRegistryCatalog.make")(funct
         (cause) =>
           new AcpRegistryError({
             reason: "registry_unavailable",
-            detail: "ACP Registry returned invalid JSON.",
+            detail: t("provider.acpRegistrySupport.registryInvalidJson"),
             cause,
           }),
       ),
@@ -704,7 +705,7 @@ export const makeAcpRegistryCatalog = Effect.fn("AcpRegistryCatalog.make")(funct
         (cause) =>
           new AcpRegistryError({
             reason: "registry_unavailable",
-            detail: "ACP Registry returned an invalid index.",
+            detail: t("provider.acpRegistrySupport.registryInvalidIndex"),
             cause,
           }),
       ),
@@ -737,14 +738,14 @@ export const makeAcpRegistryCatalog = Effect.fn("AcpRegistryCatalog.make")(funct
   };
 
   const fetchRegistry = Effect.fn("AcpRegistryCatalog.fetchRegistry")(function* () {
-    yield* assertHttpsUrl(registryUrl, "ACP Registry index URL must use HTTPS.");
+    yield* assertHttpsUrl(registryUrl, t("provider.acpRegistrySupport.registryIndexUrlInsecure"));
     const response = yield* httpClient.execute(HttpClientRequest.get(registryUrl)).pipe(
       Effect.flatMap(HttpClientResponse.filterStatusOk),
       Effect.mapError(
         (cause) =>
           new AcpRegistryError({
             reason: "registry_unavailable",
-            detail: `Could not fetch ACP Registry index from ${registryUrl}.`,
+            detail: t("provider.acpRegistrySupport.registryIndexFetchFailed", { url: registryUrl }),
             cause,
           }),
       ),
@@ -754,7 +755,7 @@ export const makeAcpRegistryCatalog = Effect.fn("AcpRegistryCatalog.make")(funct
           Effect.fail(
             new AcpRegistryError({
               reason: "registry_unavailable",
-              detail: "Timed out fetching ACP Registry index.",
+              detail: t("provider.acpRegistrySupport.registryIndexFetchTimedOut"),
             }),
           ),
       }),
@@ -767,7 +768,7 @@ export const makeAcpRegistryCatalog = Effect.fn("AcpRegistryCatalog.make")(funct
         (cause) =>
           new AcpRegistryError({
             reason: "registry_unavailable",
-            detail: "Could not read ACP Registry response body.",
+            detail: t("provider.acpRegistrySupport.registryResponseUnreadable"),
             cause,
           }),
       ),
@@ -777,7 +778,7 @@ export const makeAcpRegistryCatalog = Effect.fn("AcpRegistryCatalog.make")(funct
           Effect.fail(
             new AcpRegistryError({
               reason: "registry_unavailable",
-              detail: "Timed out reading ACP Registry response body.",
+              detail: t("provider.acpRegistrySupport.registryResponseTimedOut"),
             }),
           ),
       }),
@@ -785,13 +786,15 @@ export const makeAcpRegistryCatalog = Effect.fn("AcpRegistryCatalog.make")(funct
     if (collected.truncated || collected.bytes > MAX_REGISTRY_BYTES) {
       return yield* new AcpRegistryError({
         reason: "registry_unavailable",
-        detail: `ACP Registry index exceeds ${MAX_REGISTRY_BYTES} bytes.`,
+        detail: t("provider.acpRegistrySupport.registryIndexTooLarge", {
+          bytes: MAX_REGISTRY_BYTES,
+        }),
       });
     }
     if (collected.invalidUtf8) {
       return yield* new AcpRegistryError({
         reason: "registry_unavailable",
-        detail: "ACP Registry index is not valid UTF-8.",
+        detail: t("provider.acpRegistrySupport.registryIndexInvalidUtf8"),
       });
     }
     const registry = yield* decodeRegistryText(collected.text);
@@ -834,7 +837,7 @@ export const makeAcpRegistryCatalog = Effect.fn("AcpRegistryCatalog.make")(funct
     if (Option.isNone(cached)) {
       return yield* new AcpRegistryError({
         reason: "registry_unavailable",
-        detail: "No valid cached ACP Registry index is available.",
+        detail: t("provider.acpRegistrySupport.registryCacheUnavailable"),
       });
     }
     yield* Ref.set(registryRef, cached.value);
@@ -880,7 +883,11 @@ export const makeAcpRegistryCatalog = Effect.fn("AcpRegistryCatalog.make")(funct
       if (Number(exitCode) !== 0) {
         return yield* new AcpRegistryError({
           reason: "install_failed",
-          detail: `ACP Registry install command '${command}' exited with code ${Number(exitCode)}: ${stderr.text.trim()}`,
+          detail: t("provider.acpRegistrySupport.installCommandExited", {
+            command,
+            code: Number(exitCode),
+            detail: stderr.text.trim(),
+          }),
         });
       }
       // Archive listings feed validateArchiveEntries; a truncated listing would let
@@ -888,7 +895,7 @@ export const makeAcpRegistryCatalog = Effect.fn("AcpRegistryCatalog.make")(funct
       if (stdout.truncated) {
         return yield* new AcpRegistryError({
           reason: options.truncatedOutputReason ?? "archive_invalid",
-          detail: `ACP Registry install command '${command}' produced more output than expected.`,
+          detail: t("provider.acpRegistrySupport.installCommandOutputTooLarge", { command }),
         });
       }
       return stdout.text;
@@ -900,7 +907,7 @@ export const makeAcpRegistryCatalog = Effect.fn("AcpRegistryCatalog.make")(funct
           ? cause
           : new AcpRegistryError({
               reason: "install_failed",
-              detail: `Could not run ACP Registry install command '${command}'.`,
+              detail: t("provider.acpRegistrySupport.installCommandRunFailed", { command }),
               cause,
             }),
       ),
@@ -914,7 +921,7 @@ export const makeAcpRegistryCatalog = Effect.fn("AcpRegistryCatalog.make")(funct
               Effect.fail(
                 new AcpRegistryError({
                   reason: "install_failed",
-                  detail: `Timed out running ACP Registry install command '${command}'.`,
+                  detail: t("provider.acpRegistrySupport.installCommandTimedOut", { command }),
                 }),
               ),
           }),
@@ -1001,7 +1008,7 @@ export const makeAcpRegistryCatalog = Effect.fn("AcpRegistryCatalog.make")(funct
         ? cause
         : new AcpRegistryError({
             reason: "install_failed",
-            detail: "Could not record the globally installed ACP Registry command.",
+            detail: t("provider.acpRegistrySupport.globalCommandRecordFailed"),
             cause,
           }),
     ),
@@ -1016,7 +1023,9 @@ export const makeAcpRegistryCatalog = Effect.fn("AcpRegistryCatalog.make")(funct
       if (lines.length !== 1 || !path.isAbsolute(lines[0]!)) {
         return yield* new AcpRegistryError({
           reason: "install_failed",
-          detail: `ACP Registry package manager '${managerPath}' returned an invalid global path.`,
+          detail: t("provider.acpRegistrySupport.packageManagerInvalidGlobalPath", {
+            manager: managerPath,
+          }),
         });
       }
       return lines[0]!;
@@ -1159,7 +1168,10 @@ export const makeAcpRegistryCatalog = Effect.fn("AcpRegistryCatalog.make")(funct
     if (managerPath === undefined) {
       return yield* new AcpRegistryError({
         reason: "runner_unavailable",
-        detail: `ACP Registry agent ${agent.id} requires '${managerName}', but it is not available on this environment's PATH.`,
+        detail: t("provider.acpRegistrySupport.runnerUnavailableOnPath", {
+          agent: agent.id,
+          runner: managerName,
+        }),
       });
     }
     const receipt = yield* readPackageReceipt(agent, distribution, packageSpec, managerPath);
@@ -1171,7 +1183,9 @@ export const makeAcpRegistryCatalog = Effect.fn("AcpRegistryCatalog.make")(funct
         (cause) =>
           new AcpRegistryError({
             reason: "install_failed",
-            detail: `Could not create the managed install directory for ${agent.id}.`,
+            detail: t("provider.acpRegistrySupport.installDirectoryCreateFailed", {
+              agent: agent.id,
+            }),
             cause,
           }),
       ),
@@ -1230,7 +1244,9 @@ export const makeAcpRegistryCatalog = Effect.fn("AcpRegistryCatalog.make")(funct
       if (Option.isNone(installed)) {
         return yield* new AcpRegistryError({
           reason: "install_failed",
-          detail: `ACP Registry installed ${packageSpec}, but could not resolve its global command.`,
+          detail: t("provider.acpRegistrySupport.globalCommandUnresolved", {
+            package: packageSpec,
+          }),
         });
       }
       yield* writePackageReceipt(installed.value);
@@ -1246,7 +1262,7 @@ export const makeAcpRegistryCatalog = Effect.fn("AcpRegistryCatalog.make")(funct
     if (Option.isNone(installed)) {
       return yield* new AcpRegistryError({
         reason: "install_failed",
-        detail: `ACP Registry installed ${packageSpec}, but could not resolve its global command.`,
+        detail: t("provider.acpRegistrySupport.globalCommandUnresolved", { package: packageSpec }),
       });
     }
     yield* writePackageReceipt(installed.value);
@@ -1275,7 +1291,7 @@ export const makeAcpRegistryCatalog = Effect.fn("AcpRegistryCatalog.make")(funct
     }
     return yield* new AcpRegistryError({
       reason: "install_failed",
-      detail: `Timed out waiting for ACP Registry install lock ${lockPath}.`,
+      detail: t("provider.acpRegistrySupport.installLockTimedOut", { path: lockPath }),
     });
   });
 
@@ -1289,7 +1305,7 @@ export const makeAcpRegistryCatalog = Effect.fn("AcpRegistryCatalog.make")(funct
     if (relative.startsWith("..") || path.isAbsolute(relative)) {
       return yield* new AcpRegistryError({
         reason: "archive_invalid",
-        detail: "ACP Registry archive command resolves outside its installation directory.",
+        detail: t("provider.acpRegistrySupport.archiveCommandOutsideInstallRoot"),
       });
     }
     const info = yield* fileSystem.stat(executableRealPath);
@@ -1297,7 +1313,7 @@ export const makeAcpRegistryCatalog = Effect.fn("AcpRegistryCatalog.make")(funct
     if (info.type !== "File" || !hasExecutableMode) {
       return yield* new AcpRegistryError({
         reason: "archive_invalid",
-        detail: "ACP Registry archive command is not a regular executable file.",
+        detail: t("provider.acpRegistrySupport.archiveCommandNotExecutable"),
       });
     }
     return executableRealPath;
@@ -1321,14 +1337,19 @@ export const makeAcpRegistryCatalog = Effect.fn("AcpRegistryCatalog.make")(funct
     if (platformTarget === undefined) {
       return yield* new AcpRegistryError({
         reason: "unsupported_platform",
-        detail: `ACP Registry does not support platform ${platform}-${architecture}.`,
+        detail: t("provider.acpRegistrySupport.unsupportedPlatform", {
+          platform: `${platform}-${architecture}`,
+        }),
       });
     }
     const paths = binaryPaths(agent, target);
     if (paths === undefined) {
       return yield* new AcpRegistryError({
         reason: "archive_invalid",
-        detail: `ACP Registry agent ${agent.id} declares an unsafe command path '${target.cmd}'.`,
+        detail: t("provider.acpRegistrySupport.unsafeCommandPath", {
+          agent: agent.id,
+          command: target.cmd,
+        }),
       });
     }
     const { commandSegments, installRoot, executablePath } = paths;
@@ -1339,7 +1360,9 @@ export const makeAcpRegistryCatalog = Effect.fn("AcpRegistryCatalog.make")(funct
             ? cause
             : new AcpRegistryError({
                 reason: "install_failed",
-                detail: `Could not validate cached ACP Registry agent ${agent.id}.`,
+                detail: t("provider.acpRegistrySupport.cachedAgentValidationFailed", {
+                  agent: agent.id,
+                }),
                 cause,
               }),
         ),
@@ -1351,7 +1374,7 @@ export const makeAcpRegistryCatalog = Effect.fn("AcpRegistryCatalog.make")(funct
         (cause) =>
           new AcpRegistryError({
             reason: "install_failed",
-            detail: `Could not create ACP Registry cache for ${agent.id}.`,
+            detail: t("provider.acpRegistrySupport.registryCacheCreateFailed", { agent: agent.id }),
             cause,
           }),
       ),
@@ -1363,7 +1386,9 @@ export const makeAcpRegistryCatalog = Effect.fn("AcpRegistryCatalog.make")(funct
           ? cause
           : new AcpRegistryError({
               reason: "install_failed",
-              detail: `Could not acquire install lock for ACP Registry agent ${agent.id}.`,
+              detail: t("provider.acpRegistrySupport.installLockAcquireFailed", {
+                agent: agent.id,
+              }),
               cause,
             }),
       ),
@@ -1387,7 +1412,10 @@ export const makeAcpRegistryCatalog = Effect.fn("AcpRegistryCatalog.make")(funct
           (cause) =>
             new AcpRegistryError({
               reason: "download_failed",
-              detail: `Could not download ACP Registry agent ${agent.id} ${agent.version}.`,
+              detail: t("provider.acpRegistrySupport.agentDownloadFailed", {
+                agent: agent.id,
+                version: agent.version,
+              }),
               cause,
             }),
         ),
@@ -1397,7 +1425,10 @@ export const makeAcpRegistryCatalog = Effect.fn("AcpRegistryCatalog.make")(funct
             Effect.fail(
               new AcpRegistryError({
                 reason: "download_failed",
-                detail: `Timed out downloading ACP Registry agent ${agent.id} ${agent.version}.`,
+                detail: t("provider.acpRegistrySupport.agentDownloadTimedOut", {
+                  agent: agent.id,
+                  version: agent.version,
+                }),
               }),
             ),
         }),
@@ -1410,7 +1441,10 @@ export const makeAcpRegistryCatalog = Effect.fn("AcpRegistryCatalog.make")(funct
             return Effect.fail(
               new AcpRegistryError({
                 reason: "archive_invalid",
-                detail: `ACP Registry agent ${agent.id} archive exceeds ${MAX_ARCHIVE_BYTES} bytes.`,
+                detail: t("provider.acpRegistrySupport.agentArchiveTooLarge", {
+                  agent: agent.id,
+                  bytes: MAX_ARCHIVE_BYTES,
+                }),
               }),
             );
           }
@@ -1424,7 +1458,10 @@ export const makeAcpRegistryCatalog = Effect.fn("AcpRegistryCatalog.make")(funct
             ? cause
             : new AcpRegistryError({
                 reason: "download_failed",
-                detail: `Could not save ACP Registry agent ${agent.id} ${agent.version}.`,
+                detail: t("provider.acpRegistrySupport.agentDownloadSaveFailed", {
+                  agent: agent.id,
+                  version: agent.version,
+                }),
                 cause,
               }),
         ),
@@ -1434,7 +1471,9 @@ export const makeAcpRegistryCatalog = Effect.fn("AcpRegistryCatalog.make")(funct
             Effect.fail(
               new AcpRegistryError({
                 reason: "download_failed",
-                detail: `Timed out reading ACP Registry agent ${agent.id} download.`,
+                detail: t("provider.acpRegistrySupport.agentDownloadReadTimedOut", {
+                  agent: agent.id,
+                }),
               }),
             ),
         }),
@@ -1444,7 +1483,7 @@ export const makeAcpRegistryCatalog = Effect.fn("AcpRegistryCatalog.make")(funct
         if (actual !== target.sha256.toLowerCase()) {
           return yield* new AcpRegistryError({
             reason: "checksum_mismatch",
-            detail: `ACP Registry agent ${agent.id} download did not match its declared SHA-256.`,
+            detail: t("provider.acpRegistrySupport.agentChecksumMismatch", { agent: agent.id }),
           });
         }
       }
@@ -1469,7 +1508,7 @@ export const makeAcpRegistryCatalog = Effect.fn("AcpRegistryCatalog.make")(funct
         if (!validateArchiveEntries(entries)) {
           return yield* new AcpRegistryError({
             reason: "archive_invalid",
-            detail: `ACP Registry agent ${agent.id} archive contains an unsafe path.`,
+            detail: t("provider.acpRegistrySupport.agentArchiveUnsafePath", { agent: agent.id }),
           });
         }
         if (kind === "zip" && platform !== "win32") {
@@ -1484,7 +1523,10 @@ export const makeAcpRegistryCatalog = Effect.fn("AcpRegistryCatalog.make")(funct
       if (!(yield* fileSystem.exists(stagedExecutable).pipe(Effect.orElseSucceed(() => false)))) {
         return yield* new AcpRegistryError({
           reason: "archive_invalid",
-          detail: `ACP Registry archive for ${agent.id} did not contain '${target.cmd}'.`,
+          detail: t("provider.acpRegistrySupport.agentArchiveMissingCommand", {
+            agent: agent.id,
+            command: target.cmd,
+          }),
         });
       }
       if (platform !== "win32") yield* fileSystem.chmod(stagedExecutable, 0o755);
@@ -1500,7 +1542,7 @@ export const makeAcpRegistryCatalog = Effect.fn("AcpRegistryCatalog.make")(funct
           ? cause
           : new AcpRegistryError({
               reason: "install_failed",
-              detail: `Could not install ACP Registry agent ${agent.id}.`,
+              detail: t("provider.acpRegistrySupport.agentInstallFailed", { agent: agent.id }),
               cause,
             }),
       ),
@@ -1515,7 +1557,7 @@ export const makeAcpRegistryCatalog = Effect.fn("AcpRegistryCatalog.make")(funct
     if (agent === undefined) {
       return yield* new AcpRegistryError({
         reason: "agent_not_found",
-        detail: `ACP Registry does not contain agent '${agentId.trim()}'.`,
+        detail: t("provider.acpRegistrySupport.agentNotInRegistry", { agent: agentId.trim() }),
       });
     }
     return agent;
@@ -1533,7 +1575,11 @@ export const makeAcpRegistryCatalog = Effect.fn("AcpRegistryCatalog.make")(funct
     if (distribution === undefined) {
       return yield* new AcpRegistryError({
         reason: platformTarget === undefined ? "unsupported_platform" : "unsupported_distribution",
-        detail: `ACP Registry agent ${agent.id} has no ${preference === "auto" ? "compatible" : preference} distribution for ${platform}-${architecture}.`,
+        detail: t("provider.acpRegistrySupport.agentDistributionUnavailable", {
+          agent: agent.id,
+          platform: `${platform}-${architecture}`,
+          distribution: preference === "auto" ? "兼容的" : `“${preference}”`,
+        }),
       });
     }
     return distribution;
@@ -1675,7 +1721,9 @@ export const makeAcpRegistryCatalog = Effect.fn("AcpRegistryCatalog.make")(funct
                   ? cause
                   : new AcpRegistryError({
                       reason: "install_failed",
-                      detail: `Could not validate cached ACP Registry agent ${agent.id}.`,
+                      detail: t("provider.acpRegistrySupport.cachedAgentValidationFailed", {
+                        agent: agent.id,
+                      }),
                       cause,
                     }),
               ),
@@ -1717,7 +1765,7 @@ export const makeAcpRegistryCatalog = Effect.fn("AcpRegistryCatalog.make")(funct
       if (agentId.length === 0) {
         return yield* new AcpRegistryError({
           reason: "agent_not_configured",
-          detail: "ACP Registry provider requires a registry agent ID.",
+          detail: t("provider.acpRegistrySupport.agentIdRequired"),
         });
       }
       const registry = yield* loadRegistry();
@@ -1734,7 +1782,10 @@ export const makeAcpRegistryCatalog = Effect.fn("AcpRegistryCatalog.make")(funct
         if (resolvedOverride === undefined) {
           return yield* new AcpRegistryError({
             reason: "runner_unavailable",
-            detail: `ACP Registry agent ${agent.id} requires '${commandOverride}', but it is not available on this provider instance's PATH.`,
+            detail: t("provider.acpRegistrySupport.commandOverrideUnavailable", {
+              agent: agent.id,
+              command: commandOverride,
+            }),
           });
         }
         command = resolvedOverride;
@@ -1793,7 +1844,7 @@ export const makeAcpRegistryCatalog = Effect.fn("AcpRegistryCatalog.make")(funct
             (cause) =>
               new AcpRegistryError({
                 reason: "install_failed",
-                detail: "ACP Registry managed binary uninstall received an invalid agent ID.",
+                detail: t("provider.acpRegistrySupport.uninstallInvalidAgentId"),
                 cause,
               }),
           ),
@@ -1811,7 +1862,9 @@ export const makeAcpRegistryCatalog = Effect.fn("AcpRegistryCatalog.make")(funct
             (cause) =>
               new AcpRegistryError({
                 reason: "install_failed",
-                detail: `Could not inspect the managed binary cache for ACP Registry agent ${safeAgentId}.`,
+                detail: t("provider.acpRegistrySupport.binaryCacheInspectFailed", {
+                  agent: safeAgentId,
+                }),
                 cause,
               }),
           ),
@@ -1840,7 +1893,9 @@ export const makeAcpRegistryCatalog = Effect.fn("AcpRegistryCatalog.make")(funct
             (cause) =>
               new AcpRegistryError({
                 reason: "install_failed",
-                detail: `Could not remove managed binaries for ACP Registry agent ${safeAgentId}.`,
+                detail: t("provider.acpRegistrySupport.managedBinariesRemoveFailed", {
+                  agent: safeAgentId,
+                }),
                 cause,
               }),
           ),

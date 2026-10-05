@@ -12,6 +12,7 @@ import {
   resolveEnvironmentMachineKind,
 } from "@t3tools/contracts";
 import { useAtomValue } from "@effect/atom-react";
+import { t } from "@t3tools/shared/i18n";
 import { useCallback, useState } from "react";
 import { ActivityIndicator, Pressable, type TextLayoutEvent, View } from "react-native";
 
@@ -153,13 +154,13 @@ function CloudEnvironmentRowsContent(
         <View collapsable={false} className="items-center gap-3 rounded-[24px] bg-grouped-card p-6">
           <ActivityIndicator colorClassName={"accent-icon"} />
           <Text className="text-center text-sm leading-normal text-foreground-muted">
-            Loading linked cloud environments.
+            {t("connection.cloudEnvironmentRows.loadingLinkedEnvironments")}
           </Text>
         </View>
       ) : controller.relayDiscovery.error ? null : (
         <View collapsable={false} className="rounded-[24px] bg-grouped-card p-5">
           <Text className="text-sm leading-normal text-foreground-muted">
-            No additional linked cloud environments.
+            {t("connection.cloudEnvironmentRows.noLinkedEnvironments")}
           </Text>
         </View>
       )}
@@ -171,7 +172,7 @@ function CloudEnvironmentRowsContent(
       !controller.relayDiscovery.isRefreshing ? (
         <View collapsable={false} className="gap-3 rounded-[24px] bg-grouped-card p-5">
           <Text className="text-base font-t3-bold text-foreground">
-            Could not load T3 Connect environments
+            {t("connection.cloudEnvironmentRows.loadFailed")}
           </Text>
           <Text className="text-sm text-foreground-muted">{controller.relayDiscovery.error}</Text>
           {controller.relayDiscovery.errorTraceId ? (
@@ -184,7 +185,9 @@ function CloudEnvironmentRowsContent(
             }}
             className="self-start rounded-full bg-subtle px-3.5 py-2 active:opacity-70"
           >
-            <Text className="text-xs font-t3-bold text-foreground">Try again</Text>
+            <Text className="text-xs font-t3-bold text-foreground">
+              {t("connection.cloudEnvironmentRows.tryAgain")}
+            </Text>
           </Pressable>
         </View>
       ) : null}
@@ -220,9 +223,15 @@ function ConnectedCloudEnvironmentRow(props: {
   }
   return (
     <Pressable
-      accessibilityHint="Long press to remove from this device"
+      accessibilityHint={t("connection.cloudEnvironmentRows.removeHint")}
       accessibilityRole={props.onOpen ? "button" : undefined}
-      accessibilityLabel={props.onOpen ? `Manage ${props.environment.environmentLabel}` : undefined}
+      accessibilityLabel={
+        props.onOpen
+          ? t("connection.cloudEnvironmentRows.manageLabel", {
+              environmentLabel: props.environment.environmentLabel,
+            })
+          : undefined
+      }
       onPress={props.onOpen}
       onLongPress={props.onRemove}
     >
@@ -239,7 +248,9 @@ function ConnectedCloudEnvironmentRow(props: {
         onValueChange={props.onSetEnabled}
         onToggleError={props.onToggleError}
         disabled={unsupported}
-        {...(enabled || unsupported ? {} : { statusText: "Off" })}
+        {...(enabled || unsupported
+          ? {}
+          : { statusText: t("connection.cloudEnvironmentRows.off") })}
         value={enabled}
       />
     </Pressable>
@@ -321,7 +332,9 @@ function CloudEnvironmentRowShell(props: {
     readonly lineCount: number;
   } | null>(null);
   const errorTraceId = props.connectionErrorTraceId;
-  const measuredErrorText = errorTraceId ? `${statusText} Trace ID: ${errorTraceId}` : statusText;
+  const measuredErrorText = errorTraceId
+    ? `${statusText}${t("connection.connectionTraceId.prefix")}${errorTraceId}`
+    : statusText;
   const errorLineCount =
     errorMeasurement?.text === measuredErrorText ? errorMeasurement.lineCount : 0;
   const errorCanExpand = props.connectionError !== null && errorLineCount > 1;
@@ -435,7 +448,9 @@ function CopyTraceIdButton(props: { readonly traceId: string }) {
         tintColorClassName={"accent-icon"}
         type="monochrome"
       />
-      <Text className="text-xs font-t3-bold text-foreground">Copy trace ID</Text>
+      <Text className="text-xs font-t3-bold text-foreground">
+        {t("connection.cloudEnvironmentRows.copyTraceId")}
+      </Text>
     </Pressable>
   );
 }

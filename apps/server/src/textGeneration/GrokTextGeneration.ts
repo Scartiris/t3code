@@ -8,6 +8,7 @@ import type * as EffectAcpErrors from "effect-acp/errors";
 
 import { type GrokSettings, type ModelSelection } from "@t3tools/contracts";
 import { formatGeneratedBranchName, sanitizeFeatureBranchName } from "@t3tools/shared/git";
+import { t } from "@t3tools/shared/i18n";
 import { getModelSelectionStringOptionValue } from "@t3tools/shared/model";
 import { extractJsonObject } from "@t3tools/shared/schemaJson";
 
@@ -113,7 +114,10 @@ export const makeGrokTextGeneration = Effect.fn("makeGrokTextGeneration")(functi
           Option.match({
             onNone: () =>
               Effect.fail(
-                new TextGenerationError({ operation, detail: "Grok ACP request timed out." }),
+                new TextGenerationError({
+                  operation,
+                  detail: t("textGeneration.grokTextGeneration.timedOut"),
+                }),
               ),
             onSome: (value) => Effect.succeed(value),
           }),
@@ -123,7 +127,7 @@ export const makeGrokTextGeneration = Effect.fn("makeGrokTextGeneration")(functi
             ? cause
             : new TextGenerationError({
                 operation,
-                detail: "Grok ACP request failed.",
+                detail: t("textGeneration.grokTextGeneration.requestFailed"),
                 cause,
               }),
         ),
@@ -135,7 +139,7 @@ export const makeGrokTextGeneration = Effect.fn("makeGrokTextGeneration")(functi
           operation,
           detail:
             promptResult.stopReason === "cancelled"
-              ? "Grok ACP request was cancelled."
+              ? t("textGeneration.grokTextGeneration.cancelled")
               : "Grok Agent returned empty output.",
         });
       }
@@ -159,7 +163,7 @@ export const makeGrokTextGeneration = Effect.fn("makeGrokTextGeneration")(functi
           ? cause
           : new TextGenerationError({
               operation,
-              detail: "Grok ACP text generation failed.",
+              detail: t("textGeneration.grokTextGeneration.generationFailed"),
               cause,
             }),
       ),

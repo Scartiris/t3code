@@ -5,6 +5,7 @@ import type {
   ResolvedKeybindingsConfig,
   ThreadId,
 } from "@t3tools/contracts";
+import { t } from "@t3tools/shared/i18n";
 import { AlertTriangleIcon, XIcon } from "lucide-react";
 
 import type { DraftId } from "../../composerDraftStore";
@@ -124,7 +125,7 @@ export function ThreadDetailsPanel(props: ThreadDetailsPanelProps) {
         <>
           <ThreadDetailsSection
             headingId="thread-details-workspace-heading"
-            title="Workspace"
+            title={t("topbar.workspace")}
             separated={false}
             showHeading={false}
           >
@@ -132,16 +133,21 @@ export function ThreadDetailsPanel(props: ThreadDetailsPanelProps) {
               <div className="mx-1 mb-2 flex gap-2 rounded-xl border border-warning/30 bg-warning/6 p-3">
                 <AlertTriangleIcon className="mt-0.5 size-3.5 shrink-0 text-warning" />
                 <div className="min-w-0 flex-1">
-                  <p className="text-xs font-medium">Client and server versions differ</p>
+                  <p className="text-xs font-medium">
+                    {t("chat.threadDetailsPanel.versionMismatch")}
+                  </p>
                   <p className="mt-1 text-2xs leading-relaxed text-muted-foreground">
-                    Client {props.versionMismatch.clientVersion} ·{" "}
-                    {props.versionMismatch.serverLabel} {props.versionMismatch.serverVersion}
+                    {t("chat.threadDetailsPanel.versionDetail", {
+                      client: props.versionMismatch.clientVersion,
+                      server: props.versionMismatch.serverLabel,
+                      version: props.versionMismatch.serverVersion,
+                    })}
                   </p>
                 </div>
                 <Button
                   size="icon-xs"
                   variant="ghost"
-                  aria-label="Dismiss version mismatch warning"
+                  aria-label={t("chat.threadDetailsPanel.dismissVersionMismatch")}
                   onClick={props.onDismissVersionMismatch}
                 >
                   <XIcon className="size-3.5" />
@@ -197,7 +203,7 @@ export function ThreadDetailsPanel(props: ThreadDetailsPanelProps) {
           {props.gitCwd ? (
             <ThreadDetailsSection
               headingId="thread-details-version-control-heading"
-              title="Version Control"
+              title={t("chat.threadDetailsPanel.versionControl")}
               showHeading={false}
               separated={density === "full"}
             >

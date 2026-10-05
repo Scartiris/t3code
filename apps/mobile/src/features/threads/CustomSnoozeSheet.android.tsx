@@ -25,6 +25,7 @@ import {
   resolveCustomSnooze,
   type CustomSnoozeInput,
 } from "@t3tools/client-runtime/state/thread-settled";
+import { t } from "@t3tools/shared/i18n";
 import { requireNativeModule } from "expo";
 import { useEffect, useState } from "react";
 import { AppState, useWindowDimensions } from "react-native";
@@ -44,13 +45,13 @@ type Props = Parameters<typeof SharedCustomSnoozeSheet>[0];
 const roundedCorner = Shape.RoundedCorner;
 
 const modes = [
-  { value: "date", label: "Date and time" },
-  { value: "duration", label: "Duration" },
+  { value: "date", label: t("threads.customSnoozeSheet.android.modeDateAndTime") },
+  { value: "duration", label: t("threads.customSnoozeSheet.android.modeDuration") },
 ] as const;
 const units = [
-  { value: "minutes", label: "Minutes" },
-  { value: "hours", label: "Hours" },
-  { value: "days", label: "Days" },
+  { value: "minutes", label: t("threads.customSnoozeSheet.android.unitMinutes") },
+  { value: "hours", label: t("threads.customSnoozeSheet.android.unitHours") },
+  { value: "days", label: t("threads.customSnoozeSheet.android.unitDays") },
 ] as const;
 
 function systemUses24HourClock() {
@@ -83,7 +84,9 @@ export function CustomSnoozeSheet(props: Props) {
     const snoozedUntil = resolveCustomSnooze(input, new Date());
     if (!snoozedUntil) {
       setError(
-        mode === "date" ? "Choose a date and time in the future." : "Enter a positive duration.",
+        mode === "date"
+          ? t("threads.customSnoozeSheet.android.errorFutureDateTime")
+          : t("threads.customSnoozeSheet.android.errorPositiveDuration"),
       );
       return;
     }
@@ -140,7 +143,7 @@ export function CustomSnoozeSheet(props: Props) {
                 verticalArrangement={{ spacedBy: 16 }}
                 modifiers={[fillMaxWidth(), padding(24, 24, 24, 16)]}
               >
-                <Text style={titleTypography}>Custom snooze</Text>
+                <Text style={titleTypography}>{t("threads.customSnoozeSheet.android.title")}</Text>
                 <MaterialSegmentedButtons
                   options={modes}
                   selected={mode}
@@ -241,13 +244,17 @@ export function CustomSnoozeSheet(props: Props) {
                     onClick={props.onClose}
                     colors={{ contentColor: colors["--color-foreground"] }}
                   >
-                    <Text style={bodyTypography}>Cancel</Text>
+                    <Text style={bodyTypography}>
+                      {t("threads.customSnoozeSheet.android.cancel")}
+                    </Text>
                   </TextButton>
                   <TextButton
                     onClick={submit}
                     colors={{ contentColor: colors["--color-foreground"] }}
                   >
-                    <Text style={bodyTypography}>Snooze</Text>
+                    <Text style={bodyTypography}>
+                      {t("threads.customSnoozeSheet.android.snooze")}
+                    </Text>
                   </TextButton>
                 </Row>
               </Column>

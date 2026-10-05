@@ -4,6 +4,7 @@ import {
   getProviderAttachmentLimitError,
   type ChatAttachment,
 } from "@t3tools/contracts";
+import { t } from "@t3tools/shared/i18n";
 import * as Effect from "effect/Effect";
 import * as Schema from "effect/Schema";
 
@@ -93,14 +94,19 @@ export const claimPendingAttachments = Effect.fn("AttachmentClaims.claimPendingA
           });
           if (!claim.ok) {
             return yield* new AttachmentClaimError({
-              message: `Attachment '${attachment.name}' cannot be sent: ${claim.reason}.`,
+              message: t("orchestration-v2.attachmentClaims.cannotBeSent", {
+                name: attachment.name,
+                reason: claim.reason,
+              }),
             });
           }
           const info = yield* fileSystem.stat(claim.currentPath).pipe(
             Effect.mapError(
               (cause) =>
                 new AttachmentClaimError({
-                  message: `Attachment '${attachment.name}' cannot be sent: attachment not found.`,
+                  message: t("orchestration-v2.attachmentClaims.attachmentNotFound", {
+                    name: attachment.name,
+                  }),
                   cause,
                 }),
             ),
@@ -121,7 +127,9 @@ export const claimPendingAttachments = Effect.fn("AttachmentClaims.claimPendingA
           });
           if (expectedPath !== claim.finalPath) {
             return yield* new AttachmentClaimError({
-              message: `Attachment '${attachment.name}' cannot be sent: attachment type does not match the upload.`,
+              message: t("orchestration-v2.attachmentClaims.attachmentTypeMismatch", {
+                name: attachment.name,
+              }),
             });
           }
           // A copy, not a hard link: an agent editing the delivered file in
@@ -133,7 +141,9 @@ export const claimPendingAttachments = Effect.fn("AttachmentClaims.claimPendingA
             Effect.mapError(
               (cause) =>
                 new AttachmentClaimError({
-                  message: `Failed to claim attachment '${attachment.name}' for this thread.`,
+                  message: t("orchestration-v2.attachmentClaims.claimFailed", {
+                    name: attachment.name,
+                  }),
                   cause,
                 }),
             ),

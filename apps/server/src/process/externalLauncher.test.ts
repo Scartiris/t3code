@@ -18,6 +18,7 @@ import * as TestClock from "effect/testing/TestClock";
 import { ChildProcess, ChildProcessSpawner } from "effect/unstable/process";
 
 import { HostProcessPlatform } from "@t3tools/shared/hostProcess";
+import { t } from "@t3tools/shared/i18n";
 import { SpawnExecutableResolution } from "@t3tools/shared/shell";
 import * as ExternalLauncher from "./externalLauncher.ts";
 
@@ -1259,6 +1260,9 @@ it.effect("rejects unknown editors through the service API", () =>
       .pipe(Effect.flip);
     assert.instanceOf(error, ExternalLauncher.ExternalLauncherUnknownEditorError);
     assert.equal(error.editor, "missing-editor");
-    assert.equal(error.message, "Unknown editor: missing-editor");
+    assert.equal(
+      error.message,
+      t("contractErrors.editor.unknownEditor", { editor: "missing-editor" }),
+    );
   }).pipe(Effect.provide(testLayer({ platform: "linux", env: { PATH: "" } }))),
 );

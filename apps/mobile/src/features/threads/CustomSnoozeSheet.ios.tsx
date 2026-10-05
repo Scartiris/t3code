@@ -27,6 +27,7 @@ import {
   resolveCustomSnooze,
   type CustomSnoozeInput,
 } from "@t3tools/client-runtime/state/thread-settled";
+import { t } from "@t3tools/shared/i18n";
 import { useState, type ReactNode } from "react";
 import { NavigationContainer, NavigationIndependentTree } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
@@ -39,13 +40,13 @@ import { useAppearancePreferences } from "../settings/appearance/AppearancePrefe
 const durationAmounts = Array.from({ length: 99 }, (_, index) => index + 1);
 const SnoozeStack = createNativeStackNavigator<{ CustomSnooze: undefined }>();
 const modes = [
-  { value: "date", label: "Date and time" },
-  { value: "duration", label: "Duration" },
+  { value: "date", label: t("threads.customSnoozeSheet.ios.modeDateAndTime") },
+  { value: "duration", label: t("threads.customSnoozeSheet.ios.modeDuration") },
 ] as const;
 const units = [
-  { value: "minutes", label: "Minutes" },
-  { value: "hours", label: "Hours" },
-  { value: "days", label: "Days" },
+  { value: "minutes", label: t("threads.customSnoozeSheet.ios.unitMinutes") },
+  { value: "hours", label: t("threads.customSnoozeSheet.ios.unitHours") },
+  { value: "days", label: t("threads.customSnoozeSheet.ios.unitDays") },
 ] as const;
 
 export function CustomSnoozeSheet(props: {
@@ -74,7 +75,9 @@ export function CustomSnoozeSheet(props: {
     const snoozedUntil = resolveCustomSnooze(input, new Date());
     if (!snoozedUntil) {
       setError(
-        mode === "date" ? "Choose a date and time in the future." : "Enter a positive duration.",
+        mode === "date"
+          ? t("threads.customSnoozeSheet.ios.errorFutureDateTime")
+          : t("threads.customSnoozeSheet.ios.errorPositiveDuration"),
       );
       return;
     }
@@ -116,7 +119,7 @@ export function CustomSnoozeSheet(props: {
                 modifiers={[padding({ all: 16 }), foregroundStyle(colors["--color-foreground"])]}
               >
                 <Picker
-                  label="Snooze mode"
+                  label={t("threads.customSnoozeSheet.ios.snoozeModeLabel")}
                   selection={mode}
                   onSelectionChange={(value: CustomSnoozeInput["mode"]) => {
                     setMode(value);
@@ -132,7 +135,7 @@ export function CustomSnoozeSheet(props: {
                 </Picker>
                 {mode === "date" ? (
                   <DatePicker
-                    title="Snooze until"
+                    title={t("threads.customSnoozeSheet.ios.snoozeUntilLabel")}
                     selection={date}
                     displayedComponents={["date", "hourAndMinute"]}
                     onDateChange={updateDate}
@@ -145,7 +148,7 @@ export function CustomSnoozeSheet(props: {
                 ) : (
                   <HStack spacing={0}>
                     <Picker
-                      label="Duration amount"
+                      label={t("threads.customSnoozeSheet.ios.durationAmountLabel")}
                       selection={amount}
                       onSelectionChange={(value: number) => {
                         setAmount(value);
@@ -168,7 +171,7 @@ export function CustomSnoozeSheet(props: {
                       ))}
                     </Picker>
                     <Picker
-                      label="Duration unit"
+                      label={t("threads.customSnoozeSheet.ios.durationUnitLabel")}
                       selection={unit}
                       onSelectionChange={(value: typeof unit) => {
                         setUnit(value);
@@ -243,7 +246,7 @@ function SnoozePopoverNavigation(props: {
                   headerTintColor: colors["--color-foreground"],
                   headerTitleStyle: { fontSize: 17, fontWeight: "700" },
                   headerTransparent: NATIVE_LIQUID_GLASS_SUPPORTED,
-                  title: "Custom snooze",
+                  title: t("threads.customSnoozeSheet.ios.title"),
                 }}
               >
                 <SnoozeStack.Screen name="CustomSnooze">
@@ -251,13 +254,18 @@ function SnoozePopoverNavigation(props: {
                     <>
                       <NativeHeaderToolbar placement="left">
                         <NativeHeaderToolbar.Button
-                          accessibilityLabel="Cancel custom snooze"
+                          accessibilityLabel={t(
+                            "threads.customSnoozeSheet.ios.cancelAccessibilityLabel",
+                          )}
                           icon="xmark"
                           onPress={props.onClose}
                         />
                       </NativeHeaderToolbar>
                       <NativeHeaderToolbar placement="right">
-                        <NativeHeaderToolbar.Button label="Snooze" onPress={props.onSubmit} />
+                        <NativeHeaderToolbar.Button
+                          label={t("threads.customSnoozeSheet.ios.snooze")}
+                          onPress={props.onSubmit}
+                        />
                       </NativeHeaderToolbar>
                       <ScrollView
                         contentInsetAdjustmentBehavior="automatic"

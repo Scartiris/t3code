@@ -8,6 +8,7 @@ import {
   type ServerProvider,
 } from "@t3tools/contracts";
 import { beforeEach, describe, expect, it, vi } from "vite-plus/test";
+import { t } from "@t3tools/shared/i18n";
 
 import { visitElements } from "../../test/reactElementTree";
 import { reactHookHarness as hooks } from "../../test/reactHookHarness";
@@ -190,7 +191,11 @@ describe("AcpSessionManagementSection", () => {
 
   it("lists and imports native sessions through the owning environment", async () => {
     const initial = render();
-    (findByLabel(initial, "List sessions").props.onClick as (() => void) | undefined)?.();
+    (
+      findByLabel(initial, t("settings.acpSessionManagementSection.listSessions")).props.onClick as
+        | (() => void)
+        | undefined
+    )?.();
     await flushPromises();
 
     expect(commands.list).toHaveBeenCalledWith({
@@ -199,7 +204,11 @@ describe("AcpSessionManagementSection", () => {
     });
 
     const listed = render();
-    (findByLabel(listed, "Import").props.onClick as (() => void) | undefined)?.();
+    (
+      findByLabel(listed, t("settings.acpSessionManagementSection.import")).props.onClick as
+        | (() => void)
+        | undefined
+    )?.();
     await flushPromises();
 
     expect(commands.import).toHaveBeenCalledWith({
@@ -212,12 +221,18 @@ describe("AcpSessionManagementSection", () => {
         updatedAt: session.updatedAt,
       },
     });
-    expect(findByLabel(render(), "Imported")).not.toBeNull();
+    expect(
+      findByLabel(render(), t("settings.acpSessionManagementSection.imported")),
+    ).not.toBeNull();
   });
 
   it("logs out the provider instance through the owning environment", async () => {
     const tree = render();
-    (findByLabel(tree, "Log out").props.onClick as (() => void) | undefined)?.();
+    (
+      findByLabel(tree, t("settings.acpSessionManagementSection.logOut")).props.onClick as
+        | (() => void)
+        | undefined
+    )?.();
     await flushPromises();
 
     expect(commands.logout).toHaveBeenCalledWith({
@@ -227,9 +242,16 @@ describe("AcpSessionManagementSection", () => {
   });
 
   it("deletes unimported native sessions after destructive confirmation", async () => {
-    (findByLabel(render(), "List sessions").props.onClick as (() => void) | undefined)?.();
+    (
+      findByLabel(render(), t("settings.acpSessionManagementSection.listSessions")).props
+        .onClick as (() => void) | undefined
+    )?.();
     await flushPromises();
-    (findByLabel(render(), "Delete").props.onClick as (() => void) | undefined)?.();
+    (
+      findByLabel(render(), t("settings.acpSessionManagementSection.delete")).props.onClick as
+        | (() => void)
+        | undefined
+    )?.();
     await flushPromises();
 
     expect(dialogs.confirm).toHaveBeenCalledOnce();
@@ -249,7 +271,10 @@ describe("AcpSessionManagementSection", () => {
         resolveProviders = resolve;
       }),
     );
-    (findByLabel(render(), "List providers").props.onClick as (() => void) | undefined)?.();
+    (
+      findByLabel(render(), t("settings.acpSessionManagementSection.listProviders")).props
+        .onClick as (() => void) | undefined
+    )?.();
 
     const projectSelect = visitElements(
       render(),
@@ -262,7 +287,10 @@ describe("AcpSessionManagementSection", () => {
   });
 
   it("lists, saves, and disables configurable ACP providers", async () => {
-    (findByLabel(render(), "List providers").props.onClick as (() => void) | undefined)?.();
+    (
+      findByLabel(render(), t("settings.acpSessionManagementSection.listProviders")).props
+        .onClick as (() => void) | undefined
+    )?.();
     await flushPromises();
 
     expect(commands.listProviders).toHaveBeenCalledWith({
@@ -270,8 +298,13 @@ describe("AcpSessionManagementSection", () => {
       input: { instanceId, projectId },
     });
     const providers = render();
-    expect(findByAriaLabel(providers, "google protocol").props.size).toBe("sm");
-    (findByLabel(providers, "Save").props.onClick as (() => void) | undefined)?.();
+    expect(
+      findByAriaLabel(
+        providers,
+        t("settings.acpSessionManagementSection.protocolAria", { provider: "google" }),
+      ).props.size,
+    ).toBe("sm");
+    (findByLabel(providers, t("action.save")).props.onClick as (() => void) | undefined)?.();
     await flushPromises();
     expect(commands.setProvider).toHaveBeenCalledWith({
       environmentId,
@@ -284,7 +317,11 @@ describe("AcpSessionManagementSection", () => {
       },
     });
 
-    (findByLabel(render(), "Disable").props.onClick as (() => void) | undefined)?.();
+    (
+      findByLabel(render(), t("settings.acpSessionManagementSection.disable")).props.onClick as
+        | (() => void)
+        | undefined
+    )?.();
     await flushPromises();
     expect(commands.disableProvider).toHaveBeenCalledWith({
       environmentId,

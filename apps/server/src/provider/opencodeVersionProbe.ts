@@ -1,4 +1,5 @@
 /** Detects whether an OpenCode instance runs 1.x or 2.x, so the driver can pick its runtime. */
+import { t } from "@t3tools/shared/i18n";
 import { parseSemver } from "@t3tools/shared/semver";
 import * as Cache from "effect/Cache";
 import * as Duration from "effect/Duration";
@@ -101,7 +102,7 @@ const probeOpenCodeServer = Effect.fn("probeOpenCodeServer")(function* (
   if (baseUrl?.protocol !== "http:" && baseUrl?.protocol !== "https:") {
     return yield* new OpenCodeRuntime.OpenCodeRuntimeError({
       operation: "probeOpenCodeServer",
-      detail: "The OpenCode server URL is not a valid http:// or https:// URL.",
+      detail: t("provider.opencodeVersionProbe.serverUrlInvalid"),
     });
   }
   // UTF-8, as the 1.x SDK client sends it; `HttpClientRequest.basicAuth` uses Latin-1 `btoa`.
@@ -133,7 +134,7 @@ const probeOpenCodeServer = Effect.fn("probeOpenCodeServer")(function* (
           (cause) =>
             new OpenCodeRuntime.OpenCodeRuntimeError({
               operation: "probeOpenCodeServer",
-              detail: "Couldn't reach the OpenCode server.",
+              detail: t("provider.opencodeVersionProbe.serverUnreachable"),
               cause,
             }),
         ),
@@ -143,7 +144,7 @@ const probeOpenCodeServer = Effect.fn("probeOpenCodeServer")(function* (
             Effect.fail(
               new OpenCodeRuntime.OpenCodeRuntimeError({
                 operation: "probeOpenCodeServer",
-                detail: "Timed out while checking the OpenCode server version.",
+                detail: t("provider.opencodeVersionProbe.serverProbeTimedOut"),
               }),
             ),
         }),

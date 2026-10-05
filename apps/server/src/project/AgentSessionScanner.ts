@@ -45,6 +45,7 @@ import {
   parseOriginUrlFromGitConfig,
 } from "@t3tools/shared/git";
 import { HostProcessEnvironment, HostProcessPlatform } from "@t3tools/shared/hostProcess";
+import { t } from "@t3tools/shared/i18n";
 import { normalizeProjectPathForComparison } from "@t3tools/shared/path";
 
 import * as ServerConfig from "../config.ts";
@@ -498,7 +499,11 @@ function parseAgentSessionRecords(
     source: input.source,
     providerInstanceId: input.providerInstanceId,
     providerSessionId,
-    title: title ?? (derivedTitle && derivedTitle.length > 0 ? derivedTitle : "Imported thread"),
+    title:
+      title ??
+      (derivedTitle && derivedTitle.length > 0
+        ? derivedTitle
+        : t("project.agentSessionScanner.importedThreadTitle")),
     model,
     createdAt: retainedMessages[0]?.createdAt ?? fallbackTimestamp,
     updatedAt: fallbackTimestamp,

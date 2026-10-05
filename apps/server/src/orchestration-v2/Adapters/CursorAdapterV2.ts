@@ -10,6 +10,7 @@ import type {
 } from "@cursor/sdk";
 import { formatReadToolLabel, formatSearchToolLabel } from "@t3tools/shared/toolActivity";
 import { HostProcessEnvironment } from "@t3tools/shared/hostProcess";
+import { t } from "@t3tools/shared/i18n";
 import {
   CursorSettings,
   isOrchestrationV2WorkActive,
@@ -279,7 +280,9 @@ function nativeThreadId(providerThread: OrchestrationV2ProviderThread): string {
   if (id === null || id === undefined) {
     throw new ProviderAdapter.ProviderAdapterProtocolError({
       driver: CursorAgentSdk.CURSOR_PROVIDER,
-      detail: `Provider thread ${providerThread.id} is missing its Cursor agent id.`,
+      detail: t("orchestration-v2.cursorAdapterV2.agentIdMissing", {
+        providerThreadId: providerThread.id,
+      }),
     });
   }
   return id;
@@ -463,7 +466,7 @@ function cursorToolSearchResults(
         if (result.type === "count") {
           return result.output.counts.map((entry) => ({
             fileName: entry.file,
-            preview: `${entry.count} matches`,
+            preview: t("orchestration-v2.cursorAdapterV2.searchMatchCount", { count: entry.count }),
           }));
         }
         return result.output.matches.map((entry) => ({
@@ -2127,7 +2130,9 @@ export function makeCursorAdapterV2(
                 if (path === null) {
                   return yield* new ProviderAdapter.ProviderAdapterProtocolError({
                     driver: CursorAgentSdk.CURSOR_PROVIDER,
-                    detail: `Invalid attachment id '${attachment.id}'.`,
+                    detail: t("orchestration-v2.cursorAdapterV2.invalidAttachmentId", {
+                      attachmentId: attachment.id,
+                    }),
                   });
                 }
                 const bytes = yield* fileSystem.readFile(path).pipe(
@@ -2135,7 +2140,9 @@ export function makeCursorAdapterV2(
                     (cause) =>
                       new ProviderAdapter.ProviderAdapterProtocolError({
                         driver: CursorAgentSdk.CURSOR_PROVIDER,
-                        detail: `Failed to read attachment '${attachment.id}'.`,
+                        detail: t("orchestration-v2.cursorAdapterV2.attachmentReadFailed", {
+                          attachmentId: attachment.id,
+                        }),
                         payload: cause,
                       }),
                   ),
@@ -2150,7 +2157,7 @@ export function makeCursorAdapterV2(
           if (userText.length === 0 && images.length === 0) {
             return yield* new ProviderAdapter.ProviderAdapterProtocolError({
               driver: CursorAgentSdk.CURSOR_PROVIDER,
-              detail: "Cursor turn requires non-empty text or attachments.",
+              detail: t("orchestration-v2.cursorAdapterV2.emptyTurnInput"),
             });
           }
           const text = `${userText}\n\n${buildRuntimeInstructions({ harness: "Cursor", model: turnInput.modelSelection.model })}`;
@@ -2168,7 +2175,9 @@ export function makeCursorAdapterV2(
             if (current !== null) {
               return yield* new ProviderAdapter.ProviderAdapterProtocolError({
                 driver: CursorAgentSdk.CURSOR_PROVIDER,
-                detail: `Cursor provider turn ${current.providerTurnId} is still active.`,
+                detail: t("orchestration-v2.cursorAdapterV2.turnStillActive", {
+                  providerTurnId: current.providerTurnId,
+                }),
               });
             }
             const agentId = nativeThreadId(turnInput.providerThread);
@@ -2435,7 +2444,9 @@ export function makeCursorAdapterV2(
               if (context?.providerTurnId !== turnInput.providerTurnId) {
                 return yield* new ProviderAdapter.ProviderAdapterProtocolError({
                   driver: CursorAgentSdk.CURSOR_PROVIDER,
-                  detail: `Cursor provider turn ${turnInput.providerTurnId} is not active.`,
+                  detail: t("orchestration-v2.cursorAdapterV2.turnNotActive", {
+                    providerTurnId: turnInput.providerTurnId,
+                  }),
                 });
               }
               context.interrupted = true;
@@ -2473,7 +2484,7 @@ export function makeCursorAdapterV2(
                 requestId: requestInput.requestId,
                 cause: new ProviderAdapter.ProviderAdapterProtocolError({
                   driver: CursorAgentSdk.CURSOR_PROVIDER,
-                  detail: "Cursor Agent SDK does not expose interactive approval requests.",
+                  detail: t("orchestration-v2.cursorAdapterV2.approvalsUnsupported"),
                 }),
               }),
             ),
@@ -2623,7 +2634,7 @@ export const CursorAdapterV2Driver: ProviderAdapterDriver<
             new ProviderAdapterDriverCreateError({
               driver: CURSOR_DRIVER_KIND,
               instanceId: input.instanceId,
-              detail: "Failed to create Cursor Agent SDK adapter.",
+              detail: t("orchestration-v2.cursorAdapterV2.adapterCreateFailed"),
               cause,
             }),
         ),

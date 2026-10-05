@@ -7,6 +7,7 @@ import {
   RelayEnvironmentConnectScope,
   RelayEnvironmentStatusScope,
 } from "@t3tools/contracts/relay";
+import { t } from "@t3tools/shared/i18n";
 import { decodeRelayJwt } from "@t3tools/shared/relayJwt";
 import * as Cause from "effect/Cause";
 import * as Clock from "effect/Clock";
@@ -127,7 +128,7 @@ export function createManagedRelaySession(input: ManagedRelaySessionInput): Mana
         try: () => readCachedClerkToken(nowMillis),
         catch: (cause) =>
           new ManagedRelaySessionError({
-            message: "Could not obtain the T3 Connect session token.",
+            message: t("relayErrors.managedRelayState.sessionTokenUnavailableToObtain"),
             cause,
           }),
       });
@@ -184,7 +185,7 @@ function readSessionClerkToken(
       (token): token is string => Boolean(token),
       () =>
         new ManagedRelaySessionError({
-          message: "The T3 Connect session token is unavailable.",
+          message: t("relayErrors.managedRelayState.sessionTokenUnavailable"),
         }),
     ),
   );
@@ -200,7 +201,7 @@ export const deregisterManagedRelayEnvironment = Effect.fn(
   const session = registry.get(managedRelaySessionAtom);
   if (!session || session.accountId !== input.accountId) {
     return yield* new ManagedRelaySessionError({
-      message: "Sign in to T3 Connect before deregistering an environment.",
+      message: t("relayErrors.managedRelayState.signInBeforeDeregisteringEnvironment"),
     });
   }
   const clerkToken = yield* readSessionClerkToken(session);
@@ -216,7 +217,7 @@ function requireClerkToken(
   if (!session || session.accountId !== accountId) {
     return Effect.fail(
       new ManagedRelaySessionError({
-        message: "Sign in to T3 Connect before loading relay data.",
+        message: t("relayErrors.managedRelayState.signInBeforeLoadingRelayData"),
       }),
     );
   }
@@ -258,21 +259,21 @@ function validateEnvironmentStatus(
   if (status.environmentId !== environment.environmentId) {
     return Effect.fail(
       new ManagedRelaySnapshotError({
-        message: "Relay returned status for a different environment.",
+        message: t("relayErrors.managedRelayState.statusForDifferentEnvironment"),
       }),
     );
   }
   if (!endpointMatches(status.endpoint, environment.endpoint)) {
     return Effect.fail(
       new ManagedRelaySnapshotError({
-        message: "Relay returned status for a different endpoint.",
+        message: t("relayErrors.managedRelayState.statusForDifferentEndpoint"),
       }),
     );
   }
   if (status.descriptor && status.descriptor.environmentId !== environment.environmentId) {
     return Effect.fail(
       new ManagedRelaySnapshotError({
-        message: "Relay returned status descriptor for a different environment.",
+        message: t("relayErrors.managedRelayState.statusDescriptorForDifferentEnvironment"),
       }),
     );
   }
@@ -291,7 +292,7 @@ export function readManagedRelaySnapshotState<A>(
         ? relayProtectedErrorMessage(cause.relayError)
         : cause instanceof Error
           ? cause.message
-          : "Could not load T3 Connect data.";
+          : t("relayErrors.managedRelayState.couldNotLoadData");
     errorTraceId = findErrorTraceId(cause);
   }
   return {

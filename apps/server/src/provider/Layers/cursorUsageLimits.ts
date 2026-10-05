@@ -1,6 +1,7 @@
 import * as NodeOS from "node:os";
 import type { CursorSettings, ServerProviderUsageWindow } from "@t3tools/contracts";
 import { HostProcessPlatform } from "@t3tools/shared/hostProcess";
+import { t } from "@t3tools/shared/i18n";
 import { CURSOR_USAGE_WINDOWS } from "@t3tools/shared/usageLimits";
 import * as DateTime from "effect/DateTime";
 import * as Effect from "effect/Effect";
@@ -85,7 +86,7 @@ export const readCursorUsageLimits = Effect.fn("readCursorUsageLimits")(function
       return makeUnavailableUsageLimits({
         checkedAt,
         reason: "unsupported",
-        message: "Cursor usage requires a CLI login or CURSOR_AUTH_TOKEN.",
+        message: t("provider.cursorUsageLimits.cliLoginRequired"),
       });
     }
     if (!token && platform === "darwin" && credentialStore !== "file") {
@@ -93,7 +94,7 @@ export const readCursorUsageLimits = Effect.fn("readCursorUsageLimits")(function
         return makeUnavailableUsageLimits({
           checkedAt,
           reason: "unsupported",
-          message: "Enable Cursor account usage in T3 Code to read its Keychain login.",
+          message: t("provider.cursorUsageLimits.keychainLoginRequiresAccountUsage"),
         });
       }
       if (endpoint !== DEFAULT_CURSOR_API_ENDPOINT) {

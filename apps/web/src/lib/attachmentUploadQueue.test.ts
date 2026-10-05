@@ -1,4 +1,5 @@
 import { EnvironmentId } from "@t3tools/contracts";
+import { t } from "@t3tools/shared/i18n";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vite-plus/test";
 import { Atom, AsyncResult } from "effect/unstable/reactivity";
 import { appAtomRegistry } from "../rpc/atomRegistry";
@@ -628,7 +629,7 @@ describe("attachmentUploadQueue", () => {
       await awaitAttachmentUploads([file.id]);
       expect(readAttachmentUpload(file.id)).toMatchObject({
         status: "failed",
-        reason: "Uploaded file could not be verified. Retry when the server reconnects.",
+        reason: t("web.attachmentUploadQueue.uploadedFileUnverified"),
       });
       expect(useComposerDraftStore.getState().getComposerDraft(draftId)?.files).toMatchObject([
         {
@@ -820,7 +821,7 @@ describe("attachmentUploadQueue", () => {
     await settled;
     expect(readAttachmentUpload(image.id)).toMatchObject({
       status: "failed",
-      reason: "Upload rejected (500)",
+      reason: t("web.attachmentUploadQueue.uploadRejected", { status: 500 }),
     });
 
     retryAttachmentUpload({ environmentId: firstEnvironment, image });

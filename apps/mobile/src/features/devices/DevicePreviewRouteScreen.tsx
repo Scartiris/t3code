@@ -6,6 +6,7 @@ import {
 import { useIsFocused, useNavigation, type StaticScreenProps } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { EnvironmentId, ThreadId } from "@t3tools/contracts";
+import { t } from "@t3tools/shared/i18n";
 import * as Cause from "effect/Cause";
 import { useCallback, useEffect, useMemo, useRef, useState, type RefObject } from "react";
 import { ActivityIndicator, Alert, AppState, Platform, Pressable, View } from "react-native";
@@ -114,7 +115,10 @@ function DevicePreviewScreen({
         },
       });
       if (result._tag === "Failure") {
-        Alert.alert("Could not shut down device", String(Cause.squash(result.cause)));
+        Alert.alert(
+          t("devices.devicePreviewRouteScreen.shutdownFailedTitle"),
+          String(Cause.squash(result.cause)),
+        );
       }
     } finally {
       setShuttingDown(false);
@@ -129,7 +133,7 @@ function DevicePreviewScreen({
       )
       .map((host) => ({
         id: `retry-${host.id}`,
-        title: `Retry ${host.label}`,
+        title: t("devices.devicePreviewRouteScreen.retryHost", { host: host.label }),
         icon: "arrow.clockwise" as const,
         onPress: () => {
           void retryHost({ environmentId, input: { retryHostId: host.id } });
@@ -139,7 +143,7 @@ function DevicePreviewScreen({
       ? [
           {
             id: "check-device-tools",
-            title: "Check device tool versions",
+            title: t("devices.devicePreviewRouteScreen.checkDeviceToolVersions"),
             icon: "arrow.clockwise" as const,
             onPress: () => {
               void retryHost({ environmentId, input: { inspectOnly: true } });
@@ -149,11 +153,11 @@ function DevicePreviewScreen({
       : []),
     {
       id: "device-tools",
-      title: "Device tool versions",
+      title: t("devices.devicePreviewRouteScreen.deviceToolVersions"),
       icon: "info.circle",
       onPress: () =>
         Alert.alert(
-          "Device tool versions",
+          t("devices.devicePreviewRouteScreen.deviceToolVersions"),
           deviceToolUpdateOwnership +
             "\n\n" +
             deviceToolUpdatePolicy(
@@ -172,7 +176,7 @@ function DevicePreviewScreen({
     },
     {
       id: "reload",
-      title: "Reload stream",
+      title: t("devices.devicePreviewRouteScreen.reloadStream"),
       icon: "arrow.clockwise" as const,
       disabled: !preview || shuttingDown,
       onPress: () => {
@@ -184,7 +188,7 @@ function DevicePreviewScreen({
       ? [
           {
             id: "back",
-            title: "Back",
+            title: t("sidebar.back"),
             icon: "arrow.left",
             disabled: !inputConnected,
             onPress: () => streamRef.current?.back(),
@@ -193,7 +197,7 @@ function DevicePreviewScreen({
       : []),
     {
       id: "app-switcher",
-      title: "App switcher",
+      title: t("devices.devicePreviewRouteScreen.appSwitcher"),
       icon: "square.on.square",
       disabled: !inputConnected,
       onPress: () => streamRef.current?.appSwitcher(),
@@ -202,7 +206,7 @@ function DevicePreviewScreen({
       ? [
           {
             id: "rotate",
-            title: "Rotate device",
+            title: t("devices.devicePreviewRouteScreen.rotateDevice"),
             icon: "arrow.clockwise" as const,
             disabled: !inputConnected,
             onPress: () => streamRef.current?.rotate(),
@@ -211,7 +215,9 @@ function DevicePreviewScreen({
       : []),
     {
       id: "shutdown",
-      title: shuttingDown ? "Shutting down…" : "Shut down device",
+      title: shuttingDown
+        ? t("devices.devicePreviewRouteScreen.shuttingDown")
+        : t("devices.devicePreviewRouteScreen.shutDownDevice"),
       icon: "power",
       disabled: !preview || shuttingDown,
       onPress: () => void shutDownDevice(),
@@ -220,13 +226,13 @@ function DevicePreviewScreen({
   return (
     <View className="flex-1 bg-sheet" style={{ paddingBottom: insets.bottom }}>
       <ScreenHeader
-        title={preview?.name ?? "Devices"}
+        title={preview?.name ?? t("devices.devicePreviewRouteScreen.devices")}
         sidebar={false}
         onBack={onClose}
         options={{ headerBackVisible: false }}
         actions={[
           {
-            accessibilityLabel: "Home",
+            accessibilityLabel: t("devices.devicePreviewRouteScreen.home"),
             icon: "house",
             disabled: !inputConnected,
             onPress: () => streamRef.current?.home(),
@@ -234,14 +240,14 @@ function DevicePreviewScreen({
         ]}
         menus={[
           {
-            title: "Device options",
+            title: t("devices.devicePreviewRouteScreen.deviceOptions"),
             icon: "ellipsis",
             items: [
               ...(previews.length > 1
                 ? [
                     {
                       id: "devices",
-                      title: "Devices",
+                      title: t("devices.devicePreviewRouteScreen.devices"),
                       inline: true,
                       items: previews.map((device) => ({
                         id: device.key,
@@ -262,7 +268,7 @@ function DevicePreviewScreen({
         <NativeHeaderToolbar placement="left">
           <NativeHeaderToolbar.Button
             icon="xmark"
-            accessibilityLabel="Close device preview"
+            accessibilityLabel={t("devices.devicePreviewRouteScreen.closePreview")}
             onPress={onClose}
             separateBackground
           />
@@ -288,7 +294,9 @@ function DevicePreviewScreen({
                 className="rounded-full border border-secondary-border bg-secondary px-6 py-3"
                 onPress={state.refresh}
               >
-                <AppText className="text-secondary-foreground">Retry</AppText>
+                <AppText className="text-secondary-foreground">
+                  {t("devices.devicePreviewRouteScreen.retry")}
+                </AppText>
               </Pressable>
             </>
           ) : focused && foreground ? (
@@ -351,13 +359,17 @@ function OpenDevicePreview({
             className="rounded-full border border-secondary-border bg-secondary px-6 py-3"
             onPress={refresh}
           >
-            <AppText className="text-secondary-foreground">Retry</AppText>
+            <AppText className="text-secondary-foreground">
+              {t("devices.devicePreviewRouteScreen.retry")}
+            </AppText>
           </Pressable>
         </>
       ) : (
         <>
           <ActivityIndicator color={themeVariables["--color-icon"]} />
-          <AppText className="text-sm text-foreground-muted">Connecting to device...</AppText>
+          <AppText className="text-sm text-foreground-muted">
+            {t("devices.devicePreviewRouteScreen.connecting")}
+          </AppText>
         </>
       )}
     </View>

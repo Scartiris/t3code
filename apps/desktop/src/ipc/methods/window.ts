@@ -16,6 +16,7 @@ import {
 import { WORKSPACE_IMAGE_PREVIEW_EXTENSIONS } from "@t3tools/shared/filePreview";
 import { resolveEditorCommand } from "@t3tools/shared/editor";
 import * as HostProcess from "@t3tools/shared/hostProcess";
+import { t } from "@t3tools/shared/i18n";
 import * as NodeOS from "node:os";
 import * as FileSystem from "effect/FileSystem";
 import * as Path from "effect/Path";
@@ -261,7 +262,7 @@ export const pickProjectFavicon = DesktopIpc.makeIpcMethod({
       multiple: false,
       filters: [
         {
-          name: "Images",
+          name: t("ipc.window.imagesFilter"),
           extensions: WORKSPACE_IMAGE_PREVIEW_EXTENSIONS.map((extension) => extension.slice(1)),
         },
       ],

@@ -2,6 +2,7 @@ import {
   formatProviderSubagentStatus,
   type ProviderSubagentStatus,
 } from "@t3tools/client-runtime/state/thread-execution";
+import { t } from "@t3tools/shared/i18n";
 import { isOrchestrationV2WorkActive } from "@t3tools/contracts";
 import { ArrowUpLeftIcon } from "lucide-react";
 import { useLayoutEffect, useRef } from "react";
@@ -75,13 +76,15 @@ export function ProviderSubagentBar(props: {
         className="min-w-0 truncate text-muted-foreground tabular-nums"
       />
       <span role="status" className="sr-only">
-        {`${modelDescription} subagent: ${announcement}`}
+        {t("chat.providerSubagentBar.subagentAnnouncement", { modelDescription, announcement })}
       </span>
-      <span className="ms-auto shrink-0 text-muted-foreground max-sm:hidden">Runs on its own</span>
+      <span className="ms-auto shrink-0 text-muted-foreground max-sm:hidden">
+        {t("chat.providerSubagentBar.runsOnItsOwn")}
+      </span>
       {props.onOpenParent ? (
         <Button size="sm" variant="ghost" onClick={props.onOpenParent}>
           <ArrowUpLeftIcon />
-          Open parent
+          {t("chat.providerSubagentBar.openParent")}
         </Button>
       ) : null}
     </div>

@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vite-plus/test";
+import { t } from "@t3tools/shared/i18n";
 
 import { resolveComposerSendPresentation } from "./composerSendPresentation";
 
@@ -14,7 +15,7 @@ describe("resolveComposerSendPresentation", () => {
   it("sends plainly while the thread is idle", () => {
     const presentation = resolveComposerSendPresentation(idle);
 
-    expect(presentation.label).toBe("Send");
+    expect(presentation.label).toBe(t("chat.sendMessage"));
     expect(presentation.icon).toBe("arrow.up");
     expect(presentation.offersFollowUpChoice).toBe(false);
     expect(presentation.action).toBeNull();
@@ -22,7 +23,7 @@ describe("resolveComposerSendPresentation", () => {
 
   it("says Queue while the outbox is holding the message back", () => {
     expect(resolveComposerSendPresentation({ ...idle, deliveryDeferred: true }).label).toBe(
-      "Queue",
+      t("threads.threadComposer.queueAction"),
     );
   });
 
@@ -40,11 +41,11 @@ describe("resolveComposerSendPresentation", () => {
       followUpBehavior: "steer",
     });
 
-    expect(queueing.label).toBe("Queue");
+    expect(queueing.label).toBe(t("threads.threadComposer.queueAction"));
     expect(queueing.icon).toBe("list.number");
     expect(queueing.action).toBe("queue");
     expect(queueing.alternate).toBe("steer");
-    expect(steering.label).toBe("Steer");
+    expect(steering.label).toBe(t("threads.threadComposer.steerNow"));
     expect(steering.icon).toBe("arrow.turn.left.up");
     expect(steering.action).toBe("steer");
     expect(steering.alternate).toBe("queue");
@@ -59,7 +60,7 @@ describe("resolveComposerSendPresentation", () => {
       followUpBehavior: "steer",
     });
 
-    expect(presentation.label).toBe("Queue");
+    expect(presentation.label).toBe(t("threads.threadComposer.queueAction"));
     expect(presentation.action).toBe("queue");
     expect(presentation.alternate).toBeNull();
     expect(presentation.offersFollowUpChoice).toBe(false);
@@ -74,7 +75,7 @@ describe("resolveComposerSendPresentation", () => {
       followUpBehavior: "steer",
     });
 
-    expect(presentation.label).toBe("Update queued message");
+    expect(presentation.label).toBe(t("chat.composerPrimaryActions.updateQueuedMessage"));
     expect(presentation.icon).toBe("checkmark");
     expect(presentation.offersFollowUpChoice).toBe(false);
   });

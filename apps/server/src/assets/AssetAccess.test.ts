@@ -3,6 +3,7 @@ import * as NodeServices from "@effect/platform-node/NodeServices";
 import * as NodeHttpPlatform from "@effect/platform-node/NodeHttpPlatform";
 import * as NodeFSP from "node:fs/promises";
 import { AssetAccessError, AssetPreviewTypeValidationError, ThreadId } from "@t3tools/contracts";
+import { t } from "@t3tools/shared/i18n";
 import { PROJECT_FAVICON_FALLBACK_MARKER } from "@t3tools/shared/projectFavicon";
 import { describe, expect, it } from "@effect/vitest";
 import * as Crypto from "effect/Crypto";
@@ -532,7 +533,7 @@ describe("AssetAccess", () => {
         },
         workspaceRoot: root,
       }).pipe(Effect.flip);
-      expect(error.message).toBe("Workspace file path must be relative to the project root.");
+      expect(error.message).toBe(t("contractErrors.assets.workspaceFilePathMustBeRelative"));
       expect(error).toMatchObject({
         _tag: "AssetWorkspacePathValidationError",
         resource: {
@@ -664,7 +665,7 @@ describe("AssetAccess", () => {
         workspaceRoot: root,
       }).pipe(Effect.provideService(FileSystem.FileSystem, failingFileSystem), Effect.flip);
 
-      expect(error.message).toBe("Failed to inspect the workspace asset.");
+      expect(error.message).toBe(t("contractErrors.assets.workspaceAssetInspectionFailed"));
       expect(error).toMatchObject({
         _tag: "AssetWorkspaceAssetInspectionError",
         resource: {
@@ -1150,7 +1151,7 @@ describe("AssetAccess", () => {
         Effect.flip,
       );
 
-      expect(error.message).toBe("Failed to resolve project favicon.");
+      expect(error.message).toBe(t("contractErrors.assets.projectFaviconResolutionFailed"));
       expect(error._tag).toBe("AssetProjectFaviconResolutionError");
       expect(error.cause).toBe(resolutionCause);
     }).pipe(Effect.provide(testLayer)),

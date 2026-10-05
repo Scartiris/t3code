@@ -5,6 +5,7 @@ import {
   isAtomCommandInterrupted,
   squashAtomCommandFailure,
 } from "@t3tools/client-runtime/state/runtime";
+import { t } from "@t3tools/shared/i18n";
 import { ChevronDownIcon } from "lucide-react";
 import {
   memo,
@@ -113,7 +114,7 @@ export const ChatHeader = memo(function ChatHeader({
       setRenaming(null);
       const resolution = resolveRenameCommit({ title, originalTitle: activeThreadTitle });
       if (resolution.action === "reject-empty") {
-        toastManager.add({ type: "warning", title: "Thread title cannot be empty" });
+        toastManager.add({ type: "warning", title: t("chat.chatHeader.titleEmpty") });
         return;
       }
       if (resolution.action === "noop") return;
@@ -125,8 +126,8 @@ export const ChatHeader = memo(function ChatHeader({
           const error = squashAtomCommandFailure(result);
           toastManager.add({
             type: "error",
-            title: "Failed to rename thread",
-            description: error instanceof Error ? error.message : "An error occurred.",
+            title: t("chat.chatHeader.renameFailed"),
+            description: error instanceof Error ? error.message : t("error.generic"),
           });
         }
       });
@@ -202,10 +203,19 @@ export const ChatHeader = memo(function ChatHeader({
         const api = readLocalApi();
         if (!api) return;
         void api.contextMenu
-          .show([{ id: "project-settings", label: "Project settings", icon: "settings" }], {
-            x: event.clientX,
-            y: event.clientY,
-          })
+          .show(
+            [
+              {
+                id: "project-settings",
+                label: t("chat.chatHeader.projectSettings"),
+                icon: "settings",
+              },
+            ],
+            {
+              x: event.clientX,
+              y: event.clientY,
+            },
+          )
           .then((action) => {
             if (action === "project-settings") onOpenProjectSettings?.();
           });
@@ -237,7 +247,7 @@ export const ChatHeader = memo(function ChatHeader({
       onContextMenu={handleHeaderContextMenu}
     >
       <WorkspaceBreadcrumb
-        ariaLabel="Thread breadcrumb"
+        ariaLabel={t("chat.chatHeader.breadcrumb")}
         className="flex-1 overflow-clip [overflow-clip-margin:2px]"
       >
         {/* The project always leads the header: knowing which project a
@@ -251,7 +261,9 @@ export const ChatHeader = memo(function ChatHeader({
                   render={
                     <button
                       type="button"
-                      aria-label={`New thread in ${activeProjectName}`}
+                      aria-label={t("chat.chatHeader.newThreadIn", {
+                        project: activeProjectName ?? "",
+                      })}
                       onClick={onNewThreadInProject}
                       className="inline-flex min-w-0 max-w-full cursor-pointer items-center gap-1.5 rounded-sm text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring"
                     />
@@ -262,7 +274,9 @@ export const ChatHeader = memo(function ChatHeader({
                     {activeProjectName}
                   </WorkspaceBreadcrumbText>
                 </TooltipTrigger>
-                <TooltipPopup side="top">New thread in {activeProjectName}</TooltipPopup>
+                <TooltipPopup side="top">
+                  {t("chat.chatHeader.newThreadIn", { project: activeProjectName ?? "" })}
+                </TooltipPopup>
               </Tooltip>
             </WorkspaceBreadcrumbItem>
             <WorkspaceBreadcrumbSeparator>
@@ -274,7 +288,7 @@ export const ChatHeader = memo(function ChatHeader({
           {renamingTitle !== null ? (
             <input
               autoFocus
-              aria-label="Thread title"
+              aria-label={t("chat.chatHeader.threadTitle")}
               className="min-w-0 flex-1 rounded-sm bg-transparent text-sm font-medium text-foreground outline-none ring-1 ring-ring/50 focus:ring-ring"
               defaultValue={renamingTitle}
               onBlur={(event) => {
@@ -300,7 +314,7 @@ export const ChatHeader = memo(function ChatHeader({
                   <button
                     ref={titleButtonRef}
                     type="button"
-                    aria-label={`Thread actions for ${activeThreadTitle}`}
+                    aria-label={t("chat.chatHeader.threadActions", { title: activeThreadTitle })}
                     aria-haspopup="menu"
                     onClick={openMenuFromTitle}
                     onDoubleClick={handleTitleDoubleClick}

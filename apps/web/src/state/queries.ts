@@ -16,6 +16,7 @@ import type {
   VcsListRefsResult,
   VcsRef,
 } from "@t3tools/contracts";
+import { t } from "@t3tools/shared/i18n";
 import * as Cause from "effect/Cause";
 import * as Option from "effect/Option";
 import { AsyncResult, Atom } from "effect/unstable/reactivity";
@@ -164,7 +165,7 @@ export function usePaginatedBranches(target: VcsRefTarget) {
           const cause = Cause.squash(failed.cause);
           return cause instanceof Error && cause.message.trim().length > 0
             ? cause.message
-            : "Failed to load refs.";
+            : t("state.queries.failedToLoadRefs");
         })()
       : null;
   const refresh = useCallback(() => {

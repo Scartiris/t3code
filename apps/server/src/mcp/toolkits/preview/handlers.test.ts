@@ -1,6 +1,7 @@
 import { describe, expect, it } from "@effect/vitest";
 import * as NodeServices from "@effect/platform-node/NodeServices";
 import { ThreadId } from "@t3tools/contracts";
+import { t } from "@t3tools/shared/i18n";
 import * as Effect from "effect/Effect";
 import * as FileSystem from "effect/FileSystem";
 import * as Layer from "effect/Layer";
@@ -143,7 +144,9 @@ describe("claimPreviewRecording", () => {
       expect(result._tag).toBe("Failure");
       if (result._tag !== "Failure") return;
       expect(result.failure._tag).toBe("PreviewAutomationRecordingDesktopUpdateRequiredError");
-      expect(result.failure.message).toContain("Update the desktop app");
+      expect(result.failure.message).toContain(
+        t("previewErrors.previewAutomation.recordingNeedsDesktopUpdate"),
+      );
     }).pipe(
       Effect.provide(
         ServerConfig.layerTest(process.cwd(), { prefix: "t3-preview-recording-" }).pipe(

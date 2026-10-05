@@ -1,5 +1,6 @@
 "use client";
 
+import { t } from "@t3tools/shared/i18n";
 import { PlusIcon, XIcon } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 
@@ -32,14 +33,14 @@ function ProviderCustomColorPanel(props: {
   return (
     <div className="w-56 bg-popover">
       <ColorSaturationValuePlane
-        label="Accent color"
+        label={t("settings.providerAccentColorPicker.accentColor")}
         value={hsv}
         onChange={commitHsv}
         variant="edge"
       />
       <div className="grid gap-3 p-3">
         <ColorHueSlider
-          label="Accent color hue"
+          label={t("settings.providerAccentColorPicker.accentColorHue")}
           value={hsv.h}
           onChange={(h) => commitHsv({ ...hsv, h })}
         />
@@ -56,7 +57,7 @@ function ProviderCustomColorPanel(props: {
           }}
           onBlur={() => setHexDraft(null)}
           font="mono"
-          aria-label="Custom hex accent color"
+          aria-label={t("settings.providerAccentColorPicker.customHexAria")}
           spellCheck={false}
         />
       </div>
@@ -81,10 +82,20 @@ function ProviderCustomColorPicker(props: {
             size="icon-sm"
             variant="ghost-muted"
             style={normalized ? { backgroundColor: normalized } : undefined}
-            aria-label={`${normalized ? "Change" : "Add"} accent color for ${props.displayName}`}
+            aria-label={
+              normalized
+                ? t("settings.providerAccentColorPicker.changeAccentAria", {
+                    displayName: props.displayName,
+                  })
+                : t("settings.providerAccentColorPicker.addAccentAria", {
+                    displayName: props.displayName,
+                  })
+            }
           >
             {normalized ? (
-              <span className="sr-only">Change accent color</span>
+              <span className="sr-only">
+                {t("settings.providerAccentColorPicker.changeAccent")}
+              </span>
             ) : (
               <PlusIcon aria-hidden />
             )}
@@ -108,7 +119,7 @@ function ProviderCustomColorPicker(props: {
                   onClick={props.onClear}
                 >
                   <XIcon className="size-3.5" aria-hidden />
-                  Clear color
+                  {t("settings.providerAccentColorPicker.clearColor")}
                 </Button>
               }
             />
@@ -209,7 +220,9 @@ export function ProviderAccentColorPicker(props: {
 
   return (
     <div className="grid gap-2">
-      <span className="text-xs font-medium text-foreground">Accent color</span>
+      <span className="text-xs font-medium text-foreground">
+        {t("settings.providerAccentColorPicker.accentColor")}
+      </span>
       {picker}
       {description ? <span className="text-xs text-muted-foreground">{description}</span> : null}
     </div>

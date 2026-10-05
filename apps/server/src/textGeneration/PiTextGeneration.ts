@@ -12,6 +12,7 @@ import { ChildProcessSpawner } from "effect/unstable/process";
 
 import { TextGenerationError, type ModelSelection, type PiSettings } from "@t3tools/contracts";
 import { formatGeneratedBranchName, sanitizeFeatureBranchName } from "@t3tools/shared/git";
+import { t } from "@t3tools/shared/i18n";
 import { extractJsonObject } from "@t3tools/shared/schemaJson";
 
 import { makePiRpcConnection, parsePiModelSlug } from "../orchestration-v2/Adapters/PiRpc.ts";
@@ -96,7 +97,9 @@ export const makePiTextGeneration = Effect.fn("makePiTextGeneration")(function* 
         if (parsed === null) {
           return yield* new TextGenerationError({
             operation,
-            detail: `Pi model '${modelSelection.model}' must use provider/model format.`,
+            detail: t("textGeneration.piTextGeneration.modelFormatInvalid", {
+              model: modelSelection.model,
+            }),
           });
         }
         yield* connection.request({
@@ -123,7 +126,7 @@ export const makePiTextGeneration = Effect.fn("makePiTextGeneration")(function* 
       if (!text) {
         return yield* new TextGenerationError({
           operation,
-          detail: "Pi returned empty output.",
+          detail: t("textGeneration.piTextGeneration.emptyOutput"),
         });
       }
       const decodeOutput = Schema.decodeEffect(Schema.fromJsonString(outputSchemaJson));
@@ -133,7 +136,7 @@ export const makePiTextGeneration = Effect.fn("makePiTextGeneration")(function* 
             Effect.fail(
               new TextGenerationError({
                 operation,
-                detail: "Pi returned invalid structured output.",
+                detail: t("textGeneration.piTextGeneration.invalidStructuredOutput"),
                 cause,
               }),
             ),
@@ -144,7 +147,12 @@ export const makePiTextGeneration = Effect.fn("makePiTextGeneration")(function* 
       Effect.flatMap(
         Option.match({
           onNone: () =>
-            Effect.fail(new TextGenerationError({ operation, detail: "Pi request timed out." })),
+            Effect.fail(
+              new TextGenerationError({
+                operation,
+                detail: t("textGeneration.piTextGeneration.requestTimedOut"),
+              }),
+            ),
           onSome: (value) => Effect.succeed(value),
         }),
       ),
@@ -153,7 +161,7 @@ export const makePiTextGeneration = Effect.fn("makePiTextGeneration")(function* 
           ? cause
           : new TextGenerationError({
               operation,
-              detail: "Pi text generation failed.",
+              detail: t("textGeneration.piTextGeneration.generationFailed"),
               cause,
             }),
       ),

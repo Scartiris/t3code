@@ -20,6 +20,7 @@ import {
   formatReadToolLabel,
   formatSearchToolLabel,
 } from "@t3tools/shared/toolActivity";
+import { t } from "@t3tools/shared/i18n";
 import {
   contextCompactionLabel,
   workEntryIndicatesToolFailure,
@@ -369,8 +370,8 @@ export function providerErrorPresentation(
     return {
       label:
         item.failure.class === "usage_limit"
-          ? "Usage limit reached"
-          : item.title?.trim() || "Provider error",
+          ? t("chat.usageLimitRecoveryBanner.usageLimitReached")
+          : item.title?.trim() || t("web.sessionLogic.providerError"),
       detail: item.failure.message,
     };
   }
@@ -380,17 +381,25 @@ export function providerErrorPresentation(
       : `${item.retry.attempt}/${item.retry.maxAttempts}`;
   const label =
     item.status === "running"
-      ? `Retrying provider (${progress})`
+      ? t("web.sessionLogic.retryingProvider", { progress })
       : item.status === "completed"
-        ? `Provider recovered (${progress} retries)`
+        ? t("web.sessionLogic.providerRecovered", { progress })
         : item.status === "failed"
-          ? `${item.failure.class === "usage_limit" ? "Usage limit reached" : "Provider error"} after ${progress} retries`
-          : `Provider retry stopped (${progress})`;
+          ? t("web.sessionLogic.providerErrorAfterRetries", {
+              reason:
+                item.failure.class === "usage_limit"
+                  ? t("chat.usageLimitRecoveryBanner.usageLimitReached")
+                  : t("web.sessionLogic.providerError"),
+              progress,
+            })
+          : t("web.sessionLogic.providerRetryStopped", { progress });
   const retryDelay =
     item.status === "running" && item.retry.retryDelayMs !== null && item.retry.retryDelayMs > 0
       ? item.retry.retryDelayMs < 1_000
-        ? ` Retrying in ${item.retry.retryDelayMs}ms.`
-        : ` Retrying in ${(item.retry.retryDelayMs / 1_000).toFixed(1).replace(/\.0$/u, "")}s.`
+        ? t("web.sessionLogic.retryingInMs", { retryDelayMs: item.retry.retryDelayMs })
+        : t("web.sessionLogic.retryingInSeconds", {
+            seconds: (item.retry.retryDelayMs / 1_000).toFixed(1).replace(/\.0$/u, ""),
+          })
       : "";
   return {
     label,
@@ -417,7 +426,7 @@ function projectedWorkEntry(row: OrchestrationV2ProjectedTurnItem): WorkLogEntry
     case "thread_created":
       return {
         ...common,
-        label: "Created thread",
+        label: t("chat.messagesTimeline.createdThread"),
       };
     case "compaction":
       return {
@@ -429,16 +438,16 @@ function projectedWorkEntry(row: OrchestrationV2ProjectedTurnItem): WorkLogEntry
     case "reasoning":
       return {
         ...common,
-        label: title ?? "Thinking",
+        label: title ?? t("chat.messagesTimeline.thinking"),
         ...(item.text ? { detail: item.text } : {}),
       };
     case "command_execution":
       return {
         ...common,
-        label: title ?? "Ran command",
+        label: title ?? t("toolActivity.toolActivity.ranCommand"),
         command: item.input,
         rawCommand: item.input,
-        toolTitle: title ?? "Command",
+        toolTitle: title ?? t("web.sessionLogic.command"),
         toolData: item,
       };
     case "file_change": {
@@ -447,33 +456,36 @@ function projectedWorkEntry(row: OrchestrationV2ProjectedTurnItem): WorkLogEntry
         label:
           title ??
           (item.changes !== undefined && item.changes.length > 1
-            ? `Changed ${item.changes.length} files`
-            : `Changed ${item.fileName}`),
+            ? t("workLog.presentation.changedFiles", { count: item.changes.length })
+            : t("web.sessionLogic.changedFile", { name: item.fileName })),
         changedFiles: item.changes?.map((change) => change.path) ?? [item.fileName],
-        toolTitle: title ?? "File change",
+        toolTitle: title ?? t("web.sessionLogic.fileChange"),
         toolData: item,
       };
     }
     case "file_search":
       return {
         ...common,
-        label: title ?? formatSearchToolLabel(item) ?? "Searched files",
+        label:
+          title ??
+          formatSearchToolLabel(item) ??
+          t("toolActivity.toolActivity.searchedFilesSummary"),
         ...(item.pattern ? { detail: item.pattern } : {}),
-        toolTitle: title ?? "File search",
+        toolTitle: title ?? t("web.sessionLogic.fileSearch"),
         toolData: item,
       };
     case "web_search":
       return {
         ...common,
-        label: title ?? "Searched the web",
+        label: title ?? t("web.sessionLogic.searchedTheWeb"),
         ...(item.patterns?.length ? { detail: item.patterns.join(", ") } : {}),
-        toolTitle: title ?? "Web search",
+        toolTitle: title ?? t("web.sessionLogic.webSearch"),
         toolData: item,
       };
     case "checkpoint":
       return {
         ...common,
-        label: title ?? "Checkpoint captured",
+        label: title ?? t("web.sessionLogic.checkpointCaptured"),
         changedFiles: item.files.map((file) => file.path),
         toolData: item,
       };
@@ -509,23 +521,29 @@ function projectedWorkEntry(row: OrchestrationV2ProjectedTurnItem): WorkLogEntry
           (classified === "read"
             ? formatReadToolLabel(readPath ?? "")
             : classified === "search"
-              ? (formatSearchToolLabel({ input: item.input }) ?? item.toolName ?? "Tool call")
-              : (item.toolName ?? "Tool call")),
-        toolTitle: title ?? item.toolName ?? "Tool",
+              ? (formatSearchToolLabel({ input: item.input }) ??
+                item.toolName ??
+                t("web.sessionLogic.toolCall"))
+              : (item.toolName ?? t("web.sessionLogic.toolCall"))),
+        toolTitle: title ?? item.toolName ?? t("web.sessionLogic.tool"),
         toolData: { input: item.input, output: item.output },
       };
     }
     case "approval_request":
       return {
         ...common,
-        label: title ?? "Approval requested",
+        label: title ?? t("web.sessionLogic.approvalRequested"),
         detail: item.prompt ?? item.requestKind,
         toolData: item,
       };
     case "user_input_request":
       return {
         ...common,
-        label: title ?? (item.questionAnswer ? "Answered questions" : "Input requested"),
+        label:
+          title ??
+          (item.questionAnswer
+            ? t("web.sessionLogic.answeredQuestions")
+            : t("web.sessionLogic.inputRequested")),
         ...(item.questionAnswer ? { questionAnswer: item.questionAnswer } : {}),
         toolData: item,
       };

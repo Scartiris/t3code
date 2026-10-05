@@ -1,4 +1,5 @@
 import { useNavigation } from "@react-navigation/native";
+import { t } from "@t3tools/shared/i18n";
 import { useCallback } from "react";
 import { Alert } from "react-native";
 
@@ -31,30 +32,34 @@ export function usePendingTaskListActions(): {
 
   const confirmDeletePendingTask = useCallback((pendingTask: PendingNewTask) => {
     if (pendingTask.kind === "draft") {
-      Alert.alert("Discard draft?", `“${pendingTask.title}” will be removed.`, [
-        { text: "Cancel", style: "cancel" },
-        {
-          text: "Discard",
-          style: "destructive",
-          onPress: () => {
-            // Same reset a submit performs: the next task in this project
-            // re-resolves project defaults instead of inheriting the pick.
-            clearComposerDraftContent(pendingTask.draftKey, {
-              clearModelSelection: true,
-              clearWorkspaceSelection: true,
-            });
+      Alert.alert(
+        t("home.usePendingTaskListActions.discardDraftTitle"),
+        t("home.usePendingTaskListActions.discardDraftMessage", { title: pendingTask.title }),
+        [
+          { text: t("action.cancel"), style: "cancel" },
+          {
+            text: t("threads.threadListV2Items.discard"),
+            style: "destructive",
+            onPress: () => {
+              // Same reset a submit performs: the next task in this project
+              // re-resolves project defaults instead of inheriting the pick.
+              clearComposerDraftContent(pendingTask.draftKey, {
+                clearModelSelection: true,
+                clearWorkspaceSelection: true,
+              });
+            },
           },
-        },
-      ]);
+        ],
+      );
       return;
     }
     Alert.alert(
-      "Delete pending task?",
-      `“${pendingTask.title}” has not been sent yet and will be removed from the outbox.`,
+      t("home.usePendingTaskListActions.deletePendingTaskTitle"),
+      t("home.usePendingTaskListActions.deletePendingTaskMessage", { title: pendingTask.title }),
       [
-        { text: "Cancel", style: "cancel" },
+        { text: t("action.cancel"), style: "cancel" },
         {
-          text: "Delete",
+          text: t("threads.threadListV2Items.delete"),
           style: "destructive",
           onPress: () => {
             // Release the edit lock only after removal succeeds, and only if
@@ -64,8 +69,10 @@ export function usePendingTaskListActions(): {
               .then(() => releaseEditingQueuedMessage(pendingTask.message.messageId))
               .catch((error) => {
                 Alert.alert(
-                  "Could not delete pending task",
-                  error instanceof Error ? error.message : "The pending task could not be removed.",
+                  t("home.usePendingTaskListActions.couldNotDeletePendingTask"),
+                  error instanceof Error
+                    ? error.message
+                    : t("home.usePendingTaskListActions.pendingTaskCouldNotBeRemoved"),
                 );
               });
           },

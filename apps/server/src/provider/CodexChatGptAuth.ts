@@ -9,6 +9,7 @@ import {
   type ProviderInstanceId,
 } from "@t3tools/contracts";
 import { codexCallbackUrl } from "@t3tools/shared/codexAuthHandoff";
+import { t } from "@t3tools/shared/i18n";
 import * as Clock from "effect/Clock";
 import * as Cause from "effect/Cause";
 import * as AnalyticsService from "../telemetry/AnalyticsService.ts";
@@ -177,12 +178,12 @@ export const makeCodexChatGptAuth = Effect.fn("makeCodexChatGptAuth")(function* 
       Effect.flatMap((response) =>
         Effect.gen(function* () {
           if (response.status < 200 || response.status >= 300)
-            return yield* failure("discover", "Could not reach ChatGPT sign-in. Try again.");
+            return yield* failure("discover", t("provider.codexChatGptAuth.discoverFailed"));
           return yield* response.json;
         }),
       ),
       Effect.flatMap(decodeDiscoveryEffect),
-      Effect.mapError(() => failure("discover", "Could not reach ChatGPT sign-in. Try again.")),
+      Effect.mapError(() => failure("discover", t("provider.codexChatGptAuth.discoverFailed"))),
     );
     if (
       !options.discoveryUrl &&
@@ -194,13 +195,13 @@ export const makeCodexChatGptAuth = Effect.fn("makeCodexChatGptAuth")(function* 
           ...(result.revocation_endpoint ? [result.revocation_endpoint] : []),
         ].some((url) => new URL(url).origin !== result.issuer))
     )
-      return yield* failure("discover", "ChatGPT sign-in configuration could not be verified.");
+      return yield* failure("discover", t("provider.codexChatGptAuth.discoverConfigUnverified"));
     metadata = result;
     jwks = createRemoteJWKSet(new URL(result.jwks_uri));
     return result;
   });
   const readSessions = store.get.pipe(
-    Effect.mapError(() => failure("read", "Could not read the saved ChatGPT connection.")),
+    Effect.mapError(() => failure("read", t("provider.codexChatGptAuth.connectionReadFailed"))),
     Effect.flatMap((bytes) =>
       Option.isNone(bytes)
         ? Effect.succeed<typeof Sessions.Type>({ activeClientId: null, sessions: [] })
@@ -209,7 +210,7 @@ export const makeCodexChatGptAuth = Effect.fn("makeCodexChatGptAuth")(function* 
               "sessions" in saved ? saved : { activeClientId: saved.clientId, sessions: [saved] },
             ),
             Effect.mapError(() =>
-              failure("read", "The saved ChatGPT connection is invalid. Sign in again."),
+              failure("read", t("provider.codexChatGptAuth.savedConnectionInvalid")),
             ),
           ),
     ),
@@ -224,13 +225,13 @@ export const makeCodexChatGptAuth = Effect.fn("makeCodexChatGptAuth")(function* 
   const writeSessions = (saved: typeof Sessions.Type) =>
     encodeSessions(saved).pipe(
       Effect.flatMap((json) => store.set(new TextEncoder().encode(json))),
-      Effect.mapError(() => failure("save", "Could not save the ChatGPT connection.")),
+      Effect.mapError(() => failure("save", t("provider.codexChatGptAuth.connectionSaveFailed"))),
     );
   // Registration profiles outlive tokens, but belong only to this environment/instance.
   // Accept the original single-registration record until it is next saved.
   const readRegistrations = registrationStore.get.pipe(
     Effect.mapError(() =>
-      failure("registration", "Could not read the ChatGPT sign-in registration. Try again."),
+      failure("registration", t("provider.codexChatGptAuth.registrationReadFailed")),
     ),
     Effect.flatMap((bytes) =>
       Option.isNone(bytes)
@@ -257,7 +258,7 @@ export const makeCodexChatGptAuth = Effect.fn("makeCodexChatGptAuth")(function* 
               };
             }),
             Effect.mapError(() =>
-              failure("registration", "The saved ChatGPT sign-in registration is invalid."),
+              failure("registration", t("provider.codexChatGptAuth.savedRegistrationInvalid")),
             ),
           ),
     ),
@@ -322,7 +323,7 @@ export const makeCodexChatGptAuth = Effect.fn("makeCodexChatGptAuth")(function* 
     }).pipe(
       Effect.flatMap((json) => registrationStore.set(new TextEncoder().encode(json))),
       Effect.mapError(() =>
-        failure("registration", "Could not save the ChatGPT sign-in registration. Try again."),
+        failure("registration", t("provider.codexChatGptAuth.registrationSaveFailed")),
       ),
     );
   });
@@ -344,7 +345,7 @@ export const makeCodexChatGptAuth = Effect.fn("makeCodexChatGptAuth")(function* 
     else
       yield* store.remove.pipe(
         Effect.mapError(() =>
-          failure("disconnect", "Could not clear the ChatGPT connection. Try again."),
+          failure("disconnect", t("provider.codexChatGptAuth.connectionClearFailed")),
         ),
       );
   });
@@ -380,13 +381,13 @@ export const makeCodexChatGptAuth = Effect.fn("makeCodexChatGptAuth")(function* 
           ),
         ),
         Effect.mapError(() =>
-          failure("exchange", "ChatGPT sign-in is temporarily unavailable. Try again."),
+          failure("exchange", t("provider.codexChatGptAuth.signInTemporarilyUnavailable")),
         ),
       );
     if (!response.ok) {
       const error = yield* Effect.try({
         try: () => decodeOAuthError(response.raw).error,
-        catch: () => failure("exchange", "ChatGPT did not accept this sign-in. Try again."),
+        catch: () => failure("exchange", t("provider.codexChatGptAuth.signInNotAccepted")),
       });
       if (
         body.get("grant_type") === "refresh_token" &&
@@ -400,29 +401,22 @@ export const makeCodexChatGptAuth = Effect.fn("makeCodexChatGptAuth")(function* 
         ].includes(error)
       ) {
         yield* remove;
-        return yield* failure(
-          "refresh",
-          "Your ChatGPT connection expired or was disconnected. Sign in again.",
-        );
+        return yield* failure("refresh", t("provider.codexChatGptAuth.connectionExpired"));
       }
       if (error === "invalid_client")
-        return yield* failure(
-          "client",
-          "OpenAI rejected this app's client registration. Check the ChatGPT connection configuration.",
-        );
+        return yield* failure("client", t("provider.codexChatGptAuth.clientRegistrationRejected"));
       if (body.get("grant_type") === "authorization_code" && error === "invalid_grant")
-        return yield* failure("code-expired", "This sign-in code expired. Start again.");
+        return yield* failure("code-expired", t("provider.codexChatGptAuth.codeExpired"));
       return yield* failure(
         "exchange",
         error === "access_denied"
-          ? "ChatGPT sign-in was declined. Sign in again when you are ready."
-          : "ChatGPT could not complete sign-in. Try again.",
+          ? t("provider.codexChatGptAuth.signInDeclined")
+          : t("provider.codexChatGptAuth.signInNotCompletedRetry"),
       );
     }
     return yield* Effect.try({
       try: () => decodeTokens(response.raw),
-      catch: () =>
-        failure("exchange", "ChatGPT returned an invalid token response. Sign in again."),
+      catch: () => failure("exchange", t("provider.codexChatGptAuth.invalidTokenResponse")),
     });
   });
   const earliest = (value: (typeof TokenResponse.Type)["earliest_refresh_at"]) => {
@@ -484,7 +478,7 @@ export const makeCodexChatGptAuth = Effect.fn("makeCodexChatGptAuth")(function* 
                 server.listen(0, "127.0.0.1", () => resolve(server));
               }),
             catch: () =>
-              failure("callback", "Could not start the local sign-in callback. Try again."),
+              failure("callback", t("provider.codexChatGptAuth.callbackStartFailedRetry")),
           }),
           (server) =>
             Effect.promise(
@@ -497,7 +491,7 @@ export const makeCodexChatGptAuth = Effect.fn("makeCodexChatGptAuth")(function* 
         );
     const address = server?.address();
     if (!clientCallback && (!address || typeof address === "string"))
-      return yield* failure("callback", "Could not start the local sign-in callback.");
+      return yield* failure("callback", t("provider.codexChatGptAuth.callbackStartFailed"));
     // Only the port may vary between attempts; token exchange uses this exact URI.
     const port =
       address && typeof address !== "string" ? address.port : NodeCrypto.randomInt(49_152, 65_536);
@@ -543,13 +537,12 @@ export const makeCodexChatGptAuth = Effect.fn("makeCodexChatGptAuth")(function* 
             used = true;
             callback.resolve({ url: returned });
           },
-          catch: () =>
-            failure("complete", "This redirect URL does not belong to the active ChatGPT sign-in."),
+          catch: () => failure("complete", t("provider.codexChatGptAuth.redirectUrlNotForSignIn")),
         }),
     );
     const received = yield* Effect.tryPromise({
       try: () => callback.promise,
-      catch: () => failure("callback", "ChatGPT sign-in could not be completed."),
+      catch: () => failure("callback", t("provider.codexChatGptAuth.signInNotCompleted")),
     });
     const returned = received.url;
     yield* Effect.gen(function* () {
@@ -559,8 +552,8 @@ export const makeCodexChatGptAuth = Effect.fn("makeCodexChatGptAuth")(function* 
         return yield* failure(
           "callback",
           returned.searchParams.get("error") === "access_denied"
-            ? "ChatGPT sign-in was declined. Sign in again when you are ready."
-            : "ChatGPT sign-in could not be completed. Start again.",
+            ? t("provider.codexChatGptAuth.signInDeclined")
+            : t("provider.codexChatGptAuth.signInNotCompletedRestart"),
         );
       const code = returned.searchParams.get("code");
       const clientId = registeredClientId ?? returned.searchParams.get("client_id");
@@ -594,7 +587,7 @@ export const makeCodexChatGptAuth = Effect.fn("makeCodexChatGptAuth")(function* 
                 yield* withSessionLock(saveRegistration({ clientId, redirectUri }));
               return yield* failure(
                 "exchange",
-                "This sign-in code expired. Reconnect the saved ChatGPT profile to start a fresh sign-in.",
+                t("provider.codexChatGptAuth.codeExpiredReconnect"),
               );
             }
             return yield* error;
@@ -602,10 +595,7 @@ export const makeCodexChatGptAuth = Effect.fn("makeCodexChatGptAuth")(function* 
         ),
       );
       if (!tokens.id_token)
-        return yield* failure(
-          "verify",
-          "ChatGPT did not return a verified identity. Sign in again.",
-        );
+        return yield* failure("verify", t("provider.codexChatGptAuth.identityNotVerified"));
       const identity = yield* Effect.tryPromise({
         try: async () => {
           const { payload } = await jwtVerify(tokens.id_token!, jwks!, {
@@ -647,15 +637,9 @@ export const makeCodexChatGptAuth = Effect.fn("makeCodexChatGptAuth")(function* 
           })()) ||
           (knownProfile.subject && knownProfile.subject !== identity.subject))
       )
-        return yield* failure(
-          "verify",
-          "ChatGPT returned a conflicting account registration. Start again.",
-        );
+        return yield* failure("verify", t("provider.codexChatGptAuth.conflictingRegistration"));
       if (tokens.token_type.toLowerCase() !== "bearer")
-        return yield* failure(
-          "verify",
-          "ChatGPT returned an unsupported connection. Sign in again.",
-        );
+        return yield* failure("verify", t("provider.codexChatGptAuth.unsupportedConnection"));
       const scopes = tokens.scope.split(/\s+/).filter(Boolean);
       yield* withSessionLock(
         Effect.gen(function* () {
@@ -686,7 +670,7 @@ export const makeCodexChatGptAuth = Effect.fn("makeCodexChatGptAuth")(function* 
           "sharing",
           previous && previous.clientId !== clientId
             ? "Token sharing was not enabled for the new account. Your existing ChatGPT connection is unchanged."
-            : "Signed in with ChatGPT, but token sharing is disabled. Sign in again and enable token sharing, or use another provider.",
+            : t("provider.codexChatGptAuth.sharingDisabledAfterSignIn"),
         );
     }).pipe(
       Effect.onExit((result) =>
@@ -719,25 +703,22 @@ export const makeCodexChatGptAuth = Effect.fn("makeCodexChatGptAuth")(function* 
         Effect.gen(function* () {
           const saved = yield* read;
           if (Option.isNone(saved))
-            return yield* failure("access", "Sign in with ChatGPT to use managed Codex.");
+            return yield* failure("access", t("provider.codexChatGptAuth.signInToUseManagedCodex"));
           let record = saved.value;
           if (!record.scopes.includes(REQUIRED_SCOPE))
-            return yield* failure(
-              "sharing",
-              "Token sharing is disabled. Sign in with ChatGPT and enable token sharing.",
-            );
+            return yield* failure("sharing", t("provider.codexChatGptAuth.enableTokenSharing"));
           const now = yield* Clock.currentTimeMillis;
           if (record.expiresAt - now > 60_000) return record;
           if (record.earliestRefreshAt !== null && record.earliestRefreshAt > now) {
             if (record.expiresAt > now) return record;
-            return yield* failure(
-              "refresh",
-              "ChatGPT cannot renew this connection yet. Try again shortly.",
-            );
+            return yield* failure("refresh", t("provider.codexChatGptAuth.renewTooEarly"));
           }
           if (!record.refreshToken) {
             yield* remove;
-            return yield* failure("refresh", "Your ChatGPT connection expired. Sign in again.");
+            return yield* failure(
+              "refresh",
+              t("provider.codexChatGptAuth.connectionExpiredSignInAgain"),
+            );
           }
           const tokens = yield* exchange(
             new URLSearchParams({
@@ -752,14 +733,11 @@ export const makeCodexChatGptAuth = Effect.fn("makeCodexChatGptAuth")(function* 
             Effect.mapError((error) =>
               error._tag === "ProviderSetupError" && error.operation === "client"
                 ? error
-                : failure(
-                    "refresh",
-                    "Could not renew the ChatGPT connection. Retry, or sign in again.",
-                  ),
+                : failure("refresh", t("provider.codexChatGptAuth.renewFailed")),
             ),
           );
           if (!tokens.refresh_token || tokens.token_type.toLowerCase() !== "bearer") {
-            return yield* failure("refresh", "ChatGPT returned an invalid renewal. Sign in again.");
+            return yield* failure("refresh", t("provider.codexChatGptAuth.invalidRenewal"));
           }
           record = {
             ...record,
@@ -773,7 +751,7 @@ export const makeCodexChatGptAuth = Effect.fn("makeCodexChatGptAuth")(function* 
           if (!record.scopes.includes(REQUIRED_SCOPE))
             return yield* failure(
               "sharing",
-              "ChatGPT token sharing is no longer enabled. Sign in again.",
+              t("provider.codexChatGptAuth.tokenSharingDisabledAfterRenewal"),
             );
           return record;
         }),
@@ -835,23 +813,25 @@ export const makeCodexChatGptAuth = Effect.fn("makeCodexChatGptAuth")(function* 
       return [
         {
           id: "chatgpt",
-          name: "Sign in with ChatGPT",
-          description: current?.email ? `Reconnect ${current.email}.` : null,
+          name: t("provider.codexChatGptAuth.methodSignIn"),
+          description: current?.email
+            ? t("provider.codexChatGptAuth.reconnectAccount", { email: current.email })
+            : null,
           ...(current?.email ? { accountEmail: current.email } : {}),
           type: "agent" as const,
         },
         {
           id: "chatgpt-change-account",
-          name: "Use a different ChatGPT account",
-          description: "Register a connection for another ChatGPT account.",
+          name: t("provider.codexChatGptAuth.methodDifferentAccount"),
+          description: t("provider.codexChatGptAuth.differentAccountDescription"),
           type: "agent" as const,
         },
         // The wire contract allows 32 methods; advertise the 30 most recent profiles.
         ...profiles.slice(0, 30).map((profile) => ({
           id: profileMethodId(profile.clientId),
-          name: `${profile.email ?? "ChatGPT account"} · ${profile.connectionLabel}`,
+          name: `${profile.email ?? t("provider.codexChatGptAuth.accountFallbackLabel")} · ${profile.connectionLabel}`,
           ...(profile.email ? { accountEmail: profile.email } : {}),
-          description: "Reuse this account's original sign-in registration.",
+          description: t("provider.codexChatGptAuth.reuseRegistrationDescription"),
           type: "agent" as const,
         })),
       ];
@@ -890,7 +870,7 @@ export const makeCodexChatGptAuth = Effect.fn("makeCodexChatGptAuth")(function* 
     const registration = registrations.profiles.find((profile) => profile.clientId === clientId);
     if (!registration) {
       if (methodId.startsWith("chatgpt-profile:"))
-        return yield* failure("export", "This saved connection is no longer available.");
+        return yield* failure("export", t("provider.codexChatGptAuth.savedConnectionGone"));
       return null;
     }
     const session = (yield* readSessions).sessions.find((session) => session.clientId === clientId);
@@ -904,10 +884,7 @@ export const makeCodexChatGptAuth = Effect.fn("makeCodexChatGptAuth")(function* 
         (profile) => profile.clientId === credentials.clientId,
       );
     if (!credentials?.idToken || !credentials.issuer || !registration)
-      return yield* failure(
-        "export",
-        "Complete ChatGPT sign-in before transferring this connection.",
-      );
+      return yield* failure("export", t("provider.codexChatGptAuth.completeSignInBeforeTransfer"));
     return {
       registration,
       credentials: { ...credentials, idToken: credentials.idToken, issuer: credentials.issuer },
@@ -928,7 +905,7 @@ export const makeCodexChatGptAuth = Effect.fn("makeCodexChatGptAuth")(function* 
       )
         return yield* failure(
           "import",
-          "The transferred ChatGPT connection is invalid or expired.",
+          t("provider.codexChatGptAuth.transferredConnectionInvalid"),
         );
       const identity = yield* Effect.tryPromise({
         try: () =>
@@ -938,7 +915,8 @@ export const makeCodexChatGptAuth = Effect.fn("makeCodexChatGptAuth")(function* 
             algorithms: ["RS256", "ES256"],
             clockTolerance: 5,
           }),
-        catch: () => failure("import", "The transferred ChatGPT identity could not be verified."),
+        catch: () =>
+          failure("import", t("provider.codexChatGptAuth.transferredIdentityUnverified")),
       });
       if (
         identity.payload.sub !== credentials.subject ||
@@ -947,10 +925,7 @@ export const makeCodexChatGptAuth = Effect.fn("makeCodexChatGptAuth")(function* 
         (profile.registration.email !== undefined &&
           profile.registration.email !== credentials.email)
       )
-        return yield* failure(
-          "import",
-          "The transferred ChatGPT identity does not match its profile.",
-        );
+        return yield* failure("import", t("provider.codexChatGptAuth.transferredIdentityMismatch"));
     });
     const saveImported = Effect.gen(function* () {
       const { idTokenHint: _hint, ...registration } = profile.registration;
@@ -958,10 +933,7 @@ export const makeCodexChatGptAuth = Effect.fn("makeCodexChatGptAuth")(function* 
         (saved) => saved.clientId === registration.clientId,
       );
       if (existing?.subject && existing.subject !== profile.credentials.subject)
-        return yield* failure(
-          "import",
-          "The transferred identity conflicts with the saved ChatGPT connection.",
-        );
+        return yield* failure("import", t("provider.codexChatGptAuth.transferredIdentityConflict"));
       yield* saveRegistration(registration);
       yield* save(profile.credentials, true);
     });
