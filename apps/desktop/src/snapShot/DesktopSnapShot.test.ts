@@ -19,6 +19,7 @@ import * as Schema from "effect/Schema";
 import * as TestClock from "effect/testing/TestClock";
 import type * as Electron from "electron";
 import type { PortalShortcutState } from "./PortalCaptureShortcut.ts";
+import { t } from "@t3tools/shared/i18n";
 import { beforeEach, vi } from "vite-plus/test";
 
 beforeEach(() => {
@@ -773,7 +774,7 @@ it.effect("rejects desktop config changes outside Niri or Hyprland", () =>
       assert.equal(applyError.action, "apply-config");
       for (const error of [previewError, applyError]) {
         assert.equal(error.reason, "unsupported-session");
-        assert.equal(error.message, "Config setup requires a Niri or Hyprland session.");
+        assert.equal(error.message, t("snapShot.desktopSnapShot.configSetupUnsupportedSession"));
       }
     }),
   ).pipe(Effect.provide(testLayer("win32"))),
@@ -3159,10 +3160,7 @@ it.effect("flags revoked macOS permissions on read and re-registers once they re
 
       mediaAccessStatusMock.mockReturnValue("denied");
       const revoked = yield* service.state;
-      assert.equal(
-        revoked.message,
-        "Allow Screen Recording in System Settings, then restart T3 Code.",
-      );
+      assert.equal(revoked.message, t("snapShot.desktopSnapShot.allowScreenRecording"));
       assert.deepEqual(revoked.macPermissions, { screenRecording: false, accessibility: true });
 
       accessibilityTrustedMock.mockReturnValue(false);
@@ -3172,10 +3170,7 @@ it.effect("flags revoked macOS permissions on read and re-registers once they re
         snapShotIncludeAccessibility: false,
       });
       const blocked = yield* service.state;
-      assert.equal(
-        blocked.message,
-        "Allow Screen Recording in System Settings, then restart T3 Code.",
-      );
+      assert.equal(blocked.message, t("snapShot.desktopSnapShot.allowScreenRecording"));
       assert.isFalse(blocked.shortcutRegistered);
 
       mediaAccessStatusMock.mockReturnValue("granted");
@@ -3373,10 +3368,7 @@ it.effect("keeps shortcut registration errors off the capture status", () => {
 
       const state = yield* service.state;
       assert.isNull(state.message);
-      assert.equal(
-        state.shortcutMessage,
-        "This shortcut is already used by the system or another app.",
-      );
+      assert.equal(state.shortcutMessage, t("snapShot.desktopSnapShot.shortcutInUse"));
     }),
   ).pipe(Effect.provide(testLayer("win32")));
 });
@@ -3397,7 +3389,7 @@ it.effect("uses an external Niri shortcut without registering an Electron accele
       assert.isFalse(state.shortcutRegistered);
       assert.include(state.shortcutBinding, "gdbus");
       assert.match(state.shortcutBinding ?? "", /^Ctrl\+Shift\+2 repeat=false \{/);
-      assert.include(state.shortcutMessage, "Niri config");
+      assert.include(state.shortcutMessage, t("snapShot.desktopSnapShot.setUpShortcutForNiri"));
       assert.isTrue(state.shortcutActionRegistered);
       assert.lengthOf(registerShortcutMock.mock.calls, 0);
       assert.lengthOf(niriShortcutMock.mock.calls, 1);
@@ -3441,14 +3433,20 @@ it.effect("defers ordinary Wayland shortcut registration until settings are appl
       });
       assert.isFalse(conflict.available);
       assert.isTrue(available.available);
-      assert.match(available.message ?? "", /desktop will confirm/);
+      assert.include(
+        available.message ?? "",
+        t("snapShot.desktopSnapShot.desktopConfirmsShortcut"),
+      );
 
       const pair = yield* service.checkShortcut({
         kind: "modifier-pair",
         modifier: "meta",
       });
       assert.isFalse(pair.available);
-      assert.match(pair.message ?? "", /Modifier-pair shortcuts aren't available/);
+      assert.include(
+        pair.message ?? "",
+        t("snapShot.desktopSnapShot.waylandModifierPairUnavailable"),
+      );
       assert.lengthOf(registerShortcutMock.mock.calls, 0);
     }),
   ).pipe(
@@ -3566,7 +3564,10 @@ it.effect("does not register a Wayland modifier-pair shortcut when enabled", () 
       assert.lengthOf(registerShortcutMock.mock.calls, 0);
       assert.isFalse(state.shortcutRegistered);
       assert.deepEqual(state.shortcut, DEFAULT_CLIENT_SETTINGS.snapShotShortcut);
-      assert.match(state.shortcutMessage ?? "", /Modifier-pair shortcuts aren't available/);
+      assert.include(
+        state.shortcutMessage ?? "",
+        t("snapShot.desktopSnapShot.waylandModifierPairUnavailable"),
+      );
     }),
   ).pipe(
     Effect.provide(testLayer("linux")),
@@ -3772,7 +3773,7 @@ it.effect(
         assert.isTrue((yield* service.state).shortcutActionRegistered);
         const check = yield* service.checkShortcut(settings.snapShotShortcut);
         assert.isFalse(check.available);
-        assert.include(check.message, "Hyprland config");
+        assert.include(check.message, t("snapShot.desktopSnapShot.changeHyprlandBinding"));
         yield* service.configure({ ...settings, snapShotPlaySound: false });
         assert.lengthOf(portalShortcutInstances, 1);
         assert.lengthOf(first.close.mock.calls, 0);
@@ -3793,8 +3794,14 @@ it.effect("advises about the system menu for a meta pair on Windows", () =>
       const service = yield* DesktopSnapShot.make;
       const result = yield* service.checkShortcut({ kind: "modifier-pair", modifier: "meta" });
       assert.isTrue(result.available);
-      assert.match(result.message ?? "", /Super \+ Super is observed/);
-      assert.match(result.message ?? "", /system's own menu/);
+      assert.include(
+        result.message ?? "",
+        t("snapShot.desktopSnapShot.observedPairReserved", { label: "Super + Super" }),
+      );
+      assert.include(
+        result.message ?? "",
+        t("snapShot.desktopSnapShot.observedPairOpensSystemMenu"),
+      );
     }),
   ).pipe(Effect.provide(testLayer("win32"))),
 );
@@ -3806,7 +3813,10 @@ it.effect("probes macOS modifier pairs with the flags poller", () => {
       const service = yield* DesktopSnapShot.make;
       const result = yield* service.checkShortcut({ kind: "both-shift-keys" });
       assert.isTrue(result.available);
-      assert.match(result.message ?? "", /Shift \+ Shift is observed/);
+      assert.include(
+        result.message ?? "",
+        t("snapShot.desktopSnapShot.observedPairReserved", { label: "Shift + Shift" }),
+      );
       assert.notMatch(result.message ?? "", /Input Monitoring/);
       assert.lengthOf(spawnedPollers, 1);
       assert.deepEqual(spawnedPollers[0]?.args.slice(-2), ["2", "4"]);

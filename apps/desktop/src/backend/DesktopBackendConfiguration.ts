@@ -1,6 +1,7 @@
 import * as NodeOS from "node:os";
 
 import { parsePersistedServerObservabilitySettings } from "@t3tools/shared/serverSettings";
+import { t } from "@t3tools/shared/i18n";
 import * as Context from "effect/Context";
 import * as Crypto from "effect/Crypto";
 import * as Effect from "effect/Effect";
@@ -338,7 +339,7 @@ const runWslPreflight = Effect.fn("desktop.backendConfiguration.wslPreflight")(f
   if (!wslAvailable) {
     return {
       _tag: "Failed",
-      reason: "WSL is not available on this system",
+      reason: t("backend.desktopBackendConfiguration.wslUnavailable"),
       fatal: false,
     } as const;
   }
@@ -350,7 +351,9 @@ const runWslPreflight = Effect.fn("desktop.backendConfiguration.wslPreflight")(f
   if (distroProbe._tag === "Failure") {
     return {
       _tag: "Failed",
-      reason: `Unable to list WSL distributions: ${distroProbe.error.message}`,
+      reason: t("backend.desktopBackendConfiguration.listDistrosFailed", {
+        message: distroProbe.error.message,
+      }),
       fatal: false,
     } as const;
   }
@@ -365,10 +368,10 @@ const runWslPreflight = Effect.fn("desktop.backendConfiguration.wslPreflight")(f
     return {
       _tag: "Failed",
       reason: input.distro
-        ? `WSL distro is not installed: ${input.distro}`
+        ? t("backend.desktopBackendConfiguration.distroNotInstalled", { distro: input.distro })
         : installedDistros.length === 0
-          ? "WSL has no installed distributions"
-          : "WSL has no default distribution",
+          ? t("backend.desktopBackendConfiguration.noInstalledDistros")
+          : t("backend.desktopBackendConfiguration.noDefaultDistro"),
       fatal: true,
     } as const;
   }
@@ -380,7 +383,9 @@ const runWslPreflight = Effect.fn("desktop.backendConfiguration.wslPreflight")(f
   const failedNodePty = (result: FailedNodePtyResult) =>
     ({
       _tag: "Failed",
-      reason: `WSL node-pty unavailable: ${result.reason}`,
+      reason: t("backend.desktopBackendConfiguration.nodePtyUnavailable", {
+        reason: result.reason,
+      }),
       fatal: result.fatal,
       ...(result.retryLimit === undefined ? {} : { retryLimit: result.retryLimit }),
     }) as const;
@@ -399,7 +404,9 @@ const runWslPreflight = Effect.fn("desktop.backendConfiguration.wslPreflight")(f
     if (!entryExists) {
       return {
         ok: false,
-        reason: `missing server entry at ${windowsEntryPath}`,
+        reason: t("backend.desktopBackendConfiguration.missingServerEntry", {
+          path: windowsEntryPath,
+        }),
         fatal: true,
       } as const;
     }
@@ -407,7 +414,9 @@ const runWslPreflight = Effect.fn("desktop.backendConfiguration.wslPreflight")(f
     return Option.isNone(mountedAppRoot)
       ? ({
           ok: false,
-          reason: `wslpath conversion failed for ${serverTree.root}`,
+          reason: t("backend.desktopBackendConfiguration.wslPathConversionFailed", {
+            root: serverTree.root,
+          }),
           fatal: false,
         } as const)
       : ({ ok: true, windowsEntryPath, linuxAppRoot: mountedAppRoot.value } as const);
@@ -423,7 +432,9 @@ const runWslPreflight = Effect.fn("desktop.backendConfiguration.wslPreflight")(f
   const failedStaged = (failure: { readonly reason: string }) =>
     ({
       _tag: "Failed",
-      reason: `WSL runtime unavailable: ${failure.reason}`,
+      reason: t("backend.desktopBackendConfiguration.runtimeUnavailable", {
+        reason: failure.reason,
+      }),
       fatal: true,
     }) as const;
 

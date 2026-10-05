@@ -5,6 +5,7 @@ import type {
   DesktopTelemetryCancelDesktopUpdate,
   DesktopUpdateStatusReport,
 } from "@t3tools/contracts";
+import { t } from "@t3tools/shared/i18n";
 import * as Deferred from "effect/Deferred";
 import * as Duration from "effect/Duration";
 import * as Effect from "effect/Effect";
@@ -602,7 +603,7 @@ describe("DesktopRemoteUpdates", () => {
           (report) => report.requestId === "req-overlap",
         );
         assert.equal(overlap?.outcome, "failed");
-        assert.equal(overlap?.reason, "A prepared desktop update is already in progress.");
+        assert.equal(overlap?.reason, t("updates.desktopRemoteUpdates.alreadyInProgress"));
 
         yield* Deferred.succeed(releaseInstall, undefined);
         yield* settle;
@@ -830,10 +831,7 @@ describe("DesktopRemoteUpdates", () => {
         const terminals = terminalReports(reports);
         assert.equal(terminals.length, 1);
         assert.equal(terminals[0]?.outcome, "failed");
-        assert.equal(
-          terminals[0]?.reason,
-          "Automatic updates are disabled by the T3CODE_DISABLE_AUTO_UPDATE setting.",
-        );
+        assert.equal(terminals[0]?.reason, t("updates.desktopUpdates.disabledByEnv"));
         assert.equal(harness.quitAndInstalls(), 0);
       }),
     );

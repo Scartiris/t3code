@@ -4,6 +4,7 @@ import * as NodeFSP from "node:fs/promises";
 import * as NodeOS from "node:os";
 import * as NodePath from "node:path";
 import * as NodeURL from "node:url";
+import { t } from "@t3tools/shared/i18n";
 import {
   DBusError,
   Message,
@@ -210,14 +211,18 @@ it("uses the standard path when KWin's native capability is missing, but not whe
 
 it("does not fall through to the picker when KDE needs helper setup", async () => {
   vi.stubEnv("XDG_CURRENT_DESKTOP", "KDE");
-  await expect(captureLinuxWindow(appId)).rejects.toThrow("KDE capture setup");
+  await expect(captureLinuxWindow(appId)).rejects.toThrow(
+    t("snapShot.linuxSnapShot.kdeSetupUnavailable"),
+  );
   expect(bus.calls.some((call) => call.member === "Screenshot")).toBe(false);
   expect(bus.disconnect).toHaveBeenCalledOnce();
 });
 it("selects Hyprland without probing a different desktop or falling back on missing setup", async () => {
   vi.stubEnv("XDG_CURRENT_DESKTOP", "Hyprland");
   expect((await getLinuxCaptureSupport(appId)).linuxBackend).toBe("hyprland");
-  await expect(captureLinuxWindow(appId)).rejects.toThrow("Hyprland capture setup");
+  await expect(captureLinuxWindow(appId)).rejects.toThrow(
+    t("snapShot.linuxSnapShot.hyprlandSetupUnavailable"),
+  );
   expect(bus.calls).toEqual([]);
 });
 afterEach(async () => {
@@ -331,7 +336,7 @@ it.each([1, 2])(
     bus.extensionVersion = 1;
     bus.status = status;
     await expect(captureLinuxWindow(appId)).rejects.toThrow(
-      status === 1 ? "cancelled" : "did not allow",
+      status === 1 ? t("snapShot.linuxSnapShot.cancelled") : t("snapShot.linuxSnapShot.notAllowed"),
     );
     expect(bus.calls.some((call) => call.member === "Capture")).toBe(false);
     expect(bus.disconnect).toHaveBeenCalledOnce();
@@ -403,7 +408,9 @@ it("reads only local PNG files without removing the portal file", async () => {
   await expect(readPortalPng("https://example.com/image.png")).rejects.toThrow();
   await expect(readPortalPng("file://remote/image.png")).rejects.toThrow();
   await NodeFSP.writeFile(NodePath.join(directory, "image.png"), "not a PNG");
-  await expect(readPortalPng(bus.uri)).rejects.toThrow("Invalid");
+  await expect(readPortalPng(bus.uri)).rejects.toThrow(
+    t("snapShot.linuxCaptureSession.invalidScreenshot"),
+  );
 });
 
 it("bounds large images without distorting their aspect ratio", () => {

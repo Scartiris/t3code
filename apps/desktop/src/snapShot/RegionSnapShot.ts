@@ -4,6 +4,8 @@ import * as NodeChildProcess from "node:child_process";
 
 import * as Electron from "electron";
 
+import { t } from "@t3tools/shared/i18n";
+
 import type { ActiveWindow } from "./ActiveWindow.ts";
 
 const CAPTURE_TIMEOUT_MS = 15_000;
@@ -197,7 +199,8 @@ export async function captureRegionWindowSnapshot(
       : shot.png;
   return {
     source: {
-      name: active.title.trim() || active.owner.name.trim() || "Window",
+      name:
+        active.title.trim() || active.owner.name.trim() || t("snapShot.regionSnapShot.windowLabel"),
     },
     png,
   };

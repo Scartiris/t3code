@@ -1,4 +1,5 @@
 import { assert, describe, it } from "@effect/vitest";
+import { t } from "@t3tools/shared/i18n";
 import * as Cause from "effect/Cause";
 import * as Effect from "effect/Effect";
 import * as Exit from "effect/Exit";
@@ -249,7 +250,7 @@ describe("window capture IPC", () => {
       const error = failure.value;
 
       assert.equal((error as { readonly _tag: string })._tag, "SnapShotIpcUnauthorizedSenderError");
-      assert.equal((error as Error).message, "Snapshot request was rejected.");
+      assert.equal((error as Error).message, t("ipc.snapShot.requestRejected"));
     }).pipe(
       Effect.provideService(
         ElectronWindow.ElectronWindow,

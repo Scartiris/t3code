@@ -5,6 +5,7 @@ import * as Schema from "effect/Schema";
 import * as Scope from "effect/Scope";
 
 import { autoUpdater } from "electron-updater";
+import { t } from "@t3tools/shared/i18n";
 
 type AutoUpdater = typeof autoUpdater;
 
@@ -18,7 +19,7 @@ export class ElectronUpdaterCheckForUpdatesError extends Schema.TaggedError<Elec
   },
 ) {
   override get message(): string {
-    return `Electron updater failed to check for updates on channel ${this.channel ?? "default"}.`;
+    return t("electron.electronUpdater.checkFailed", { channel: this.channel ?? "default" });
   }
 }
 
@@ -30,7 +31,7 @@ export class ElectronUpdaterDownloadUpdateError extends Schema.TaggedError<Elect
   },
 ) {
   override get message(): string {
-    return `Electron updater failed to download the update on channel ${this.channel ?? "default"}.`;
+    return t("electron.electronUpdater.downloadFailed", { channel: this.channel ?? "default" });
   }
 }
 
@@ -44,7 +45,11 @@ export class ElectronUpdaterQuitAndInstallError extends Schema.TaggedError<Elect
   },
 ) {
   override get message(): string {
-    return `Electron updater failed to quit and install the update on channel ${this.channel ?? "default"} (silent: ${this.isSilent}, force run after: ${this.isForceRunAfter}).`;
+    return t("electron.electronUpdater.quitAndInstallFailed", {
+      channel: this.channel ?? "default",
+      silent: String(this.isSilent),
+      forceRunAfter: String(this.isForceRunAfter),
+    });
   }
 }
 

@@ -1,6 +1,8 @@
 import * as Effect from "effect/Effect";
 import type * as Fiber from "effect/Fiber";
 
+import { t } from "@t3tools/shared/i18n";
+
 import * as Electron from "electron";
 
 const MIN_DURATION_MS = 280;
@@ -114,7 +116,7 @@ function createWindow(
     resizable: false,
     show: false,
     skipTaskbar: true,
-    title: "T3 Code Snapshot Animation",
+    title: t("snapShot.snapShotTransition.windowTitle"),
     transparent: true,
     webPreferences: {
       backgroundThrottling: false,
@@ -163,7 +165,7 @@ const applyDetails=value=>{
   if(!value)return;
   details.dataset.ready="";
   document.getElementById("app").textContent=value.appName;
-  document.getElementById("title").textContent=value.windowTitle||"Captured window";
+  document.getElementById("title").textContent=value.windowTitle||"${t("snapShot.snapShotTransition.capturedWindow")}";
   document.getElementById("fallback").textContent=value.appName.slice(0,1);
   if(value.appIconDataUrl){
     const icon=document.getElementById("icon");icon.src=value.appIconDataUrl;icon.style.display="block";document.getElementById("fallback").style.display="none";

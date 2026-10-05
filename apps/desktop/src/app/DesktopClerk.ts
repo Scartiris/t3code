@@ -8,6 +8,7 @@ import * as Schema from "effect/Schema";
 import * as Scope from "effect/Scope";
 
 import { codexAuthDeliveryUrl, readCodexAuthHandoff } from "@t3tools/shared/codexAuthHandoff";
+import { t } from "@t3tools/shared/i18n";
 import { receiveCodexAuthCallback, CodexAuthCallbackError } from "./CodexAuthCallback.ts";
 import * as ElectronShell from "../electron/ElectronShell.ts";
 import { providerAuthReturnUrl } from "@t3tools/shared/providerAuthReturnUrl";
@@ -154,8 +155,7 @@ export const make = Effect.gen(function* () {
                 ),
               catch: () =>
                 new CodexAuthCallbackError({
-                  detail:
-                    "Could not receive hosted web ChatGPT sign-in. Retry or use the redirect URL in the web app.",
+                  detail: t("app.desktopClerk.chatGptSignInFailed"),
                 }),
             });
           }).pipe(

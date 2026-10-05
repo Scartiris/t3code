@@ -8,6 +8,8 @@ import * as NodePath from "node:path";
 import * as NodeURL from "node:url";
 import * as Schema from "effect/Schema";
 
+import { t } from "@t3tools/shared/i18n";
+
 import type { LinuxWindowSnapshot } from "./LinuxSnapShot.ts";
 import { readPortalPng } from "./linuxCaptureSession.ts";
 
@@ -150,7 +152,7 @@ export async function checkNiriCaptureSupport(path: string): Promise<void> {
   // 25.11 introduced both caller-selected screenshot paths and completion events.
   const match = /^(?:niri )?(\d+)\.(\d+)/.exec(version);
   if (!match || Number(match[1]) < 25 || (Number(match[1]) === 25 && Number(match[2]) < 11))
-    throw new Error("SnapShots require Niri 25.11 or newer.");
+    throw new Error(t("snapShot.niriSnapShot.versionRequired"));
 }
 
 async function activateNiriWindow(path: string, title: string, signal: AbortSignal): Promise<void> {
@@ -198,7 +200,7 @@ export async function captureNiriWindow(path: string): Promise<LinuxWindowSnapsh
     events.send("EventStream");
     await ready;
     const window = decodeFocused(await request(path, "FocusedWindow")).FocusedWindow;
-    if (!window) throw new Error("Niri has no focused window to capture.");
+    if (!window) throw new Error(t("snapShot.niriSnapShot.noFocusedWindow"));
     const captured = events.waitFor((value) =>
       isScreenshotCaptured(value) && value.ScreenshotCaptured.path === imagePath ? true : undefined,
     );
@@ -233,7 +235,7 @@ export async function captureNiriWindow(path: string): Promise<LinuxWindowSnapsh
         ? {
             window: {
               title: window.title ?? "",
-              appName: window.app_id ?? "Application",
+              appName: window.app_id ?? t("snapShot.niriSnapShot.applicationFallback"),
               appIdentifier: window.app_id ?? "",
               processId: window.pid ?? 0,
               // Niri reports logical size, not a globally comparable screen origin.

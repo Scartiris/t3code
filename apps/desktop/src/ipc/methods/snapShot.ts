@@ -21,13 +21,14 @@ import * as ElectronDialog from "../../electron/ElectronDialog.ts";
 import * as DesktopSnapShot from "../../snapShot/DesktopSnapShot.ts";
 import * as IpcChannels from "../channels.ts";
 import * as DesktopIpc from "../DesktopIpc.ts";
+import { t } from "@t3tools/shared/i18n";
 
 class SnapShotIpcUnauthorizedSenderError extends Schema.TaggedError<SnapShotIpcUnauthorizedSenderError>()(
   "SnapShotIpcUnauthorizedSenderError",
   {},
 ) {
   override get message(): string {
-    return "Snapshot request was rejected.";
+    return t("ipc.snapShot.requestRejected");
   }
 }
 
@@ -118,7 +119,7 @@ export const previewSnapShotConfig = DesktopIpc.makeIpcMethod({
         defaultPath: Option.fromUndefinedOr(state.shortcutConfigPath),
         filters: [
           {
-            name: "Desktop config",
+            name: t("ipc.snapShot.desktopConfigFilter"),
             extensions: state.linuxBackend === "niri" ? ["kdl"] : ["conf", "lua"],
           },
         ],

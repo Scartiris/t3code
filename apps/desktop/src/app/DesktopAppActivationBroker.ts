@@ -5,6 +5,7 @@ import {
   type DesktopAppActivationRequest,
   type DesktopAppActivationResponse,
 } from "@t3tools/contracts";
+import { t } from "@t3tools/shared/i18n";
 
 interface PendingActivation {
   readonly request: DesktopAppActivationRequest;
@@ -45,12 +46,20 @@ export class DesktopAppActivationBroker {
   request(request: DesktopAppActivationRequest): Promise<DesktopAppActivationResponse> {
     if (this.#closed) {
       return Promise.resolve(
-        failure(request.requestId, "renderer-unavailable", "T3 Code is shutting down."),
+        failure(
+          request.requestId,
+          "renderer-unavailable",
+          t("app.desktopAppActivationBroker.shuttingDown"),
+        ),
       );
     }
     if (this.#pending.has(request.requestId)) {
       return Promise.resolve(
-        failure(request.requestId, "invalid-request", "The request id is already in use."),
+        failure(
+          request.requestId,
+          "invalid-request",
+          t("app.desktopAppActivationBroker.requestIdInUse"),
+        ),
       );
     }
 
@@ -60,7 +69,7 @@ export class DesktopAppActivationBroker {
           failure(
             request.requestId,
             "request-timeout",
-            "The desktop app did not finish opening the project in time.",
+            t("app.desktopAppActivationBroker.openProjectTimeout"),
           ),
         );
       }, this.#requestTimeoutMs);
@@ -90,7 +99,7 @@ export class DesktopAppActivationBroker {
           failure(
             pending.request.requestId,
             "renderer-unavailable",
-            "The T3 Code window closed before it opened the project.",
+            t("app.desktopAppActivationBroker.windowClosed"),
           ),
         );
       }
@@ -103,7 +112,7 @@ export class DesktopAppActivationBroker {
 
   cancel(requestId: string): void {
     this.#settle(
-      failure(requestId, "renderer-unavailable", "The command closed before T3 Code was ready."),
+      failure(requestId, "renderer-unavailable", t("app.desktopAppActivationBroker.commandClosed")),
     );
   }
 
@@ -112,7 +121,11 @@ export class DesktopAppActivationBroker {
     this.#renderer = null;
     for (const pending of this.#pending.values()) {
       this.#settle(
-        failure(pending.request.requestId, "renderer-unavailable", "T3 Code is shutting down."),
+        failure(
+          pending.request.requestId,
+          "renderer-unavailable",
+          t("app.desktopAppActivationBroker.shuttingDown"),
+        ),
       );
     }
   }

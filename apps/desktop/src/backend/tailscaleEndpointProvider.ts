@@ -1,4 +1,5 @@
 import { createAdvertisedEndpoint } from "@t3tools/shared/advertisedEndpoint";
+import { t } from "@t3tools/shared/i18n";
 import type { AdvertisedEndpoint, AdvertisedEndpointProvider } from "@t3tools/contracts";
 import {
   buildTailscaleHttpsBaseUrl,
@@ -49,7 +50,7 @@ function resolveTailscaleIpAdvertisedEndpoints(input: {
           httpBaseUrl: `http://${address.address}:${input.port}`,
           reachability: "private-network",
           status: "available",
-          description: "Reachable from devices on the same Tailnet.",
+          description: t("backend.tailscaleEndpointProvider.tailnetReachable"),
         }),
       );
     }
@@ -92,8 +93,8 @@ const resolveTailscaleMagicDnsAdvertisedEndpoint = Effect.fn(
       hostedHttpsCompatibility: isReachable ? "compatible" : "requires-configuration",
       status: isReachable ? "available" : "unavailable",
       description: isReachable
-        ? "HTTPS endpoint served by Tailscale Serve."
-        : "MagicDNS hostname. Configure Tailscale Serve for HTTPS access.",
+        ? t("backend.tailscaleEndpointProvider.serveDescription")
+        : t("backend.tailscaleEndpointProvider.magicDnsDescription"),
     }),
   );
 });

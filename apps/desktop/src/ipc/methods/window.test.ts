@@ -1,6 +1,7 @@
 import { assert, describe, it } from "@effect/vitest";
 import * as NodeServices from "@effect/platform-node/NodeServices";
 import { HostProcessEnvironment, HostProcessPlatform } from "@t3tools/shared/hostProcess";
+import { t } from "@t3tools/shared/i18n";
 import * as FileSystem from "effect/FileSystem";
 import * as Path from "effect/Path";
 import * as Effect from "effect/Effect";
@@ -240,7 +241,7 @@ describe("pickProjectFavicon", () => {
             multiple: false,
             filters: [
               {
-                name: "Images",
+                name: t("ipc.window.imagesFilter"),
                 extensions: ["avif", "gif", "ico", "jpeg", "jpg", "png", "svg", "webp"],
               },
             ],

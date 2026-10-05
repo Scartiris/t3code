@@ -1,4 +1,5 @@
 import { assert, describe, it } from "@effect/vitest";
+import { t } from "@t3tools/shared/i18n";
 import * as Effect from "effect/Effect";
 import * as Layer from "effect/Layer";
 import { HttpClient } from "effect/unstable/http";
@@ -70,7 +71,7 @@ describe("tailscale endpoint provider", () => {
           },
           source: "desktop-addon",
           status: "available",
-          description: "Reachable from devices on the same Tailnet.",
+          description: t("backend.tailscaleEndpointProvider.tailnetReachable"),
         },
         {
           id: "tailscale-magicdns:https://desktop.tail.ts.net/",
@@ -90,7 +91,7 @@ describe("tailscale endpoint provider", () => {
           },
           source: "desktop-addon",
           status: "unavailable",
-          description: "MagicDNS hostname. Configure Tailscale Serve for HTTPS access.",
+          description: t("backend.tailscaleEndpointProvider.magicDnsDescription"),
         },
       ]);
     }).pipe(Effect.provide(unusedTailscaleExternalServicesLayer)),
@@ -145,7 +146,7 @@ describe("tailscale endpoint provider", () => {
             },
             source: "desktop-addon",
             status: "available",
-            description: "HTTPS endpoint served by Tailscale Serve.",
+            description: t("backend.tailscaleEndpointProvider.serveDescription"),
           },
         ]);
       }).pipe(Effect.provide(unusedTailscaleExternalServicesLayer)),

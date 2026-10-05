@@ -3,6 +3,7 @@ import * as NodeFSP from "node:fs/promises";
 import * as NodeNet from "node:net";
 import * as NodeOS from "node:os";
 import * as NodePath from "node:path";
+import { t } from "@t3tools/shared/i18n";
 import { afterEach, beforeEach, expect, it, vi } from "vite-plus/test";
 
 vi.mock("electron", () => ({
@@ -185,7 +186,9 @@ it("does not attach accessibility identity if the captured window changed", asyn
 
 it("fails without a focused window rather than taking the screen", async () => {
   focused = null;
-  await expect(captureNiriWindow(socketPath)).rejects.toThrow("no focused window");
+  await expect(captureNiriWindow(socketPath)).rejects.toThrow(
+    t("snapShot.niriSnapShot.noFocusedWindow"),
+  );
   expect(capturePath).toBeUndefined();
 });
 
@@ -203,7 +206,9 @@ it("rejects compositor errors and cleans up its temporary image", async () => {
 
 it.each(["24.11", "25.05", "unknown"])("rejects unsupported Niri version %s", async (value) => {
   version = value;
-  await expect(checkNiriCaptureSupport(socketPath)).rejects.toThrow("25.11 or newer");
+  await expect(checkNiriCaptureSupport(socketPath)).rejects.toThrow(
+    t("snapShot.niriSnapShot.versionRequired"),
+  );
 });
 
 it.each(["25.11", "26.04", "niri 26.04 (abc)"])("accepts Niri version %s", async (value) => {

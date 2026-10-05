@@ -13,6 +13,7 @@ import {
 } from "dbus-next";
 import * as Schema from "effect/Schema";
 import type { SnapShotKeyChord } from "@t3tools/contracts";
+import { t } from "@t3tools/shared/i18n";
 import { HYPRLAND_CAPTURE_ACTION, portalShortcutTrigger } from "./linuxCaptureSession.ts";
 export { portalShortcutTrigger } from "./linuxCaptureSession.ts";
 
@@ -65,7 +66,7 @@ export class PortalCaptureShortcut {
   state: PortalShortcutState = {
     shortcutRegistered: false,
     shortcutPending: true,
-    shortcutMessage: "Waiting for shortcut permission. Approve the desktop prompt if one appears.",
+    shortcutMessage: t("snapShot.portalCaptureShortcut.waitingForPermission"),
   };
   readonly ready: Promise<void>;
   private closed = false;
@@ -99,7 +100,7 @@ export class PortalCaptureShortcut {
       this.state = {
         shortcutRegistered: false,
         shortcutPending: true,
-        shortcutMessage: "Connecting to Hyprland shortcuts…",
+        shortcutMessage: t("snapShot.portalCaptureShortcut.connectingToHyprland"),
       };
     this.stopped = new Promise((_, reject) => {
       this.rejectStopped = reject;
@@ -113,7 +114,7 @@ export class PortalCaptureShortcut {
   close = () => {
     if (this.closed) return;
     this.closed = true;
-    this.rejectStopped(new Error("Capture shortcut registration closed."));
+    this.rejectStopped(new Error(t("snapShot.portalCaptureShortcut.registrationClosed")));
     try {
       if (this.pending) this.closeObject(this.pending.path, REQUEST);
       if (this.session) this.closeObject(this.session, SESSION);
@@ -132,11 +133,9 @@ export class PortalCaptureShortcut {
 
   async configure() {
     if (this.managedByHyprland)
-      throw new Error("Change the capture binding in your Hyprland config, then save it.");
+      throw new Error(t("snapShot.portalCaptureShortcut.changeHyprlandBinding"));
     if (!this.hasSession || this.version < 2)
-      throw new Error(
-        "Open your desktop's shortcut settings and allow T3 Code's capture shortcut.",
-      );
+      throw new Error(t("snapShot.portalCaptureShortcut.allowInShortcutSettings"));
     await this.call({
       destination: this.owner,
       path: PATH,
@@ -164,10 +163,10 @@ export class PortalCaptureShortcut {
       // This failed session is closing, so retry can register a fresh one.
       shortcutCanRetry: !this.managedByHyprland,
       shortcutMessage: this.managedByHyprland
-        ? "Couldn't connect to Hyprland shortcuts. Make sure xdg-desktop-portal-hyprland is running, then restart T3 Code."
+        ? t("snapShot.portalCaptureShortcut.hyprlandConnectFailed")
         : error instanceof Error
           ? error.message
-          : "Could not register the capture shortcut.",
+          : t("snapShot.portalCaptureShortcut.registerFailed"),
     });
     this.close();
   };
@@ -180,7 +179,7 @@ export class PortalCaptureShortcut {
         this.stopped,
         new Promise<never>((_, reject) => {
           timer = setTimeout(
-            () => reject(new Error("Shortcut permission request timed out. Try again.")),
+            () => reject(new Error(t("snapShot.portalCaptureShortcut.permissionTimedOut"))),
             timeoutMs,
           );
         }),
@@ -191,9 +190,9 @@ export class PortalCaptureShortcut {
   }
 
   private async call(message: MessageLike) {
-    if (this.closed) throw new Error("Capture shortcut registration closed.");
+    if (this.closed) throw new Error(t("snapShot.portalCaptureShortcut.registrationClosed"));
     const reply = await this.wait(this.bus.call(new Message(message)));
-    if (!reply) throw new Error("Missing shortcut portal reply.");
+    if (!reply) throw new Error(t("snapShot.portalCaptureShortcut.missingPortalReply"));
     return reply;
   }
 
@@ -218,7 +217,7 @@ export class PortalCaptureShortcut {
       message.body[0] === PORTAL &&
       message.body[1] === this.owner
     ) {
-      this.failed(new Error("The desktop shortcut service restarted. Retry the shortcut request."));
+      this.failed(new Error(t("snapShot.portalCaptureShortcut.shortcutServiceRestarted")));
       return;
     }
     if (!this.owner || message.sender !== this.owner) return;
@@ -237,9 +236,7 @@ export class PortalCaptureShortcut {
       message.interface === SESSION &&
       message.member === "Closed"
     ) {
-      this.failed(
-        new Error("Your desktop closed the capture shortcut. Retry the shortcut request."),
-      );
+      this.failed(new Error(t("snapShot.portalCaptureShortcut.shortcutClosed")));
       return;
     }
     if (
@@ -289,7 +286,8 @@ export class PortalCaptureShortcut {
         body: [...body, { ...options, handle_token: new Variant("s", token) }],
       });
       const handle = string(reply.body[0]);
-      if (!handle.startsWith(this.namespace)) throw new Error("Invalid shortcut request handle.");
+      if (!handle.startsWith(this.namespace))
+        throw new Error(t("snapShot.portalCaptureShortcut.invalidRequestHandle"));
       this.pending.path = handle;
       if (this.responses.has(handle)) resolve(this.responses.get(handle));
       const [status, results] = decodeResponse(
@@ -303,12 +301,12 @@ export class PortalCaptureShortcut {
             shortcutPending: false,
             shortcutMessage:
               this.version >= 2
-                ? "Shortcut permission wasn't granted. Open shortcut permissions to allow it."
-                : "Shortcut permission wasn't granted. Allow T3 Code in your desktop's shortcut settings.",
+                ? t("snapShot.portalCaptureShortcut.permissionNotGrantedV2")
+                : t("snapShot.portalCaptureShortcut.permissionNotGranted"),
           });
           return undefined;
         }
-        throw new Error("Your desktop could not create a capture shortcut session.");
+        throw new Error(t("snapShot.portalCaptureShortcut.sessionCreateFailed"));
       }
       return results;
     } finally {
@@ -326,8 +324,8 @@ export class PortalCaptureShortcut {
         shortcutActionRegistered: Boolean(shortcut),
         shortcutPending: false,
         shortcutMessage: shortcut
-          ? "Managed by Hyprland. Add the binding to your config and save it."
-          : "Hyprland did not register the capture action. Check that xdg-desktop-portal-hyprland is running, then restart T3 Code.",
+          ? t("snapShot.portalCaptureShortcut.managedByHyprland")
+          : t("snapShot.portalCaptureShortcut.hyprlandActionNotRegistered"),
       });
       return;
     }
@@ -337,10 +335,10 @@ export class PortalCaptureShortcut {
       shortcutPending: false,
       ...(label ? { shortcutLabel: label } : {}),
       shortcutMessage: label
-        ? `Desktop shortcut: ${label}`
+        ? t("snapShot.portalCaptureShortcut.desktopShortcut", { label })
         : this.version >= 2
-          ? "No shortcut is assigned. Open shortcut permissions to choose one."
-          : "No shortcut is assigned. Choose one in your desktop's shortcut settings.",
+          ? t("snapShot.portalCaptureShortcut.noShortcutV2")
+          : t("snapShot.portalCaptureShortcut.noShortcut"),
     });
   }
 
@@ -405,7 +403,8 @@ export class PortalCaptureShortcut {
     });
     const session = decodeSession(created).session_handle.value;
     const sessionNamespace = this.namespace.replace("/request/", "/session/");
-    if (!session.startsWith(sessionNamespace)) throw new Error("Invalid shortcut session handle.");
+    if (!session.startsWith(sessionNamespace))
+      throw new Error(t("snapShot.portalCaptureShortcut.invalidSessionHandle"));
     this.session = session;
     this.shortcutId = this.managedByHyprland
       ? HYPRLAND_CAPTURE_ACTION
@@ -417,7 +416,7 @@ export class PortalCaptureShortcut {
         [
           this.shortcutId,
           {
-            description: new Variant("s", "Capture a window"),
+            description: new Variant("s", t("snapShot.portalCaptureShortcut.captureWindowAction")),
             ...(!this.managedByHyprland ? { preferred_trigger: new Variant("s", trigger) } : {}),
           },
         ],

@@ -1,5 +1,7 @@
 import * as Schema from "effect/Schema";
 
+import { t } from "@t3tools/shared/i18n";
+
 const decodeString = Schema.decodeUnknownSync(Schema.fromJsonString(Schema.String));
 
 /** A lossless structural reader: edits only binding nodes, never reformats a user's KDL. */
@@ -16,8 +18,7 @@ export type KdlNode = {
 export function readKdlNodes(source: string): KdlNode[] {
   const tokens: Token[] = [];
   let offset = 0;
-  const invalid = () =>
-    new Error("Couldn't read this Niri config. Use Advanced to configure it manually.");
+  const invalid = () => new Error(t("snapShot.captureConfigKdl.readFailed"));
   while (offset < source.length) {
     const start = offset;
     const rest = source.slice(offset);

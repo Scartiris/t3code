@@ -7,6 +7,7 @@ import type {
   DesktopSnapShotEvent,
 } from "@t3tools/contracts";
 import { exposeClerkBridge } from "@clerk/electron/preload";
+import { t } from "@t3tools/shared/i18n";
 import { contextBridge, ipcRenderer, webFrame, webUtils } from "electron";
 
 import * as IpcChannels from "./ipc/channels.ts";
@@ -56,7 +57,7 @@ function unwrapEnsureSshEnvironmentResult(result: unknown) {
     const message =
       "message" in result && typeof result.message === "string"
         ? result.message
-        : "SSH authentication cancelled.";
+        : t("preload.preload.sshAuthenticationCancelled");
     throw new Error(message);
   }
   return result as Awaited<ReturnType<DesktopBridge["ensureSshEnvironment"]>>;

@@ -11,6 +11,8 @@ import * as Stream from "effect/Stream";
 import * as TestClock from "effect/testing/TestClock";
 import { ChildProcessSpawner } from "effect/unstable/process";
 
+import { t } from "@t3tools/shared/i18n";
+
 import {
   buildWslRuntimeInstallScript,
   buildWslRuntimeInvalidateScript,
@@ -140,7 +142,9 @@ describe("probeWslDistros", () => {
     Effect.gen(function* () {
       const error = yield* probeWslDistros.pipe(Effect.flip);
       expect(error).toBeInstanceOf(DesktopWslDistroListError);
-      expect(error.message).toContain("exited with code 1");
+      expect(error.message).toBe(
+        t("wsl.desktopWslEnvironment.listDistrosFailedWithCode", { code: "1" }),
+      );
     }).pipe(
       Effect.provideService(
         ChildProcessSpawner.ChildProcessSpawner,
@@ -160,7 +164,7 @@ describe("probeWslDistros", () => {
       yield* TestClock.adjust(Duration.seconds(8));
       const error = yield* Fiber.join(fiber);
       expect(error).toBeInstanceOf(DesktopWslDistroListError);
-      expect(error.message).toContain("timed out");
+      expect(error.message).toBe(t("wsl.desktopWslEnvironment.listDistrosTimedOut"));
     }).pipe(Effect.provide(layer));
   });
 });

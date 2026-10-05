@@ -6,6 +6,7 @@ import * as Ref from "effect/Ref";
 import * as Schema from "effect/Schema";
 
 import * as NetService from "@t3tools/shared/Net";
+import { t } from "@t3tools/shared/i18n";
 import * as Crypto from "effect/Crypto";
 import * as ElectronApp from "../electron/ElectronApp.ts";
 import * as ElectronDialog from "../electron/ElectronDialog.ts";
@@ -51,7 +52,11 @@ export class DesktopBackendPortUnavailableError extends Schema.TaggedError<Deskt
   },
 ) {
   override get message(): string {
-    return `No desktop backend port is available on hosts ${this.hosts.join(", ")} between ${this.startPort} and ${this.maxPort}.`;
+    return t("app.desktopApp.noBackendPortAvailable", {
+      hosts: this.hosts.join(", "),
+      startPort: this.startPort,
+      maxPort: this.maxPort,
+    });
   }
 }
 
@@ -60,7 +65,7 @@ export class DesktopDevelopmentBackendPortRequiredError extends Schema.TaggedErr
   {},
 ) {
   override get message(): string {
-    return "T3CODE_PORT is required in desktop development.";
+    return t("app.desktopApp.developmentPortRequired");
   }
 }
 
@@ -132,8 +137,8 @@ const handleFatalStartupError = Effect.fn("desktop.startup.handleFatalStartupErr
   const wasQuitting = yield* Ref.getAndSet(state.quitting, true);
   if (!wasQuitting) {
     yield* electronDialog.showErrorBox(
-      "T3 Code failed to start",
-      `Stage: ${stage}\n${message}${detail}`,
+      t("desktop.startup.failedTitle"),
+      t("desktop.startup.failedDetail", { stage, message, detail }),
     );
   }
   yield* shutdown.request;
