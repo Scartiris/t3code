@@ -15,6 +15,9 @@ export const AcpRegistryCatalogLive = Layer.merge(
       return AcpRegistrySupport.AcpRegistryCatalog.layer({
         cacheDir: config.providerStatusCacheDir,
         toolsDir: path.join(config.baseDir, "tools"),
+        // Lets an operator point at a local index that also lists agents the
+        // public registry does not carry. Undefined keeps the official one.
+        ...(config.acpRegistryUrl === undefined ? {} : { registryUrl: config.acpRegistryUrl }),
       });
     }),
   ),

@@ -91,6 +91,12 @@ export class ServerConfig extends Context.Service<
     readonly devUrl: URL | undefined;
     readonly devAuthToken?: Redacted.Redacted<string> | undefined;
     readonly devAllowedOrigins: ReadonlyArray<string>;
+    /**
+     * Overrides the ACP Registry index. Point it at a local index to offer
+     * agents that the public registry does not list, such as an in-house ACP
+     * server. Unset means the official registry.
+     */
+    readonly acpRegistryUrl?: string | undefined;
     readonly noBrowser: boolean;
     readonly startupPresentation: StartupPresentation;
     readonly desktopBootstrapToken: string | undefined;
@@ -238,6 +244,7 @@ const makeTest = Effect.fn("ServerConfig.makeTest")(function* (
     staticDir: undefined,
     devUrl,
     devAllowedOrigins: [],
+    acpRegistryUrl: undefined,
     noBrowser: false,
     startupPresentation: "browser",
   });

@@ -138,6 +138,10 @@ const EnvServerConfig = Config.all({
         .filter((entry) => entry.length > 0),
     ),
   ),
+  acpRegistryUrl: Config.String("T3CODE_ACP_REGISTRY_URL").pipe(
+    Config.option,
+    Config.map(Option.getOrUndefined),
+  ),
   noBrowser: Config.Boolean("T3CODE_NO_BROWSER").pipe(
     Config.option,
     Config.map(Option.getOrUndefined),
@@ -448,6 +452,7 @@ export const resolveServerConfig = (
       devUrl,
       ...(devAuthToken === undefined ? {} : { devAuthToken }),
       devAllowedOrigins: env.devAllowedOrigins,
+      acpRegistryUrl: env.acpRegistryUrl,
       noBrowser,
       startupPresentation,
       desktopBootstrapToken,
