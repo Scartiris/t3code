@@ -31,6 +31,7 @@ import {
   type ThreadTokenUsageSnapshot,
   type ThreadId,
 } from "@t3tools/contracts";
+import { t } from "@t3tools/shared/i18n";
 import { modelSelectionsEqual } from "@t3tools/shared/model";
 import { type SelfInvocation, selfInvocationArgs } from "@t3tools/shared/nodeRuntime";
 import { FILE_HEADERS_ONLY, formatPatch, structuredPatch } from "diff";
@@ -1720,7 +1721,7 @@ export function makeAcpAdapterV2(
                   }).pipe(
                     Effect.andThen(
                       new EffectAcpErrors.AcpTransportError({
-                        detail: "The ACP runtime closed before its response could be admitted",
+                        detail: t("orchestration-v2.acpAdapterV2.runtimeClosedBeforeAdmission"),
                         cause: "Native response registration rejected during teardown",
                       }),
                     ),
@@ -1779,7 +1780,7 @@ export function makeAcpAdapterV2(
             { concurrency: "unbounded", discard: true },
           );
           const timeoutError = new EffectAcpErrors.AcpTransportError({
-            detail: "Timed out waiting for an admitted ACP response to reach the transport queue",
+            detail: t("orchestration-v2.acpAdapterV2.admittedResponseTimedOut"),
             cause: "Native response acknowledgement timed out",
           });
           yield* Effect.forEach(
@@ -1820,7 +1821,7 @@ export function makeAcpAdapterV2(
             return [acknowledgements, updated] as const;
           });
           const error = new EffectAcpErrors.AcpTransportError({
-            detail: "The ACP runtime was replaced before its response reached the transport queue",
+            detail: t("orchestration-v2.acpAdapterV2.runtimeReplacedBeforeTransport"),
             cause: "ACP runtime transport was quarantined during teardown",
           });
           yield* Effect.forEach(
@@ -1837,7 +1838,7 @@ export function makeAcpAdapterV2(
               new Map(),
             );
             const error = new EffectAcpErrors.AcpTransportError({
-              detail: "The ACP session closed before its admitted response reached the transport",
+              detail: t("orchestration-v2.acpAdapterV2.sessionClosedBeforeTransport"),
               cause: "ACP session transport closed",
             });
             yield* Effect.forEach(
@@ -3286,7 +3287,9 @@ export function makeAcpAdapterV2(
               case "read":
                 turnItem = {
                   ...base,
-                  title: path ? formatReadToolLabel(path) : (title ?? "Read file"),
+                  title: path
+                    ? formatReadToolLabel(path)
+                    : (title ?? t("orchestration-v2.acpAdapterV2.readFileToolTitle")),
                   type: "dynamic_tool",
                   toolName: "Read",
                   input:
@@ -3455,8 +3458,10 @@ export function makeAcpAdapterV2(
               update.kind === "markdown"
                 ? update.markdown
                 : update.kind === "file"
-                  ? `Plan file: ${update.uri}`
-                  : `[Unsupported ACP plan content: ${update.contentType}]`;
+                  ? t("orchestration-v2.acpAdapterV2.planFile", { uri: update.uri })
+                  : t("orchestration-v2.acpAdapterV2.unsupportedPlanContent", {
+                      contentType: update.contentType,
+                    });
             plan = {
               ...base,
               status: "active",
@@ -4470,7 +4475,7 @@ export function makeAcpAdapterV2(
                 const previous = context.tools.get(toolCallId) ?? {
                   toolCallId,
                   kind: "think",
-                  title: "Compact context",
+                  title: t("orchestration-v2.acpAdapterV2.compactContextToolTitle"),
                   status: "inProgress" as const,
                   data: { toolCallId },
                 };
@@ -4568,7 +4573,9 @@ export function makeAcpAdapterV2(
                   yield* emitTool(context, {
                     toolCallId: `${context.nativeTurnId}:unsupported:${event.updateType}`,
                     kind: "other",
-                    title: `Unsupported ACP update: ${event.updateType}`,
+                    title: t("orchestration-v2.acpAdapterV2.unsupportedUpdate", {
+                      updateType: event.updateType,
+                    }),
                     status: "completed",
                     data: { updateType: event.updateType },
                   });
@@ -4584,7 +4591,7 @@ export function makeAcpAdapterV2(
           const context = yield* Ref.get(activeTurn);
           if (context === null) {
             return yield* new EffectAcpErrors.AcpTransportError({
-              detail: "ACP agent requested input without an active turn",
+              detail: t("orchestration-v2.acpAdapterV2.inputWithoutActiveTurn"),
               cause: "No active ACP turn",
             });
           }
@@ -4890,7 +4897,7 @@ export function makeAcpAdapterV2(
             Effect.mapError(
               (cause) =>
                 new EffectAcpErrors.AcpTransportError({
-                  detail: "Failed to handle ACP user input request",
+                  detail: t("orchestration-v2.acpAdapterV2.userInputRequestFailed"),
                   cause,
                 }),
             ),
@@ -5347,7 +5354,7 @@ export function makeAcpAdapterV2(
             Effect.mapError(
               (cause) =>
                 new EffectAcpErrors.AcpTransportError({
-                  detail: "Failed to project an ACP session update",
+                  detail: t("orchestration-v2.acpAdapterV2.sessionUpdateProjectionFailed"),
                   cause,
                 }),
             ),
@@ -5631,7 +5638,7 @@ export function makeAcpAdapterV2(
               Effect.mapError(
                 (cause) =>
                   new EffectAcpErrors.AcpTransportError({
-                    detail: "Failed to handle an ACP permission request",
+                    detail: t("orchestration-v2.acpAdapterV2.permissionRequestFailed"),
                     cause,
                   }),
               ),
@@ -6100,7 +6107,7 @@ export function makeAcpAdapterV2(
               ? yield* runtime.resumeSession(sessionId, activationOptions)
               : yield* new ProviderAdapter.ProviderAdapterProtocolError({
                   driver,
-                  detail: `ACP driver cannot load or resume session ${sessionId}`,
+                  detail: t("orchestration-v2.acpAdapterV2.sessionLoadUnsupported", { sessionId }),
                 });
           rememberTerminalEnvironment(activated.sessionId, threadId);
           return activated;
@@ -6460,7 +6467,7 @@ export function makeAcpAdapterV2(
                 type: "compaction",
                 driver,
                 status: "completed",
-                title: "Context compacted",
+                title: t("orchestration-v2.acpAdapterV2.contextCompacted"),
                 startedAt: context.startedAt,
                 completedAt: now,
                 updatedAt: now,
@@ -6637,7 +6644,7 @@ export function makeAcpAdapterV2(
           if (imageAttachments.length > 0 && !supportsImagePrompts) {
             return yield* new ProviderAdapter.ProviderAdapterProtocolError({
               driver,
-              detail: "ACP driver did not negotiate image prompt support",
+              detail: t("orchestration-v2.acpAdapterV2.imagePromptsNotNegotiated"),
             });
           }
           for (const attachment of imageAttachments) {
@@ -6648,7 +6655,9 @@ export function makeAcpAdapterV2(
             if (path === null) {
               return yield* new ProviderAdapter.ProviderAdapterProtocolError({
                 driver,
-                detail: `Invalid attachment id '${attachment.id}'`,
+                detail: t("orchestration-v2.acpAdapterV2.invalidAttachmentId", {
+                  attachmentId: attachment.id,
+                }),
               });
             }
             const bytes = yield* fileSystem.readFile(path).pipe(
@@ -6656,7 +6665,9 @@ export function makeAcpAdapterV2(
                 (cause) =>
                   new ProviderAdapter.ProviderAdapterProtocolError({
                     driver,
-                    detail: `Failed to read attachment '${attachment.id}'`,
+                    detail: t("orchestration-v2.acpAdapterV2.attachmentReadFailed", {
+                      attachmentId: attachment.id,
+                    }),
                     payload: cause,
                   }),
               ),
@@ -6670,7 +6681,7 @@ export function makeAcpAdapterV2(
           if (prompt.length === 0) {
             return yield* new ProviderAdapter.ProviderAdapterProtocolError({
               driver,
-              detail: "ACP turn requires non-empty text or attachments",
+              detail: t("orchestration-v2.acpAdapterV2.emptyTurnPrompt"),
             });
           }
           prompt.push({
@@ -6711,7 +6722,9 @@ export function makeAcpAdapterV2(
             if (existing !== null) {
               return yield* new ProviderAdapter.ProviderAdapterProtocolError({
                 driver,
-                detail: `ACP provider turn ${existing.providerTurnId} is still active`,
+                detail: t("orchestration-v2.acpAdapterV2.turnStillActive", {
+                  turnId: existing.providerTurnId,
+                }),
               });
             }
             useProviderThreadIdentity(turnInput.providerThread);
@@ -6744,7 +6757,9 @@ export function makeAcpAdapterV2(
                 if (currentSessionSetup === null) {
                   return yield* new ProviderAdapter.ProviderAdapterProtocolError({
                     driver,
-                    detail: `ACP session ${requestedSessionId} has no active setup metadata`,
+                    detail: t("orchestration-v2.acpAdapterV2.sessionSetupMetadataMissing", {
+                      sessionId: requestedSessionId,
+                    }),
                   });
                 }
                 yield* configureSession(
@@ -7106,7 +7121,7 @@ export function makeAcpAdapterV2(
               { discard: true },
             );
             const closingError = new EffectAcpErrors.AcpTransportError({
-              detail: "The ACP session closed before its admitted response reached the transport",
+              detail: t("orchestration-v2.acpAdapterV2.sessionClosedBeforeTransport"),
               cause: "ACP session transport closed",
             });
             yield* Effect.forEach(
@@ -7186,7 +7201,7 @@ export function makeAcpAdapterV2(
               if (sessionId === null) {
                 return yield* new ProviderAdapter.ProviderAdapterProtocolError({
                   driver,
-                  detail: "ACP runtime did not produce a session id",
+                  detail: t("orchestration-v2.acpAdapterV2.sessionIdMissing"),
                 });
               }
               const providerThread = makeProviderThread({
@@ -7411,8 +7426,9 @@ export function makeAcpAdapterV2(
                           if (runtime.terminateProcessGroup === undefined) {
                             const error = new ProviderAdapter.ProviderAdapterProtocolError({
                               driver,
-                              detail:
-                                "ACP runtime does not expose its required process-group teardown; the session is poisoned",
+                              detail: t(
+                                "orchestration-v2.acpAdapterV2.processGroupTeardownUnavailable",
+                              ),
                             });
                             yield* Ref.set(runtimeTeardownState, { _tag: "Failed", error });
                             yield* Deferred.fail(teardownBarrier, error).pipe(Effect.ignore);
@@ -7424,8 +7440,9 @@ export function makeAcpAdapterV2(
                           if (Exit.isFailure(teardownExit)) {
                             const error = new ProviderAdapter.ProviderAdapterProtocolError({
                               driver,
-                              detail:
-                                "ACP orphan runtime process-group teardown failed; the session is poisoned",
+                              detail: t(
+                                "orchestration-v2.acpAdapterV2.orphanProcessGroupTeardownFailed",
+                              ),
                               payload: Cause.squash(teardownExit.cause),
                             });
                             yield* Ref.set(runtimeTeardownState, { _tag: "Failed", error });
@@ -7515,7 +7532,7 @@ export function makeAcpAdapterV2(
                       if (hardRestart) {
                         if (runtime.terminateProcessGroup === undefined) {
                           return yield* poisonTeardown(
-                            "ACP runtime does not expose its required process-group teardown; the session is poisoned",
+                            t("orchestration-v2.acpAdapterV2.processGroupTeardownUnavailable"),
                           ).pipe(Effect.flatMap(Effect.fail));
                         }
                         const teardownExit = yield* runtime.terminateProcessGroup!.pipe(
@@ -7523,7 +7540,7 @@ export function makeAcpAdapterV2(
                         );
                         if (Exit.isFailure(teardownExit)) {
                           return yield* poisonTeardown(
-                            "ACP runtime process-group teardown failed; the session is poisoned",
+                            t("orchestration-v2.acpAdapterV2.processGroupTeardownFailed"),
                             Cause.squash(teardownExit.cause),
                           ).pipe(Effect.flatMap(Effect.fail));
                         }
@@ -7555,7 +7572,9 @@ export function makeAcpAdapterV2(
                         }
                         return yield* new ProviderAdapter.ProviderAdapterProtocolError({
                           driver,
-                          detail: `ACP provider turn ${turnInput.providerTurnId} did not acknowledge cancellation before the interrupt timeout`,
+                          detail: t("orchestration-v2.acpAdapterV2.cancelNotAcknowledged", {
+                            turnId: turnInput.providerTurnId,
+                          }),
                         });
                       }
                     });
@@ -7615,13 +7634,17 @@ export function makeAcpAdapterV2(
                       : requestInput.decision === undefined
                         ? yield* new ProviderAdapter.ProviderAdapterProtocolError({
                             driver,
-                            detail: `ACP approval request ${requestInput.requestId} requires a decision`,
+                            detail: t("orchestration-v2.acpAdapterV2.approvalDecisionRequired", {
+                              requestId: requestInput.requestId,
+                            }),
                           })
                         : yield* Deferred.succeed(pending.decision, requestInput.decision);
                   if (!settled) {
                     return yield* new ProviderAdapter.ProviderAdapterProtocolError({
                       driver,
-                      detail: `ACP runtime request ${requestInput.requestId} was already resolved`,
+                      detail: t("orchestration-v2.acpAdapterV2.requestAlreadyResolved", {
+                        requestId: requestInput.requestId,
+                      }),
                     });
                   }
                   yield* awaitNativeResponseAcknowledgements([
@@ -7654,7 +7677,7 @@ export function makeAcpAdapterV2(
                     if (!capabilities.threads.canReadThreadSnapshot) {
                       return yield* new ProviderAdapter.ProviderAdapterProtocolError({
                         driver,
-                        detail: "ACP driver does not support session/load snapshots",
+                        detail: t("orchestration-v2.acpAdapterV2.sessionLoadSnapshotsUnsupported"),
                       });
                     }
                     yield* Ref.set(snapshot, {
@@ -7718,7 +7741,10 @@ export function makeAcpAdapterV2(
                   if (currentTurn !== null) {
                     return yield* new ProviderAdapter.ProviderAdapterProtocolError({
                       driver,
-                      detail: `Cannot roll back ACP provider thread ${rollbackInput.providerThread.id} while turn ${currentTurn.providerTurnId} is active`,
+                      detail: t("orchestration-v2.acpAdapterV2.rollbackWhileTurnActive", {
+                        providerThreadId: rollbackInput.providerThread.id,
+                        turnId: currentTurn.providerTurnId,
+                      }),
                     });
                   }
                   // ACP defines no conversation truncation, so rollback stages
@@ -7814,13 +7840,13 @@ export function makeAcpAdapterV2(
                   if (!capabilities.threads.canForkThread) {
                     return yield* new ProviderAdapter.ProviderAdapterProtocolError({
                       driver,
-                      detail: "ACP driver did not negotiate session/fork",
+                      detail: t("orchestration-v2.acpAdapterV2.sessionForkNotNegotiated"),
                     });
                   }
                   if (forkInput.providerTurnId !== undefined) {
                     return yield* new ProviderAdapter.ProviderAdapterProtocolError({
                       driver,
-                      detail: "ACP session/fork can only fork the current session head",
+                      detail: t("orchestration-v2.acpAdapterV2.sessionForkCurrentHeadOnly"),
                     });
                   }
                   const sourceSessionId = yield* nativeThreadId(

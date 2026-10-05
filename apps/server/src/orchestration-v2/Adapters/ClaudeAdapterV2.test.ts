@@ -46,6 +46,7 @@ import * as Stream from "effect/Stream";
 import { Tool } from "effect/unstable/ai";
 import { formatClaudeResumeCompactionQuestion } from "@t3tools/shared/claudeCompaction";
 import { HostProcessPlatform } from "@t3tools/shared/hostProcess";
+import { t } from "@t3tools/shared/i18n";
 import { SpawnExecutableResolution } from "@t3tools/shared/shell";
 
 import { attachmentRelativePath } from "../../attachmentStore.ts";
@@ -2899,18 +2900,21 @@ describe("ClaudeAdapterV2 background wake turns", () => {
       assert.equal(image?.type, "dynamic_tool");
       if (image?.type === "dynamic_tool")
         assert.equal(image.viewedImagePath, "/workspace/reference.png");
-      assert.equal(image?.title, "Read /workspace/reference.png");
+      assert.equal(
+        image?.title,
+        t("toolActivity.toolActivity.readPath", { path: "/workspace/reference.png", extra: "" }),
+      );
       assert.equal(
         items.find((item) => item.nativeItemRef?.nativeId === "text")?.title,
-        "Read /workspace/README.md",
+        t("toolActivity.toolActivity.readPath", { path: "/workspace/README.md", extra: "" }),
       );
       assert.equal(
         items.find((item) => item.nativeItemRef?.nativeId === "search")?.title,
-        "Searched TODO in src",
+        t("toolActivity.toolActivity.searchedQueryInTarget", { query: "TODO", target: "src" }),
       );
       assert.equal(
         items.find((item) => item.nativeItemRef?.nativeId === "skill")?.title,
-        "Skill: full-send",
+        t("toolActivity.toolActivity.skillTitle", { name: "full-send" }),
       );
       for (const item of items.filter((item) => item.nativeItemRef?.nativeId !== "image"))
         assert.notProperty(item, "viewedImagePath");

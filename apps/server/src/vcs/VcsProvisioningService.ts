@@ -8,6 +8,7 @@ import {
   type VcsInitInput,
   VcsUnsupportedOperationError,
 } from "@t3tools/contracts";
+import { t } from "@t3tools/shared/i18n";
 import * as VcsDriverRegistry from "./VcsDriverRegistry.ts";
 
 export class VcsProvisioningService extends Context.Service<
@@ -28,7 +29,7 @@ function resolveRequestedKind(
       new VcsUnsupportedOperationError({
         operation: "VcsProvisioningService.resolveRequestedKind",
         kind,
-        detail: "A concrete VCS driver kind is required for repository provisioning.",
+        detail: t("vcs.vcsProvisioningService.concreteDriverKindRequired"),
       }),
     );
   }

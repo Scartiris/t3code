@@ -4,6 +4,7 @@ import type {
   Project,
   ThreadId,
 } from "@t3tools/contracts";
+import { t } from "@t3tools/shared/i18n";
 import * as DateTime from "effect/DateTime";
 
 import { backgroundWorkHoldsCompletion } from "./orchestrationV2PendingBackgroundWork.ts";
@@ -66,9 +67,9 @@ export function projectThreadAwarenessV2(
   }
   const detail =
     phase === "completed"
-      ? "Review the completed task."
+      ? t("agentAwareness.agentAwareness.completedDetail")
       : phase === "failed"
-        ? "The agent run failed."
+        ? t("agentAwareness.agentAwareness.failedDetail")
         : undefined;
   return {
     environmentId,
@@ -122,18 +123,18 @@ function resolveThreadAwarenessPhaseV2(
 function headlineForPhase(phase: AgentAwarenessPhase): string {
   switch (phase) {
     case "starting":
-      return "Starting agent";
+      return t("agentAwareness.agentAwareness.startingHeadline");
     case "running":
-      return "Agent is working";
+      return t("agentAwareness.agentAwareness.runningHeadline");
     case "waiting_for_approval":
-      return "Approval needed";
+      return t("agentAwareness.agentAwareness.approvalNeededHeadline");
     case "waiting_for_input":
-      return "Waiting for input";
+      return t("agentAwareness.agentAwareness.waitingForInputHeadline");
     case "completed":
-      return "Agent finished";
+      return t("agentAwareness.agentAwareness.completedHeadline");
     case "failed":
-      return "Agent failed";
+      return t("agentAwareness.agentAwareness.failedHeadline");
     case "stale":
-      return "Update delayed";
+      return t("agentAwareness.agentAwareness.staleHeadline");
   }
 }

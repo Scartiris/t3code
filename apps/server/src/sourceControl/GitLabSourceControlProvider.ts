@@ -2,6 +2,7 @@ import * as Schema from "effect/Schema";
 import * as Effect from "effect/Effect";
 import * as Option from "effect/Option";
 import { SourceControlProviderError, type ChangeRequest } from "@t3tools/contracts";
+import { t } from "@t3tools/shared/i18n";
 
 import * as GitLabCli from "./GitLabCli.ts";
 import * as SourceControlProvider from "./SourceControlProvider.ts";
@@ -68,14 +69,18 @@ function parseGitLabAuth(input: SourceControlAuthProbeInput) {
     return providerAuth({
       status: "unauthenticated",
       host,
-      detail: firstSafeAuthLine(output) ?? "Run `glab auth login` to authenticate GitLab CLI.",
+      detail:
+        firstSafeAuthLine(output) ??
+        t("sourceControl.gitLabSourceControlProvider.authenticateWithGlabLogin"),
     });
   }
 
   return providerAuth({
     status: "unknown",
     host,
-    detail: firstSafeAuthLine(output) ?? "GitLab CLI auth status could not be parsed.",
+    detail:
+      firstSafeAuthLine(output) ??
+      t("sourceControl.gitLabSourceControlProvider.authStatusUnparsable"),
   });
 }
 
@@ -105,8 +110,7 @@ export const discovery = {
   authArgs: ["auth", "status"],
   parseAuth: parseGitLabAuth,
   refineUnknownRemote: refineUnknownGitLabRemote,
-  installHint:
-    "Install the GitLab command-line tool (`glab`) from https://gitlab.com/gitlab-org/cli or your package manager (for example `brew install glab`).",
+  installHint: t("sourceControl.gitLabSourceControlProvider.installHint"),
 } satisfies SourceControlCliDiscoverySpec;
 
 export const make = Effect.gen(function* () {

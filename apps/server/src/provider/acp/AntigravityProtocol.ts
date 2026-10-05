@@ -5,6 +5,7 @@ import type {
   UserInputQuestion,
 } from "@t3tools/contracts";
 import { isWorkspaceImagePreviewPath } from "@t3tools/shared/filePreview";
+import { t } from "@t3tools/shared/i18n";
 import * as Option from "effect/Option";
 import * as Predicate from "effect/Predicate";
 import * as Schema from "effect/Schema";
@@ -136,7 +137,8 @@ export function extractAntigravityUserInputQuestion(
     }
     ids.add(option.optionId);
   }
-  const question = request.toolCall.title?.trim() || "Choose an option.";
+  const question =
+    request.toolCall.title?.trim() || t("provider.antigravityProtocol.chooseAnOption");
   return {
     id: request.toolCall.toolCallId,
     header: "Question",

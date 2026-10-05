@@ -35,6 +35,7 @@ import {
   type RelayManagedEndpointRuntimeConfig,
   RelayOkResponse,
 } from "@t3tools/contracts/relay";
+import { t } from "@t3tools/shared/i18n";
 import { withRelayClientTracing } from "@t3tools/shared/relayTracing";
 import {
   normalizeRelayIssuer,
@@ -142,7 +143,7 @@ const requireRelayUrl = relayUrlConfig.pipe(
   Effect.mapError(
     () =>
       new EnvironmentHttpInternalServerError({
-        message: "T3CODE_RELAY_URL must be configured as a secure absolute HTTPS origin.",
+        message: t("cloud.http.relayUrlNotSecureAbsoluteOrigin"),
       }),
   ),
 );
@@ -193,7 +194,7 @@ function validateCloudMintPublicKey(
     try: () => NodeCrypto.createPublicKey(publicKey.replace(/\\n/g, "\n")),
     catch: () =>
       new EnvironmentHttpBadRequestError({
-        message: "Cloud mint public key must be a valid Ed25519 public key.",
+        message: t("cloud.http.cloudMintPublicKeyInvalid"),
       }),
   }).pipe(
     Effect.flatMap((key) =>
@@ -201,7 +202,7 @@ function validateCloudMintPublicKey(
         ? Effect.void
         : Effect.fail(
             new EnvironmentHttpBadRequestError({
-              message: "Cloud mint public key must be a valid Ed25519 public key.",
+              message: t("cloud.http.cloudMintPublicKeyInvalid"),
             }),
           ),
     ),
@@ -214,28 +215,28 @@ function validateRelayConfigPayload(
   if (!isSecureRelayUrl(payload.relayUrl)) {
     return Effect.fail(
       new EnvironmentHttpBadRequestError({
-        message: "Relay URL must be a secure absolute HTTPS URL.",
+        message: t("cloud.http.relayUrlInvalid"),
       }),
     );
   }
   if (payload.relayIssuer !== undefined && !isSecureRelayUrl(payload.relayIssuer)) {
     return Effect.fail(
       new EnvironmentHttpBadRequestError({
-        message: "Relay issuer must be a secure absolute HTTPS URL.",
+        message: t("cloud.http.relayIssuerInvalid"),
       }),
     );
   }
   if (payload.environmentCredential.trim().length === 0) {
     return Effect.fail(
       new EnvironmentHttpBadRequestError({
-        message: "Relay environment credential is required.",
+        message: t("cloud.http.relayEnvironmentCredentialRequired"),
       }),
     );
   }
   if (payload.cloudUserId.trim().length === 0) {
     return Effect.fail(
       new EnvironmentHttpBadRequestError({
-        message: "Cloud user id is required.",
+        message: t("cloud.http.cloudUserIdRequired"),
       }),
     );
   }
@@ -262,8 +263,7 @@ function validateLinkedCloudUser(input: {
         ? Effect.void
         : Effect.fail(
             new EnvironmentHttpConflictError({
-              message:
-                "This environment is already linked to a different cloud account. Unlink it before switching accounts.",
+              message: t("cloud.http.cloudAccountAlreadyLinked"),
             }),
           );
     }),
@@ -441,7 +441,7 @@ const makeCloudLinkProof = Effect.fn("environment.cloud.makeLinkProof")(function
     })
   ) {
     return yield* new EnvironmentHttpBadRequestError({
-      message: "Invalid managed endpoint origin.",
+      message: t("cloud.http.managedEndpointOriginInvalid"),
     });
   }
   const now = yield* DateTime.now;
@@ -484,7 +484,7 @@ const cloudLinkProofHandler = Effect.fn("environment.cloud.linkProof")(
     const requestUrl = requestAbsoluteUrl(httpRequest);
     if (requestUrl === null || hasForwardedAuthorityHeaders(httpRequest)) {
       return yield* new EnvironmentHttpBadRequestError({
-        message: "Invalid managed endpoint origin.",
+        message: t("cloud.http.managedEndpointOriginInvalid"),
       });
     }
     const proof = yield* makeCloudLinkProof(dependencies, request, requestUrl);
@@ -496,11 +496,11 @@ const cloudLinkProofHandler = Effect.fn("environment.cloud.linkProof")(
   ),
   Effect.catchIf(
     ServerSecretStore.isSecretStoreError,
-    failEnvironmentCloudInternalError("Could not generate environment link proof."),
+    failEnvironmentCloudInternalError(t("cloud.http.linkProofGenerateFailed")),
   ),
   Effect.catchTag(
     "PlatformError",
-    failEnvironmentCloudInternalError("Could not generate environment link proof."),
+    failEnvironmentCloudInternalError(t("cloud.http.linkProofGenerateFailed")),
   ),
 );
 
@@ -533,7 +533,7 @@ const activateManagedTunnel = Effect.fn("environment.cloud.activateManagedTunnel
       const status = yield* dependencies.endpointRuntime.applyConfig(input.config);
       if (status.status !== "running") {
         return yield* new EnvironmentCloudEndpointUnavailableError({
-          message: "Managed endpoint runtime could not be started.",
+          message: t("cloud.http.managedEndpointRuntimeStartFailed"),
           endpointRuntimeStatus: status,
         });
       }
@@ -585,7 +585,7 @@ export const startManagedCloudTunnelIfOriginConfirmed = Effect.fn(
     try: () => parseManagedEndpointLocalOrigin(localOrigin),
     catch: () =>
       new EnvironmentHttpBadRequestError({
-        message: "Could not resolve local environment origin.",
+        message: t("cloud.http.localEnvironmentOriginUnresolved"),
       }),
   });
   return yield* dependencies.endpointRuntime.withLinkStateLock(
@@ -616,7 +616,7 @@ export const startManagedCloudTunnelIfOriginConfirmed = Effect.fn(
       const status = yield* dependencies.endpointRuntime.applyConfig(config);
       if (status.status !== "running") {
         return yield* new EnvironmentCloudEndpointUnavailableError({
-          message: "Managed endpoint runtime could not be started.",
+          message: t("cloud.http.managedEndpointRuntimeStartFailed"),
           endpointRuntimeStatus: status,
         });
       }
@@ -647,7 +647,7 @@ const applyCloudRelayConfig = Effect.fn("environment.cloud.applyRelayConfig")(fu
       payload.endpointRuntime.providerKind !== "cloudflare_tunnel"
     ) {
       return yield* new EnvironmentCloudEndpointUnavailableError({
-        message: "Managed endpoint runtime could not be started.",
+        message: t("cloud.http.managedEndpointRuntimeStartFailed"),
         endpointRuntimeStatus: {
           status: "unsupported",
           providerKind: payload.endpointRuntime.providerKind,
@@ -692,7 +692,7 @@ const applyCloudRelayConfig = Effect.fn("environment.cloud.applyRelayConfig")(fu
     );
     if (endpointRuntimeStatus.status !== "running") {
       return yield* new EnvironmentCloudEndpointUnavailableError({
-        message: "Managed endpoint runtime could not be started.",
+        message: t("cloud.http.managedEndpointRuntimeStartFailed"),
         endpointRuntimeStatus,
       });
     }
@@ -715,7 +715,7 @@ const cloudRelayConfigHandler = Effect.fn("environment.cloud.relayConfig")(
       const address = server.address;
       if (typeof address === "string" || !("port" in address)) {
         return yield* new EnvironmentHttpInternalServerError({
-          message: "Could not resolve the local server origin.",
+          message: t("cloud.http.localServerOriginUnresolved"),
         });
       }
       const registration = yield* registerManagedCloudTunnelRecovery(
@@ -730,7 +730,7 @@ const cloudRelayConfigHandler = Effect.fn("environment.cloud.relayConfig")(
       );
       if (registration.status === "superseded") {
         return yield* new EnvironmentHttpConflictError({
-          message: "The managed tunnel configuration changed during registration.",
+          message: t("cloud.http.managedTunnelConfigChanged"),
         });
       }
       if (registration.status === "recovery_required") {
@@ -738,7 +738,7 @@ const cloudRelayConfigHandler = Effect.fn("environment.cloud.relayConfig")(
       }
       if (registration.status !== "ready") {
         return yield* new EnvironmentCloudEndpointUnavailableError({
-          message: "Managed endpoint origin could not be confirmed.",
+          message: t("cloud.http.managedEndpointOriginUnconfirmed"),
           endpointRuntimeStatus: { status: "disabled" },
         });
       }
@@ -754,14 +754,12 @@ const cloudRelayConfigHandler = Effect.fn("environment.cloud.relayConfig")(
   ),
   Effect.catchIf(
     ServerSecretStore.isSecretStoreError,
-    failEnvironmentCloudInternalError("Could not persist environment relay configuration."),
+    failEnvironmentCloudInternalError(t("cloud.http.relayConfigPersistFailed")),
   ),
   Effect.catchTags({
-    SchemaError: failEnvironmentCloudInternalError(
-      "Could not persist environment relay configuration.",
-    ),
+    SchemaError: failEnvironmentCloudInternalError(t("cloud.http.relayConfigPersistFailed")),
     PlatformError: failEnvironmentCloudInternalError(
-      "Could not register the managed endpoint origin.",
+      t("cloud.http.managedEndpointOriginRegisterFailed"),
     ),
   }),
 );
@@ -793,7 +791,7 @@ const reconcileDesiredCloudLinkWith = Effect.fn("environment.cloud.reconcileDesi
       try: () => parseManagedEndpointLocalOrigin(localOrigin),
       catch: () =>
         new EnvironmentHttpBadRequestError({
-          message: "Could not resolve local environment origin.",
+          message: t("cloud.http.localEnvironmentOriginUnresolved"),
         }),
     });
     const token = yield* dependencies.cliTokenManager.getExisting.pipe(
@@ -870,7 +868,7 @@ const reconcileDesiredCloudLinkWith = Effect.fn("environment.cloud.reconcileDesi
   },
   Effect.catchIf(
     ServerSecretStore.isSecretStoreError,
-    failEnvironmentCloudInternalError("Could not persist desired T3 Connect link state."),
+    failEnvironmentCloudInternalError(t("cloud.http.desiredLinkStatePersistFailed")),
   ),
   Effect.catchTags({
     CloudCliCredentialRemovalError: failCloudCliTokenManagerError,
@@ -954,7 +952,7 @@ const makeManagedTunnelRecoveryProof = Effect.fn(
     Effect.mapError(
       () =>
         new EnvironmentHttpInternalServerError({
-          message: "Could not sign the managed tunnel recovery request.",
+          message: t("cloud.http.tunnelRecoveryProofSignFailed"),
         }),
     ),
   );
@@ -988,7 +986,7 @@ export const registerManagedCloudTunnelRecovery = Effect.fn(
     try: () => parseManagedEndpointLocalOrigin(localOrigin),
     catch: () =>
       new EnvironmentHttpBadRequestError({
-        message: "Could not resolve local environment origin.",
+        message: t("cloud.http.localEnvironmentOriginUnresolved"),
       }),
   });
   if (config.tunnelId === undefined) {
@@ -1072,7 +1070,7 @@ export const recoverManagedCloudTunnel = Effect.fn("environment.cloud.recoverMan
       try: () => parseManagedEndpointLocalOrigin(localOrigin),
       catch: () =>
         new EnvironmentHttpBadRequestError({
-          message: "Could not resolve local environment origin.",
+          message: t("cloud.http.localEnvironmentOriginUnresolved"),
         }),
     });
 
@@ -1100,7 +1098,7 @@ export const recoverManagedCloudTunnel = Effect.fn("environment.cloud.recoverMan
     });
     if (recovered.endpointRuntime.providerKind !== "cloudflare_tunnel") {
       return yield* new EnvironmentHttpInternalServerError({
-        message: "T3 Connect returned an unsupported managed tunnel configuration.",
+        message: t("cloud.http.unsupportedManagedTunnelConfig"),
       });
     }
 
@@ -1108,7 +1106,7 @@ export const recoverManagedCloudTunnel = Effect.fn("environment.cloud.recoverMan
       Effect.mapError(
         () =>
           new EnvironmentHttpInternalServerError({
-            message: "Could not persist the recovered managed tunnel configuration.",
+            message: t("cloud.http.recoveredTunnelConfigPersistFailed"),
           }),
       ),
     );
@@ -1309,7 +1307,7 @@ const cloudLinkStateHandler = Effect.fn("environment.cloud.linkState")(
   },
   Effect.catchIf(
     ServerSecretStore.isSecretStoreError,
-    failEnvironmentCloudInternalError("Could not read environment relay configuration."),
+    failEnvironmentCloudInternalError(t("cloud.http.relayConfigReadFailed")),
   ),
 );
 
@@ -1339,7 +1337,7 @@ const cloudUnlinkHandler = Effect.fn("environment.cloud.unlink")(
   },
   Effect.catchIf(
     ServerSecretStore.isSecretStoreError,
-    failEnvironmentCloudInternalError("Could not remove environment relay configuration."),
+    failEnvironmentCloudInternalError(t("cloud.http.relayConfigRemoveFailed")),
   ),
 );
 
@@ -1358,7 +1356,7 @@ const cloudPreferencesHandler = Effect.fn("environment.cloud.preferences")(
   },
   Effect.catchIf(
     ServerSecretStore.isSecretStoreError,
-    failEnvironmentCloudInternalError("Could not persist environment cloud preferences."),
+    failEnvironmentCloudInternalError(t("cloud.http.cloudPreferencesPersistFailed")),
   ),
 );
 
@@ -1410,7 +1408,7 @@ const cloudEnvironmentHealthHandler = Effect.fn("environment.cloud.health")(
       !hasExactScope({ scopes: proofOption.value.scope, expected: "environment:status" })
     ) {
       return yield* new EnvironmentHttpUnauthorizedError({
-        message: "Invalid cloud health request.",
+        message: t("cloud.http.cloudHealthRequestInvalid"),
       });
     }
     const proof = proofOption.value;
@@ -1424,7 +1422,7 @@ const cloudEnvironmentHealthHandler = Effect.fn("environment.cloud.health")(
     });
     if (!consumedReplayGuards) {
       return yield* new EnvironmentHttpConflictError({
-        message: "Cloud health request was already consumed.",
+        message: t("cloud.http.cloudHealthRequestConsumed"),
       });
     }
 
@@ -1472,11 +1470,11 @@ const cloudEnvironmentHealthHandler = Effect.fn("environment.cloud.health")(
   ),
   Effect.catchIf(
     ServerSecretStore.isSecretStoreError,
-    failEnvironmentCloudInternalError("Could not answer cloud health request."),
+    failEnvironmentCloudInternalError(t("cloud.http.cloudHealthRequestAnswerFailed")),
   ),
   Effect.catchTag(
     "PlatformError",
-    failEnvironmentCloudInternalError("Could not answer cloud health request."),
+    failEnvironmentCloudInternalError(t("cloud.http.cloudHealthRequestAnswerFailed")),
   ),
 );
 
@@ -1529,7 +1527,7 @@ const cloudMintCredentialHandler = Effect.fn("environment.cloud.mintCredential")
       !hasExactScope({ scopes: proofOption.value.scope, expected: "environment:connect" })
     ) {
       return yield* new EnvironmentHttpUnauthorizedError({
-        message: "Invalid cloud mint request.",
+        message: t("cloud.http.cloudMintRequestInvalid"),
       });
     }
     const proof = proofOption.value;
@@ -1543,7 +1541,7 @@ const cloudMintCredentialHandler = Effect.fn("environment.cloud.mintCredential")
     });
     if (!consumedReplayGuards) {
       return yield* new EnvironmentHttpConflictError({
-        message: "Cloud mint request was already consumed.",
+        message: t("cloud.http.cloudMintRequestConsumed"),
       });
     }
 
@@ -1552,7 +1550,7 @@ const cloudMintCredentialHandler = Effect.fn("environment.cloud.mintCredential")
       scopes: AuthStandardClientScopes,
       subject: "cloud-connect",
       ttl: Duration.minutes(2),
-      label: "T3 Connect connect",
+      label: t("cloud.http.connectPairingLinkLabel"),
       proofKeyThumbprint: proof.clientProofKeyThumbprint,
     });
     const responsePayload = {
@@ -1593,11 +1591,11 @@ const cloudMintCredentialHandler = Effect.fn("environment.cloud.mintCredential")
   ),
   Effect.catchIf(
     ServerSecretStore.isSecretStoreError,
-    failEnvironmentCloudInternalError("Could not issue cloud connection credential."),
+    failEnvironmentCloudInternalError(t("cloud.http.cloudConnectionCredentialIssueFailed")),
   ),
   Effect.catchTag(
     "PlatformError",
-    failEnvironmentCloudInternalError("Could not issue cloud connection credential."),
+    failEnvironmentCloudInternalError(t("cloud.http.cloudConnectionCredentialIssueFailed")),
   ),
 );
 

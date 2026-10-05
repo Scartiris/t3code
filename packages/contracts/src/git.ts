@@ -1,3 +1,4 @@
+import { t } from "@t3tools/i18n";
 import * as Effect from "effect/Effect";
 import * as Schema from "effect/Schema";
 import {
@@ -369,7 +370,11 @@ export class GitCommandError extends Schema.TaggedError<GitCommandError>()("GitC
   cause: Schema.optional(Schema.Defect()),
 }) {
   override get message(): string {
-    return `Git command failed in ${this.operation} (${this.cwd}): ${this.detail}`;
+    return t("git.git.commandFailed", {
+      operation: this.operation,
+      cwd: this.cwd,
+      detail: this.detail,
+    });
   }
 }
 
@@ -382,7 +387,10 @@ export class TextGenerationError extends Schema.TaggedError<TextGenerationError>
   },
 ) {
   override get message(): string {
-    return `Text generation failed in ${this.operation}: ${this.detail}`;
+    return t("git.git.textGenerationFailed", {
+      operation: this.operation,
+      detail: this.detail,
+    });
   }
 }
 
@@ -393,7 +401,10 @@ export class GitManagerError extends Schema.TaggedError<GitManagerError>()("GitM
   cause: Schema.optional(Schema.Defect()),
 }) {
   override get message(): string {
-    return `Git manager failed in ${this.operation}: ${this.detail}`;
+    return t("git.git.managerFailed", {
+      operation: this.operation,
+      detail: this.detail,
+    });
   }
 }
 
@@ -409,7 +420,11 @@ export class GitPullRequestMaterializationError extends Schema.TaggedError<GitPu
   },
 ) {
   override get message(): string {
-    return `Failed to materialize pull request #${this.pullRequestNumber} branch ${this.headBranch} as ${this.localBranch}.`;
+    return t("git.git.pullRequestMaterializationFailed", {
+      number: this.pullRequestNumber,
+      headBranch: this.headBranch,
+      localBranch: this.localBranch,
+    });
   }
 }
 

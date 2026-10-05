@@ -1,3 +1,4 @@
+import { t } from "@t3tools/i18n";
 import * as Schema from "effect/Schema";
 import { NonNegativeInt, TrimmedNonEmptyString } from "./baseSchemas.ts";
 
@@ -98,7 +99,11 @@ export class VcsProcessSpawnError extends Schema.TaggedError<VcsProcessSpawnErro
   },
 ) {
   override get message(): string {
-    return `VCS process failed to spawn in ${this.operation}: ${this.command} (${this.cwd})`;
+    return t("vcs.vcs.processSpawnFailed", {
+      operation: this.operation,
+      command: this.command,
+      cwd: this.cwd,
+    });
   }
 
   static fromProcessSpawnError(context: VcsProcessErrorContext, error: VcsProcessSpawnFailure) {
@@ -126,7 +131,13 @@ export class VcsProcessExitError extends Schema.TaggedError<VcsProcessExitError>
   },
 ) {
   override get message(): string {
-    return `VCS process failed in ${this.operation}: ${this.command} (${this.cwd}) exited with ${this.exitCode} - ${this.detail}`;
+    return t("vcs.vcs.processExitFailed", {
+      operation: this.operation,
+      command: this.command,
+      cwd: this.cwd,
+      exitCode: this.exitCode,
+      detail: this.detail,
+    });
   }
 
   static fromProcessExit(
@@ -137,16 +148,16 @@ export class VcsProcessExitError extends Schema.TaggedError<VcsProcessExitError>
   ) {
     const detail =
       failureKind === "authentication"
-        ? "Authentication failed."
+        ? t("vcs.vcs.detailAuthenticationFailed")
         : failureKind === "rate-limited"
-          ? "API rate limit exceeded."
+          ? t("vcs.vcs.detailRateLimited")
           : failureKind === "not-found"
             ? context.command === "glab"
-              ? "Merge request not found."
+              ? t("vcs.vcs.detailMergeRequestNotFound")
               : context.command === "gh" || context.command === "az"
-                ? "Pull request not found."
-                : "VCS resource not found."
-            : "Process exited with a non-zero status.";
+                ? t("vcs.vcs.detailPullRequestNotFound")
+                : t("vcs.vcs.detailResourceNotFound")
+            : t("vcs.vcs.detailProcessFailed");
 
     return new VcsProcessExitError({
       ...context,
@@ -171,7 +182,12 @@ export class VcsProcessTimeoutError extends Schema.TaggedError<VcsProcessTimeout
   },
 ) {
   override get message(): string {
-    return `VCS process timed out in ${this.operation}: ${this.command} (${this.cwd}) after ${this.timeoutMs}ms`;
+    return t("vcs.vcs.processTimeout", {
+      operation: this.operation,
+      command: this.command,
+      cwd: this.cwd,
+      timeoutMs: this.timeoutMs,
+    });
   }
 
   static fromProcessTimeoutError(context: VcsProcessErrorContext, error: VcsProcessTimeoutFailure) {
@@ -198,7 +214,12 @@ export class VcsProcessStdinWriteError extends Schema.TaggedError<VcsProcessStdi
   },
 ) {
   override get message(): string {
-    return `VCS process failed to write ${this.stdinBytes} bytes to stdin in ${this.operation}: ${this.command} (${this.cwd})`;
+    return t("vcs.vcs.processStdinWriteFailed", {
+      stdinBytes: this.stdinBytes,
+      operation: this.operation,
+      command: this.command,
+      cwd: this.cwd,
+    });
   }
 }
 
@@ -211,7 +232,12 @@ export class VcsProcessOutputReadError extends Schema.TaggedError<VcsProcessOutp
   },
 ) {
   override get message(): string {
-    return `VCS process failed to read ${this.stream} in ${this.operation}: ${this.command} (${this.cwd})`;
+    return t("vcs.vcs.processOutputReadFailed", {
+      stream: this.stream,
+      operation: this.operation,
+      command: this.command,
+      cwd: this.cwd,
+    });
   }
 }
 
@@ -225,7 +251,14 @@ export class VcsProcessOutputLimitError extends Schema.TaggedError<VcsProcessOut
   },
 ) {
   override get message(): string {
-    return `VCS process ${this.stream} produced ${this.observedBytes} bytes in ${this.operation}: ${this.command} (${this.cwd}), exceeding the ${this.maxBytes} byte limit`;
+    return t("vcs.vcs.processOutputLimitExceeded", {
+      stream: this.stream,
+      observedBytes: this.observedBytes,
+      operation: this.operation,
+      command: this.command,
+      cwd: this.cwd,
+      maxBytes: this.maxBytes,
+    });
   }
 }
 
@@ -234,7 +267,11 @@ export class VcsProcessMissingExitCodeError extends Schema.TaggedError<VcsProces
   VcsProcessBoundaryErrorFields,
 ) {
   override get message(): string {
-    return `VCS process completed without an exit code in ${this.operation}: ${this.command} (${this.cwd})`;
+    return t("vcs.vcs.processMissingExitCode", {
+      operation: this.operation,
+      command: this.command,
+      cwd: this.cwd,
+    });
   }
 }
 
@@ -256,7 +293,11 @@ export class VcsRepositoryDetectionError extends Schema.TaggedError<VcsRepositor
   },
 ) {
   override get message(): string {
-    return `VCS repository detection failed in ${this.operation}: ${this.cwd} - ${this.detail}`;
+    return t("vcs.vcs.repositoryDetectionFailed", {
+      operation: this.operation,
+      cwd: this.cwd,
+      detail: this.detail,
+    });
   }
 }
 
@@ -269,7 +310,11 @@ export class VcsUnsupportedOperationError extends Schema.TaggedError<VcsUnsuppor
   },
 ) {
   override get message(): string {
-    return `VCS operation is unsupported for ${this.kind} in ${this.operation}: ${this.detail}`;
+    return t("vcs.vcs.unsupportedOperation", {
+      kind: this.kind,
+      operation: this.operation,
+      detail: this.detail,
+    });
   }
 }
 

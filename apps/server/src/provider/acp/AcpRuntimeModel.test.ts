@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vite-plus/test";
 
 import type * as EffectAcpSchema from "effect-acp/compat";
+import { t } from "@t3tools/shared/i18n";
 
 import {
   decideToolCallUpdateEmission,
@@ -247,7 +248,7 @@ describe("AcpRuntimeModel", () => {
         toolCall: {
           toolCallId: "tool-1",
           kind: "execute",
-          title: "Ran command",
+          title: t("toolActivity.toolActivity.ranCommand"),
           status: "pending",
           command: "bun run typecheck",
           detail: "bun run typecheck",
@@ -315,7 +316,7 @@ describe("AcpRuntimeModel", () => {
       expect(mergeToolCallState(createdEvent.toolCall, updatedEvent.toolCall)).toMatchObject({
         toolCallId: "tool-1",
         status: "completed",
-        title: "Ran command",
+        title: t("toolActivity.toolActivity.ranCommand"),
         detail: "bun run typecheck",
         command: "bun run typecheck",
       });
@@ -1405,7 +1406,7 @@ describe("extractMcpToolCallIdentity", () => {
       ],
     });
 
-    expect(toolCall.title).toBe("Ran command");
+    expect(toolCall.title).toBe(t("toolActivity.toolActivity.ranCommand"));
     expect(extractMcpToolCallIdentity(toolCall)).toEqual({
       server: "t3-code",
       tool: "orchestrator_capabilities",

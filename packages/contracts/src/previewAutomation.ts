@@ -1,3 +1,4 @@
+import { t } from "@t3tools/i18n";
 import { Schema } from "effect";
 
 import { EnvironmentId, ThreadId, TrimmedNonEmptyString } from "./baseSchemas.ts";
@@ -105,7 +106,7 @@ export const PreviewAutomationOpenInput = Schema.Struct({
     Schema.makeFilter(
       (input) =>
         !(input.tabId !== undefined && input.reuseExistingTab === false) ||
-        "tabId cannot be combined with reuseExistingTab=false.",
+        t("previewErrors.previewAutomation.tabIdWithReuseDisabled"),
     ),
   )
   .annotate({
@@ -173,7 +174,7 @@ export const PreviewAutomationNavigateInput = Schema.Struct({
     Schema.makeFilter(
       (input) =>
         Number(input.url !== undefined) + Number(input.target !== undefined) === 1 ||
-        "Provide exactly one of url or target.",
+        t("previewErrors.previewAutomation.provideOneOfUrlOrTarget"),
     ),
   )
   .annotate({
@@ -225,21 +226,25 @@ export const PreviewAutomationResizeInput = Schema.Struct({
       const hasPreset = input.preset !== undefined;
       const hasWidth = input.width !== undefined;
       const hasHeight = input.height !== undefined;
-      if (hasWidth !== hasHeight) return "Custom dimensions require both width and height.";
+      if (hasWidth !== hasHeight) {
+        return t("previewErrors.previewAutomation.customDimensionsNeedBoth");
+      }
       if (input.mode === "fill") {
         return !hasPreset && !hasWidth && input.orientation === undefined
           ? true
-          : "Fill mode does not accept a preset, dimensions, or orientation.";
+          : t("previewErrors.previewAutomation.fillModeRejectsExtras");
       }
       if (input.mode === "freeform") {
         if (!hasWidth || !hasHeight || hasPreset || input.orientation !== undefined) {
-          return "Freeform mode requires width and height and does not accept a preset or orientation.";
+          return t("previewErrors.previewAutomation.freeformModeRequirements");
         }
       } else if (!hasPreset || hasWidth || hasHeight) {
-        return "Preset mode requires a preset and does not accept custom dimensions.";
+        return t("previewErrors.previewAutomation.presetModeRequirements");
       }
       if (hasWidth && hasHeight && input.width! * input.height! > PREVIEW_VIEWPORT_MAX_AREA) {
-        return `Custom viewport area must not exceed ${PREVIEW_VIEWPORT_MAX_AREA} pixels.`;
+        return t("previewErrors.previewAutomation.viewportAreaTooLarge", {
+          maxArea: PREVIEW_VIEWPORT_MAX_AREA,
+        });
       }
       return true;
     }),
@@ -318,9 +323,12 @@ export const PreviewAutomationClickInput = Schema.Struct({
         Number(input.selector !== undefined) + Number(input.locator !== undefined);
       const hasX = input.x !== undefined;
       const hasY = input.y !== undefined;
-      if (hasX !== hasY) return "Coordinates require both x and y.";
+      if (hasX !== hasY) return t("previewErrors.previewAutomation.coordinatesNeedXAndY");
       const coordinateModes = hasX && hasY ? 1 : 0;
-      return selectorModes + coordinateModes === 1 || "Provide exactly one click target.";
+      return (
+        selectorModes + coordinateModes === 1 ||
+        t("previewErrors.previewAutomation.provideOneClickTarget")
+      );
     }),
   )
   .annotate({
@@ -350,7 +358,7 @@ export const PreviewAutomationTypeInput = Schema.Struct({
     Schema.makeFilter(
       (input) =>
         !(input.selector !== undefined && input.locator !== undefined) ||
-        "Provide at most one of selector or locator.",
+        t("previewErrors.previewAutomation.selectorOrLocatorAtMostOne"),
     ),
   )
   .annotate({
@@ -402,10 +410,12 @@ export const PreviewAutomationScrollInput = Schema.Struct({
   .check(
     Schema.makeFilter((input) => {
       if (input.selector !== undefined && input.locator !== undefined) {
-        return "Provide at most one of selector or locator.";
+        return t("previewErrors.previewAutomation.selectorOrLocatorAtMostOne");
       }
       return (
-        input.deltaX !== undefined || input.deltaY !== undefined || "Provide deltaX or deltaY."
+        input.deltaX !== undefined ||
+        input.deltaY !== undefined ||
+        t("previewErrors.previewAutomation.provideDeltaXOrDeltaY")
       );
     }),
   )
@@ -470,14 +480,14 @@ export const PreviewAutomationWaitForInput = Schema.Struct({
   .check(
     Schema.makeFilter((input) => {
       if (input.selector !== undefined && input.locator !== undefined) {
-        return "Provide at most one of selector or locator.";
+        return t("previewErrors.previewAutomation.selectorOrLocatorAtMostOne");
       }
       return (
         input.selector !== undefined ||
         input.locator !== undefined ||
         input.text !== undefined ||
         input.urlIncludes !== undefined ||
-        "Provide at least one wait condition."
+        t("previewErrors.previewAutomation.provideWaitCondition")
       );
     }),
   )
@@ -658,7 +668,9 @@ export class PreviewAutomationUnavailableError extends Schema.TaggedError<Previe
   },
 ) {
   override get message(): string {
-    return `MCP credential does not grant the ${this.capability} capability: browser preview tools are off for this thread. Do not retry them. To check a page, use a headless browser from the shell, such as Playwright, or curl. The user can turn on "Agent browser access" in Settings; it applies when the agent session next starts.`;
+    return t("previewErrors.previewAutomation.capabilityPreviewUnavailable", {
+      capability: this.capability,
+    });
   }
 }
 
@@ -671,7 +683,9 @@ export class McpCapabilityUnavailableError extends Schema.TaggedError<McpCapabil
   },
 ) {
   override get message(): string {
-    return `MCP credential does not grant the ${this.capability} capability.`;
+    return t("previewErrors.previewAutomation.capabilityUnavailable", {
+      capability: this.capability,
+    });
   }
 }
 
@@ -723,7 +737,10 @@ export class PreviewAutomationNoAvailableHostError extends Schema.TaggedError<Pr
   },
 ) {
   override get message(): string {
-    return `No preview automation host is available for ${this.operation} in environment ${this.environmentId}. Preview tools run in a T3 Code desktop app that is open and connected to this environment; a headless server has no browser of its own. Do not retry. To check a page, use a headless browser from the shell, such as Playwright, or curl, or ask the user to open this thread in the T3 Code desktop app.`;
+    return t("previewErrors.previewAutomation.noAvailableHost", {
+      operation: this.operation,
+      environmentId: this.environmentId,
+    });
   }
 }
 
@@ -735,7 +752,10 @@ export class PreviewAutomationUnsupportedClientError extends Schema.TaggedError<
   },
 ) {
   override get message(): string {
-    return `Preview automation client ${this.clientId} does not support ${this.operation}.`;
+    return t("previewErrors.previewAutomation.unsupportedClient", {
+      clientId: this.clientId,
+      operation: this.operation,
+    });
   }
 }
 
@@ -748,8 +768,13 @@ export class PreviewAutomationTabNotFoundError extends Schema.TaggedError<Previe
 ) {
   override get message(): string {
     return this.tabId
-      ? `Preview tab ${this.tabId} was not found for ${this.operation}. Omit tabId to use the current tab, or call preview_open.`
-      : `No active preview tab was found for ${this.operation}. Call preview_open first.`;
+      ? t("previewErrors.previewAutomation.tabNotFoundExplicit", {
+          tabId: this.tabId,
+          operation: this.operation,
+        })
+      : t("previewErrors.previewAutomation.tabNotFoundWithoutTabId", {
+          operation: this.operation,
+        });
   }
 }
 
@@ -761,7 +786,10 @@ export class PreviewAutomationTimeoutError extends Schema.TaggedError<PreviewAut
   },
 ) {
   override get message(): string {
-    const summary = `Preview automation ${this.operation} timed out after ${this.timeoutMs}ms.`;
+    const summary = t("previewErrors.previewAutomation.timedOut", {
+      operation: this.operation,
+      timeoutMs: this.timeoutMs,
+    });
     return summary;
   }
 }
@@ -774,7 +802,10 @@ export class PreviewAutomationControlInterruptedError extends Schema.TaggedError
   },
 ) {
   override get message(): string {
-    return `Preview automation ${this.operation} was interrupted on client ${this.clientId}.`;
+    return t("previewErrors.previewAutomation.interruptedOnClient", {
+      operation: this.operation,
+      clientId: this.clientId,
+    });
   }
 }
 
@@ -786,7 +817,10 @@ export class PreviewAutomationExecutionError extends Schema.TaggedError<PreviewA
   },
 ) {
   override get message(): string {
-    return `Preview automation ${this.operation} failed on client ${this.clientId}.`;
+    return t("previewErrors.previewAutomation.failedOnClient", {
+      operation: this.operation,
+      clientId: this.clientId,
+    });
   }
 }
 
@@ -801,9 +835,15 @@ export class PreviewAutomationInvalidSelectorError extends Schema.TaggedError<Pr
 ) {
   override get message(): string {
     if (this.selectorKind !== undefined && this.selectorLength !== undefined) {
-      return `Preview automation ${this.operation} received an invalid ${this.selectorKind} (${this.selectorLength} characters).`;
+      return t("previewErrors.previewAutomation.invalidSelectorWithKind", {
+        operation: this.operation,
+        selectorKind: this.selectorKind,
+        selectorLength: this.selectorLength,
+      });
     }
-    return `Preview automation ${this.operation} received an invalid selector.`;
+    return t("previewErrors.previewAutomation.invalidSelector", {
+      operation: this.operation,
+    });
   }
 }
 
@@ -818,12 +858,20 @@ export class PreviewAutomationTargetNotEditableError extends Schema.TaggedError<
 ) {
   override get message(): string {
     if (this.selectorKind === "focused-element") {
-      return `Preview automation ${this.operation} requires an editable focused element.`;
+      return t("previewErrors.previewAutomation.requiresEditableFocusedElement", {
+        operation: this.operation,
+      });
     }
     if (this.selectorKind !== undefined && this.selectorLength !== undefined) {
-      return `Preview automation ${this.operation} requires an editable ${this.selectorKind} (${this.selectorLength} characters).`;
+      return t("previewErrors.previewAutomation.requiresEditableTargetWithKind", {
+        operation: this.operation,
+        selectorKind: this.selectorKind,
+        selectorLength: this.selectorLength,
+      });
     }
-    return `Preview automation ${this.operation} requires an editable target.`;
+    return t("previewErrors.previewAutomation.requiresEditableTarget", {
+      operation: this.operation,
+    });
   }
 }
 
@@ -838,8 +886,11 @@ export class PreviewAutomationResultTooLargeError extends Schema.TaggedError<Pre
   override get message(): string {
     const summary =
       this.maximumBytes === undefined
-        ? `Preview automation ${this.operation} produced a result that is too large.`
-        : `Preview automation ${this.operation} produced a result larger than ${this.maximumBytes} bytes.`;
+        ? t("previewErrors.previewAutomation.resultTooLarge", { operation: this.operation })
+        : t("previewErrors.previewAutomation.resultLargerThanMaximum", {
+            operation: this.operation,
+            maximumBytes: this.maximumBytes,
+          });
     return summary;
   }
 }
@@ -849,7 +900,10 @@ export class PreviewAutomationClientDisconnectedError extends Schema.TaggedError
   PreviewAutomationRequestErrorFields,
 ) {
   override get message(): string {
-    return `Preview automation client ${this.clientId} disconnected during ${this.operation}.`;
+    return t("previewErrors.previewAutomation.clientDisconnected", {
+      clientId: this.clientId,
+      operation: this.operation,
+    });
   }
 }
 
@@ -858,7 +912,10 @@ export class PreviewAutomationRequestQueueClosedError extends Schema.TaggedError
   PreviewAutomationRequestErrorFields,
 ) {
   override get message(): string {
-    return `Preview automation client ${this.clientId} stopped accepting ${this.operation} requests.`;
+    return t("previewErrors.previewAutomation.clientStoppedAcceptingRequests", {
+      clientId: this.clientId,
+      operation: this.operation,
+    });
   }
 }
 
@@ -870,7 +927,10 @@ export class PreviewAutomationRemoteUnavailableError extends Schema.TaggedError<
   },
 ) {
   override get message(): string {
-    return `Preview automation ${this.operation} is unavailable on client ${this.clientId}.`;
+    return t("previewErrors.previewAutomation.unavailableOnClient", {
+      operation: this.operation,
+      clientId: this.clientId,
+    });
   }
 }
 
@@ -879,7 +939,10 @@ export class PreviewAutomationMalformedResponseError extends Schema.TaggedError<
   PreviewAutomationRequestErrorFields,
 ) {
   override get message(): string {
-    return `Preview automation client ${this.clientId} returned a malformed response for ${this.operation}.`;
+    return t("previewErrors.previewAutomation.malformedResponse", {
+      clientId: this.clientId,
+      operation: this.operation,
+    });
   }
 }
 
@@ -891,7 +954,7 @@ export class PreviewAutomationRecordingTransferError extends Schema.TaggedError<
   },
 ) {
   override get message(): string {
-    return "Preview recording could not be saved to the agent environment. The saved copy remains on the desktop.";
+    return t("previewErrors.previewAutomation.recordingSaveFailed");
   }
 }
 
@@ -900,7 +963,7 @@ export class PreviewAutomationRecordingDesktopUpdateRequiredError extends Schema
   { threadId: ThreadId, cause: Schema.optional(Schema.Defect()) },
 ) {
   override get message(): string {
-    return "Update the desktop app to transfer recordings. The recording remains on the desktop.";
+    return t("previewErrors.previewAutomation.recordingNeedsDesktopUpdate");
   }
 }
 
@@ -909,7 +972,7 @@ export class PreviewAutomationRecordingTooLargeError extends Schema.TaggedError<
   { threadId: ThreadId, cause: Schema.optional(Schema.Defect()) },
 ) {
   override get message(): string {
-    return "The recording exceeds 50 MiB. The saved copy remains on the desktop.";
+    return t("previewErrors.previewAutomation.recordingTooLarge");
   }
 }
 
@@ -918,7 +981,7 @@ export class PreviewAutomationRecordingDeadlineExpiredError extends Schema.Tagge
   { threadId: ThreadId, cause: Schema.optional(Schema.Defect()) },
 ) {
   override get message(): string {
-    return "The recording transfer deadline expired. The saved copy remains on the desktop.";
+    return t("previewErrors.previewAutomation.recordingTransferExpired");
   }
 }
 

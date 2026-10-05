@@ -13,6 +13,7 @@ import {
   RunId,
   ThreadId,
 } from "@t3tools/contracts";
+import { t } from "@t3tools/shared/i18n";
 import * as DateTime from "effect/DateTime";
 import * as Effect from "effect/Effect";
 import * as FileSystem from "effect/FileSystem";
@@ -622,7 +623,12 @@ describe("CursorAdapterV2", () => {
       );
       assert.deepEqual(
         readItems.map((item) => ({ title: item.title, input: item.input })),
-        [{ title: "Read src/env.ts", input: { path: "src/env.ts" } }],
+        [
+          {
+            title: t("toolActivity.toolActivity.readPath", { path: "src/env.ts", extra: "" }),
+            input: { path: "src/env.ts" },
+          },
+        ],
       );
       assert.deepEqual(
         fileSearchItems.map((item) => ({

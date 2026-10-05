@@ -1,4 +1,5 @@
 import { expect, it } from "@effect/vitest";
+import { t } from "@t3tools/shared/i18n";
 import * as Effect from "effect/Effect";
 import { HttpClientRequest, HttpClientResponse } from "effect/unstable/http";
 import * as HttpClientError from "effect/unstable/http/HttpClientError";
@@ -48,7 +49,7 @@ it.effect("reports the tunnel limit and relay trace instead of a generic 403", (
     ).pipe(Effect.mapError(relayRequestError), Effect.flip);
 
     expect(error._tag).toBe("EnvironmentHttpForbiddenError");
-    expect(error.message).toContain("at most 3 tunnels");
+    expect(error.message).toContain(t("relayErrors.relay.managedTunnelLimitReached", { count: 3 }));
     expect(error.message).toContain("Unlink an unused environment");
     expect(error.message).toContain("Trace ID: trace-limit");
   }),

@@ -3,6 +3,7 @@ import {
   type ProviderAuthState,
   type ProviderInstanceId,
 } from "@t3tools/contracts";
+import { t } from "@t3tools/shared/i18n";
 import * as Cause from "effect/Cause";
 import * as Clock from "effect/Clock";
 import * as Crypto from "effect/Crypto";
@@ -98,7 +99,7 @@ function visibleSnapshot(snapshot: AuthSnapshot, ownerSessionId: string): Provid
     authorizationUrl: null,
     interaction: null,
     expiresAt: null,
-    ...(busy ? { message: "Sign-in is in progress in another client." } : {}),
+    ...(busy ? { message: t("provider.antigravityAuth.signInInAnotherClient") } : {}),
   };
 }
 
@@ -110,7 +111,7 @@ function safeAuthFailure(cause: Cause.Cause<unknown>, usesBrowser: boolean): str
     }
     if (isAcpRequestError(error.value)) {
       if (error.value.errorMessage.includes("SUBSCRIPTION_REQUIRED")) {
-        return "Google requires an eligible Antigravity subscription for this account.";
+        return t("provider.antigravityAuth.subscriptionRequired");
       }
       if (/access_denied|denied access|cancelled/i.test(error.value.errorMessage)) {
         return "Google sign-in was not approved. Start sign-in again.";
@@ -119,13 +120,13 @@ function safeAuthFailure(cause: Cause.Cause<unknown>, usesBrowser: boolean): str
         return "Antigravity authenticated, but could not initialize a session or load models.";
       }
       if (!usesBrowser && error.value.code === -32602) {
-        return "Antigravity rejected the configured credentials. Check the provider settings.";
+        return t("provider.antigravityAuth.credentialsRejected");
       }
     }
   }
   return usesBrowser
-    ? "Google sign-in failed. Start sign-in again."
-    : "Antigravity could not authenticate with the configured credentials.";
+    ? t("provider.antigravityAuth.googleSignInFailed")
+    : t("provider.antigravityAuth.credentialsAuthFailed");
 }
 
 /** Owns one instance's explicit sign-in and all process admission around sign-out. */
@@ -189,7 +190,7 @@ export const makeAntigravityAuth = Effect.fn("makeAntigravityAuth")(function* <
             if (operation !== "idle") {
               return yield* setupError(
                 "startProcess",
-                "Antigravity sign-in or sign-out is in progress. Try again after it finishes.",
+                t("provider.antigravityAuth.setupInProgress"),
               );
             }
             processes.add(owned);
@@ -231,8 +232,8 @@ export const makeAntigravityAuth = Effect.fn("makeAntigravityAuth")(function* <
           expiresAt: null,
           message: Exit.isSuccess(result)
             ? usesBrowser
-              ? "Signed in with Google."
-              : "Connected to Antigravity."
+              ? t("provider.antigravityAuth.signedInWithGoogle")
+              : t("provider.antigravityAuth.connectedToAntigravity")
             : safeAuthFailure(result.cause, usesBrowser),
         });
       }),
@@ -256,8 +257,7 @@ export const makeAntigravityAuth = Effect.fn("makeAntigravityAuth")(function* <
               ...flow.state,
               phase: "waiting",
               authorizationUrl: authorization.authorizationUrl,
-              message:
-                "Open the Google sign-in link. If you are remote, paste the redirect URL here.",
+              message: t("provider.antigravityAuth.openSignInLink"),
             });
           }),
         ),
@@ -279,7 +279,7 @@ export const makeAntigravityAuth = Effect.fn("makeAntigravityAuth")(function* <
             ...flow.state,
             phase: "verifying",
             authorizationUrl: null,
-            message: "Checking Antigravity access and models.",
+            message: t("provider.antigravityAuth.checkingAccessAndModels"),
           });
         }),
       );
@@ -329,7 +329,7 @@ export const makeAntigravityAuth = Effect.fn("makeAntigravityAuth")(function* <
     Effect.gen(function* () {
       const flow = activeFlow;
       if (!flow || flow.id !== flowId || flow.ownerSessionId !== ownerSessionId) {
-        return yield* setupError(name, "This sign-in is no longer active in this client.");
+        return yield* setupError(name, t("provider.antigravityAuth.signInNotActive"));
       }
       const now = yield* Clock.currentTimeMillis;
       if (now >= flow.expiresAtMillis) {
@@ -347,11 +347,14 @@ export const makeAntigravityAuth = Effect.fn("makeAntigravityAuth")(function* <
               return activeFlow.state;
             }
             if (operation !== "idle") {
-              return yield* setupError("start", "Antigravity setup is already in progress.");
+              return yield* setupError(
+                "start",
+                t("provider.antigravityAuth.setupAlreadyInProgress"),
+              );
             }
             const flowId = yield* crypto.randomUUIDv4.pipe(
               Effect.mapError(() =>
-                setupError("start", "Could not start Google sign-in. Try again."),
+                setupError("start", t("provider.antigravityAuth.signInStartFailed")),
               ),
             );
             const expiresAtMillis = (yield* Clock.currentTimeMillis) + AUTH_TIMEOUT_MS;
@@ -360,7 +363,9 @@ export const makeAntigravityAuth = Effect.fn("makeAntigravityAuth")(function* <
               phase: "starting",
               flowId,
               expiresAt: DateTime.formatIso(DateTime.makeUnsafe(expiresAtMillis)),
-              message: usesBrowser ? "Starting Google sign-in." : "Checking credentials.",
+              message: usesBrowser
+                ? t("provider.antigravityAuth.startingGoogleSignIn")
+                : t("provider.antigravityAuth.checkingCredentials"),
             };
             const flow: AuthFlow = {
               id: flowId,
@@ -391,8 +396,8 @@ export const makeAntigravityAuth = Effect.fn("makeAntigravityAuth")(function* <
             return yield* setupError(
               "complete",
               flow.callbackSent
-                ? "The sign-in response was already sent. Wait for Google to finish."
-                : "Wait for the Google sign-in link before you send a redirect URL.",
+                ? t("provider.antigravityAuth.signInResponseAlreadySent")
+                : t("provider.antigravityAuth.waitForSignInLink"),
             );
           }
           const callback = yield* validateAntigravityCallbackUrl(
@@ -405,7 +410,7 @@ export const makeAntigravityAuth = Effect.fn("makeAntigravityAuth")(function* <
             ...flow.state,
             phase: "verifying",
             authorizationUrl: null,
-            message: "Waiting for Google to finish sign-in.",
+            message: t("provider.antigravityAuth.waitingForGoogle"),
           });
           // The instance owns delivery and its failure handling. The RPC that
           // sent the callback may disconnect before Google answers, and the
@@ -436,7 +441,7 @@ export const makeAntigravityAuth = Effect.fn("makeAntigravityAuth")(function* <
     }),
     cancel: Effect.fn("AntigravityAuth.cancel")(function* (ownerSessionId, flowId) {
       const flow = yield* lock.withPermits(1)(requireFlow(ownerSessionId, flowId, "cancel"));
-      yield* stopFlow(flow, "cancelled", "Google sign-in was cancelled.");
+      yield* stopFlow(flow, "cancelled", t("provider.antigravityAuth.signInCancelled"));
       return flow.state;
     }),
     logout: Effect.fn("AntigravityAuth.logout")(function* (stopSessions) {
@@ -445,7 +450,10 @@ export const makeAntigravityAuth = Effect.fn("makeAntigravityAuth")(function* <
           const flow = yield* lock.withPermits(1)(
             Effect.gen(function* () {
               if (operation !== "idle" && operation !== "auth") {
-                return yield* setupError("logout", "Antigravity setup is already stopping.");
+                return yield* setupError(
+                  "logout",
+                  t("provider.antigravityAuth.setupAlreadyStopping"),
+                );
               }
               operation = "logout";
               const currentFlow = activeFlow;
@@ -457,7 +465,7 @@ export const makeAntigravityAuth = Effect.fn("makeAntigravityAuth")(function* <
                   phase: "cancelled",
                   authorizationUrl: null,
                   expiresAt: null,
-                  message: "Google sign-in was cancelled by sign-out.",
+                  message: t("provider.antigravityAuth.signInCancelledBySignOut"),
                 });
               }
               return currentFlow;
@@ -474,10 +482,7 @@ export const makeAntigravityAuth = Effect.fn("makeAntigravityAuth")(function* <
               const runtime = yield* options.makeRuntime({});
               const initialized = yield* runtime.initialize();
               if (!initialized.agentCapabilities?.auth?.logout) {
-                return yield* setupError(
-                  "logout",
-                  "This Antigravity version does not support sign-out. Update the provider.",
-                );
+                return yield* setupError("logout", t("provider.antigravityAuth.logoutUnsupported"));
               }
               yield* runtime.request("logout", {});
               yield* options.onSignedOut;
@@ -485,7 +490,8 @@ export const makeAntigravityAuth = Effect.fn("makeAntigravityAuth")(function* <
               Effect.scoped,
               Effect.timeoutOrElse({
                 duration: "90 seconds",
-                orElse: () => Effect.fail(setupError("logout", "Antigravity sign-out timed out.")),
+                orElse: () =>
+                  Effect.fail(setupError("logout", t("provider.antigravityAuth.logoutTimedOut"))),
               }),
             ),
           ).pipe(Effect.exit);
@@ -499,7 +505,7 @@ export const makeAntigravityAuth = Effect.fn("makeAntigravityAuth")(function* <
                   phase: Exit.isSuccess(result) ? "idle" : "failed",
                   message: Exit.isSuccess(result)
                     ? "Signed out of Google."
-                    : "Antigravity sign-out failed. Try again.",
+                    : t("provider.antigravityAuth.logoutFailed"),
                 },
               });
             }),
@@ -508,7 +514,7 @@ export const makeAntigravityAuth = Effect.fn("makeAntigravityAuth")(function* <
             const failure = Cause.findErrorOption(result.cause);
             return yield* Option.isSome(failure) && isSetupError(failure.value)
               ? failure.value
-              : setupError("logout", "Antigravity sign-out failed. Try again.");
+              : setupError("logout", t("provider.antigravityAuth.logoutFailed"));
           }
           return yield* currentState("");
         }),

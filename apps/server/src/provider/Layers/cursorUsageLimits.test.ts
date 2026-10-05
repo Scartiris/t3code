@@ -1,6 +1,7 @@
 import { describe, expect, it } from "@effect/vitest";
 import { NodeServices } from "@effect/platform-node";
 import { HostProcessPlatform } from "@t3tools/shared/hostProcess";
+import { t } from "@t3tools/shared/i18n";
 import * as Effect from "effect/Effect";
 import * as FileSystem from "effect/FileSystem";
 import * as Path from "effect/Path";
@@ -26,21 +27,21 @@ describe("Cursor usage limits", () => {
         {
           id: "totalPercentUsed",
           kind: "monthly",
-          label: "Overall",
+          label: t("usageLimits.usageLimits.overallLabel"),
           usedPercent: 72.4,
           resetsAt: "2026-09-20T03:53:06.000Z",
         },
         {
           id: "autoPercentUsed",
           kind: "monthly",
-          label: "Cursor Models",
+          label: t("usageLimits.usageLimits.cursorModelsLabel"),
           usedPercent: 69.5,
           resetsAt: "2026-09-20T03:53:06.000Z",
         },
         {
           id: "apiPercentUsed",
           kind: "monthly",
-          label: "Other Models",
+          label: t("usageLimits.usageLimits.otherModelsLabel"),
           usedPercent: 100,
           resetsAt: "2026-09-20T03:53:06.000Z",
         },
@@ -54,10 +55,24 @@ describe("Cursor usage limits", () => {
     );
     expect(
       cursorUsageResponseToLimits({ planUsage: { totalPercentUsed: 0 } }, checkedAt).windows,
-    ).toEqual([{ id: "totalPercentUsed", kind: "monthly", label: "Overall", usedPercent: 0 }]);
+    ).toEqual([
+      {
+        id: "totalPercentUsed",
+        kind: "monthly",
+        label: t("usageLimits.usageLimits.overallLabel"),
+        usedPercent: 0,
+      },
+    ]);
     expect(
       cursorUsageResponseToLimits({ planUsage: { totalPercentUsed: 150 } }, checkedAt).windows,
-    ).toEqual([{ id: "totalPercentUsed", kind: "monthly", label: "Overall", usedPercent: 100 }]);
+    ).toEqual([
+      {
+        id: "totalPercentUsed",
+        kind: "monthly",
+        label: t("usageLimits.usageLimits.overallLabel"),
+        usedPercent: 100,
+      },
+    ]);
   });
 
   it.effect("reads the instance's credentials and endpoint even when usage enabled is false", () =>

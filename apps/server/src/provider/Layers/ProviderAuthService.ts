@@ -3,6 +3,7 @@ import {
   type ProviderInstanceId,
   type ProviderSessionId,
 } from "@t3tools/contracts";
+import { t } from "@t3tools/shared/i18n";
 import * as Effect from "effect/Effect";
 import * as Layer from "effect/Layer";
 import * as Stream from "effect/Stream";
@@ -29,8 +30,8 @@ export const makeProviderAuthService = Effect.gen(function* () {
         instanceId,
         operation,
         detail: instance
-          ? "This provider does not support sign-in in T3 Code."
-          : "This provider instance is no longer available.",
+          ? t("provider.providerAuthService.signInUnsupported")
+          : t("provider.providerAuthService.instanceUnavailable"),
       });
     }
     return instance.auth;
@@ -60,7 +61,7 @@ export const makeProviderAuthService = Effect.gen(function* () {
     const threadIds = yield* projections
       .getRecoveryThreadIds("runtime")
       .pipe(
-        Effect.mapError(() => failure("Could not read the provider's active sessions. Try again.")),
+        Effect.mapError(() => failure(t("provider.providerAuthService.readActiveSessionsFailed"))),
       );
     const released = new Set<ProviderSessionId>();
     yield* Effect.forEach(
@@ -91,16 +92,14 @@ export const makeProviderAuthService = Effect.gen(function* () {
                     .release({
                       providerSessionId: session.id,
                       reason: "manual_shutdown",
-                      detail: "Provider sign-in changed.",
+                      detail: t("provider.providerAuthService.signInChanged"),
                     })
                     .pipe(Effect.tap(() => Effect.sync(() => released.add(session.id))));
                 }),
               { discard: true },
             ),
           ),
-          Effect.mapError(() =>
-            failure("Could not stop all sessions for this provider. Try again."),
-          ),
+          Effect.mapError(() => failure(t("provider.providerAuthService.stopSessionsFailed"))),
         ),
       { discard: true },
     );
@@ -138,8 +137,7 @@ export const makeProviderAuthService = Effect.gen(function* () {
         return yield* new ProviderSetupError({
           instanceId,
           operation,
-          detail:
-            "Another provider instance is changing this shared sign-in. Finish or cancel it first.",
+          detail: t("provider.providerAuthService.sharedSignInInProgress"),
         });
       }
     }
@@ -152,7 +150,7 @@ export const makeProviderAuthService = Effect.gen(function* () {
         return yield* new ProviderSetupError({
           instanceId: input.instanceId,
           operation: "export",
-          detail: "This provider does not support ChatGPT profile transfer.",
+          detail: t("provider.providerAuthService.profileTransferUnsupported"),
         });
       return yield* auth.reconnectProfile(input.methodId);
     }),
@@ -165,7 +163,7 @@ export const makeProviderAuthService = Effect.gen(function* () {
             return yield* new ProviderSetupError({
               instanceId: input.instanceId,
               operation: "import",
-              detail: "This provider does not support ChatGPT profile transfer.",
+              detail: t("provider.providerAuthService.profileTransferUnsupported"),
             });
           return yield* auth.importProfile(
             input.profile,
@@ -194,7 +192,7 @@ export const makeProviderAuthService = Effect.gen(function* () {
         return yield* new ProviderSetupError({
           instanceId: input.instanceId,
           operation: "respond",
-          detail: "This provider does not accept this sign-in interaction.",
+          detail: t("provider.providerAuthService.interactionUnsupported"),
         });
       }
       return yield* auth.respond(ownerSessionId, input);

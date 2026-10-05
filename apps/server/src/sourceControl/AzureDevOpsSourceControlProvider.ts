@@ -1,5 +1,6 @@
 import * as Effect from "effect/Effect";
 import { SourceControlProviderError, type ChangeRequest } from "@t3tools/contracts";
+import { t } from "@t3tools/shared/i18n";
 
 import * as AzureDevOpsCli from "./AzureDevOpsCli.ts";
 import * as SourceControlProvider from "./SourceControlProvider.ts";
@@ -18,7 +19,8 @@ function parseAzureAuth(input: SourceControlAuthProbeInput) {
     return providerAuth({
       status: "unauthenticated",
       detail:
-        firstSafeAuthLine(combinedAuthOutput(input)) ?? "Run `az login` to authenticate Azure CLI.",
+        firstSafeAuthLine(combinedAuthOutput(input)) ??
+        t("sourceControl.azureDevOpsSourceControlProvider.authenticateWithAzLogin"),
     });
   }
 
@@ -33,7 +35,7 @@ function parseAzureAuth(input: SourceControlAuthProbeInput) {
   return providerAuth({
     status: "unknown",
     host: "dev.azure.com",
-    detail: "Azure CLI account status could not be parsed.",
+    detail: t("sourceControl.azureDevOpsSourceControlProvider.accountStatusUnparsable"),
   });
 }
 
@@ -49,8 +51,7 @@ export const discovery = {
   // as missing on machines where it is installed. `gh` and `glab` answer in ~0.3s.
   probeTimeoutMs: 20_000,
   parseAuth: parseAzureAuth,
-  installHint:
-    "Install the Azure command-line tools (`az`), then enable Azure DevOps support with `az extension add --name azure-devops`.",
+  installHint: t("sourceControl.azureDevOpsSourceControlProvider.installHint"),
 } satisfies SourceControlCliDiscoverySpec;
 
 function toChangeRequest(summary: {

@@ -1,3 +1,4 @@
+import { t } from "@t3tools/i18n";
 import * as Schema from "effect/Schema";
 import { TrimmedNonEmptyString } from "./baseSchemas.ts";
 import { ProviderInstanceId } from "./providerInstance.ts";
@@ -243,7 +244,7 @@ export class TerminalCwdNotFoundError extends Schema.TaggedError<TerminalCwdNotF
   },
 ) {
   override get message() {
-    return `Terminal cwd does not exist: ${this.cwd}`;
+    return t("terminal.terminal.cwdNotFound", { cwd: this.cwd });
   }
 }
 
@@ -254,7 +255,7 @@ export class TerminalCwdNotDirectoryError extends Schema.TaggedError<TerminalCwd
   },
 ) {
   override get message() {
-    return `Terminal cwd is not a directory: ${this.cwd}`;
+    return t("terminal.terminal.cwdNotDirectory", { cwd: this.cwd });
   }
 }
 
@@ -266,7 +267,7 @@ export class TerminalCwdStatError extends Schema.TaggedError<TerminalCwdStatErro
   },
 ) {
   override get message() {
-    return `Failed to access terminal cwd: ${this.cwd}`;
+    return t("terminal.terminal.cwdStatFailed", { cwd: this.cwd });
   }
 }
 
@@ -287,7 +288,11 @@ export class TerminalHistoryError extends Schema.TaggedError<TerminalHistoryErro
   },
 ) {
   override get message() {
-    return `Failed to ${this.operation} terminal history for thread: ${this.threadId}, terminal: ${this.terminalId}`;
+    return t("terminal.terminal.historyFailed", {
+      operation: this.operation,
+      threadId: this.threadId,
+      terminalId: this.terminalId,
+    });
   }
 }
 
@@ -299,7 +304,10 @@ export class TerminalSessionLookupError extends Schema.TaggedError<TerminalSessi
   },
 ) {
   override get message() {
-    return `Unknown terminal thread: ${this.threadId}, terminal: ${this.terminalId}`;
+    return t("terminal.terminal.sessionLookupFailed", {
+      threadId: this.threadId,
+      terminalId: this.terminalId,
+    });
   }
 }
 
@@ -310,7 +318,9 @@ export class TerminalProviderInstanceNotFoundError extends Schema.TaggedError<Te
   },
 ) {
   override get message() {
-    return `Provider instance is not available: ${this.providerInstanceId}`;
+    return t("terminal.terminal.providerInstanceNotFound", {
+      providerInstanceId: this.providerInstanceId,
+    });
   }
 }
 
@@ -322,7 +332,9 @@ export class TerminalProviderEnvironmentError extends Schema.TaggedError<Termina
   },
 ) {
   override get message() {
-    return `Could not prepare the terminal environment for provider instance: ${this.providerInstanceId}`;
+    return t("terminal.terminal.providerEnvironmentFailed", {
+      providerInstanceId: this.providerInstanceId,
+    });
   }
 }
 
@@ -334,7 +346,10 @@ export class TerminalNotRunningError extends Schema.TaggedError<TerminalNotRunni
   },
 ) {
   override get message() {
-    return `Terminal is not running for thread: ${this.threadId}, terminal: ${this.terminalId}`;
+    return t("terminal.terminal.notRunning", {
+      threadId: this.threadId,
+      terminalId: this.terminalId,
+    });
   }
 }
 
@@ -348,7 +363,11 @@ export class TerminalWriteError extends Schema.TaggedError<TerminalWriteError>()
   },
 ) {
   override get message() {
-    return `Failed to write to terminal for thread: ${this.threadId}, terminal: ${this.terminalId}, PID: ${this.terminalPid}`;
+    return t("terminal.terminal.writeFailed", {
+      threadId: this.threadId,
+      terminalId: this.terminalId,
+      terminalPid: this.terminalPid,
+    });
   }
 }
 
@@ -364,7 +383,13 @@ export class TerminalResizeError extends Schema.TaggedError<TerminalResizeError>
   },
 ) {
   override get message() {
-    return `Failed to resize terminal for thread: ${this.threadId}, terminal: ${this.terminalId}, PID: ${this.terminalPid} to ${this.cols}x${this.rows}`;
+    return t("terminal.terminal.resizeFailed", {
+      threadId: this.threadId,
+      terminalId: this.terminalId,
+      terminalPid: this.terminalPid,
+      cols: this.cols,
+      rows: this.rows,
+    });
   }
 }
 

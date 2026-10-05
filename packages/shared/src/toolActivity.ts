@@ -1,4 +1,5 @@
 import type { ToolLifecycleItemType } from "@t3tools/contracts";
+import { t } from "@t3tools/shared/i18n";
 
 function asRecord(value: unknown): Record<string, unknown> | undefined {
   return value !== null && typeof value === "object" && !Array.isArray(value)
@@ -35,7 +36,9 @@ export function dynamicToolTitle(
 ): string | undefined {
   if (toolName === "cua_repl.js") return asTrimmedString(asRecord(input)?.title);
   const skill = claudeSkillInvocation(toolName, input);
-  return skill === undefined ? undefined : `Skill: ${skill.name}`;
+  return skill === undefined
+    ? undefined
+    : t("toolActivity.toolActivity.skillTitle", { name: skill.name });
 }
 
 function recordHasKeys(
@@ -345,19 +348,19 @@ export function formatSearchToolLabel(
   const glob = firstInputString(input, SEARCH_GLOB_KEYS);
   const target = searchTargetName(firstInputString(input, SEARCH_TARGET_KEYS));
   if (query && target) {
-    return `Searched ${query} in ${target}`;
+    return t("toolActivity.toolActivity.searchedQueryInTarget", { query, target });
   }
   if (glob && target) {
-    return `Searched files ${glob} in ${target}`;
+    return t("toolActivity.toolActivity.searchedFilesInTarget", { glob, target });
   }
   if (glob) {
-    return `Searched files ${glob}`;
+    return t("toolActivity.toolActivity.searchedFilesGlob", { glob });
   }
   if (query) {
-    return `Searched ${query}`;
+    return t("toolActivity.toolActivity.searchedQuery", { query });
   }
   if (target) {
-    return `Searched in ${target}`;
+    return t("toolActivity.toolActivity.searchedTargetOnly", { target });
   }
   return undefined;
 }
@@ -365,11 +368,12 @@ export function formatSearchToolLabel(
 /** Work-log heading for a file read: verb plus the structured path, never the path alone. */
 export function formatReadToolLabel(path: string, extraCount = 0): string {
   const trimmed = path.trim();
-  const suffix = extraCount > 0 ? ` +${extraCount} more` : "";
+  const suffix =
+    extraCount > 0 ? t("toolActivity.toolActivity.readExtraFiles", { count: extraCount }) : "";
   if (!trimmed) {
-    return `Read file${suffix}`;
+    return t("toolActivity.toolActivity.readFile", { extra: suffix });
   }
-  return `Read ${trimmed}${suffix}`;
+  return t("toolActivity.toolActivity.readPath", { path: trimmed, extra: suffix });
 }
 
 export interface ToolActivityPresentationInput {
@@ -402,7 +406,7 @@ export function deriveToolActivityPresentation(
 
   if (action === "command") {
     return {
-      summary: "Ran command",
+      summary: t("toolActivity.toolActivity.ranCommand"),
       ...(command ? { detail: command } : {}),
     };
   }
@@ -414,13 +418,13 @@ export function deriveToolActivityPresentation(
       };
     }
     return {
-      summary: "Read file",
+      summary: t("toolActivity.toolActivity.readFileSummary"),
     };
   }
 
   if (action === "file_change") {
     return {
-      summary: "Changed files",
+      summary: t("toolActivity.toolActivity.changedFiles"),
       ...(primaryPath ? { detail: primaryPath } : {}),
     };
   }
@@ -431,7 +435,7 @@ export function deriveToolActivityPresentation(
       return { summary: searchLabel };
     }
     return {
-      summary: "Searched files",
+      summary: t("toolActivity.toolActivity.searchedFilesSummary"),
     };
   }
 

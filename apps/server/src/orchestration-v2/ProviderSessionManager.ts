@@ -1,3 +1,4 @@
+import { t } from "@t3tools/shared/i18n";
 import { resolveProjectSettings } from "@t3tools/shared/projectSettings";
 import {
   ModelSelection,
@@ -618,7 +619,8 @@ export const layerWithOptions = (
             updatedAt: now,
             lastError:
               input.reason === "runtime_error"
-                ? (input.detail ?? "Provider runtime failed.")
+                ? (input.detail ??
+                  t("orchestration-v2.providerSessionManager.providerRuntimeFailed"))
                 : null,
           };
           yield* writeProviderSessionEvents({

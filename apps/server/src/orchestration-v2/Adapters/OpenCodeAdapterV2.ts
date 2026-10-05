@@ -38,6 +38,7 @@ import {
   type RuntimeRequestId,
   type ThreadId,
 } from "@t3tools/contracts";
+import { t } from "@t3tools/shared/i18n";
 import * as Cause from "effect/Cause";
 import * as DateTime from "effect/DateTime";
 import * as Deferred from "effect/Deferred";
@@ -875,7 +876,8 @@ function providerRef(nativeId: string, strength: "strong" | "weak" = "strong") {
 
 function openCodeErrorMessage(event: Extract<OpenCodeEvent, { type: "session.error" }>): string {
   const error = event.properties.error;
-  if (error === undefined) return "OpenCode session failed without an error payload.";
+  if (error === undefined)
+    return t("orchestration-v2.openCodeAdapterV2.sessionFailedWithoutErrorPayload");
   return recordString(error.data, "message") ?? error.name;
 }
 
@@ -2702,7 +2704,7 @@ export function makeOpenCodeAdapterV2(
               busySessionIds.clear();
               if (closing || abortController.signal.aborted) return;
               const detail = Exit.isSuccess(exit)
-                ? "OpenCode event stream ended unexpectedly."
+                ? t("orchestration-v2.openCodeAdapterV2.eventStreamEndedUnexpectedly")
                 : OpenCodeRuntime.openCodeRuntimeErrorDetail(Cause.squash(exit.cause));
               nativeStreamFailure = makeProviderFailure({
                 message: detail,
@@ -2728,7 +2730,10 @@ export function makeOpenCodeAdapterV2(
               abortController.signal.aborted
                 ? Effect.void
                 : Effect.gen(function* () {
-                    const detail = `OpenCode server exited unexpectedly (${code}).`;
+                    const detail = t(
+                      "orchestration-v2.openCodeAdapterV2.serverExitedUnexpectedly",
+                      { code },
+                    );
                     yield* updateProviderSession("error", detail);
                     for (const state of threads.values()) {
                       if (state.activeTurn !== null) {
@@ -2820,7 +2825,9 @@ export function makeOpenCodeAdapterV2(
               resolveAttachmentPath({ attachmentsDir: serverConfig.attachmentsDir, attachment }),
           });
           if (text.length === 0 && files.length === 0) {
-            throw protocolError("OpenCode turns require text or at least one valid attachment");
+            throw protocolError(
+              t("orchestration-v2.openCodeAdapterV2.turnsRequireTextOrAttachment"),
+            );
           }
           return [...(text.length === 0 ? [] : [{ type: "text" as const, text }]), ...files];
         };
@@ -2976,7 +2983,7 @@ export function makeOpenCodeAdapterV2(
             Effect.catchTag("TimeoutError", (cause) => {
               const error = new OpenCodeRuntime.OpenCodeRuntimeError({
                 operation: "session.command",
-                detail: "OpenCode command admission did not complete within 10 seconds.",
+                detail: t("orchestration-v2.openCodeAdapterV2.commandAdmissionTimedOut"),
                 cause,
               });
               abortController.abort();
@@ -3086,7 +3093,7 @@ export function makeOpenCodeAdapterV2(
             Effect.gen(function* () {
               if (nativeStreamFailure !== null) {
                 return yield* protocolError(
-                  "OpenCode event stream has ended; reconnect the provider session before starting another turn.",
+                  t("orchestration-v2.openCodeAdapterV2.eventStreamEndedReconnect"),
                 );
               }
               const sessionId = nativeThreadId(turnInput.providerThread);
@@ -3104,7 +3111,9 @@ export function makeOpenCodeAdapterV2(
               );
               if (parsedModel === null) {
                 return yield* protocolError(
-                  `OpenCode model '${turnInput.modelSelection.model}' must use provider/model format`,
+                  t("orchestration-v2.openCodeAdapterV2.modelFormatInvalid", {
+                    model: turnInput.modelSelection.model,
+                  }),
                 );
               }
               const isCompaction =
@@ -3135,7 +3144,7 @@ export function makeOpenCodeAdapterV2(
               // handler had already finished scanning.
               if (nativeStreamFailure !== null) {
                 return yield* protocolError(
-                  "OpenCode event stream has ended; reconnect the provider session before starting another turn.",
+                  t("orchestration-v2.openCodeAdapterV2.eventStreamEndedReconnect"),
                 );
               }
               if (state.activeTurn !== null) {
@@ -3306,7 +3315,9 @@ export function makeOpenCodeAdapterV2(
               const parsedModel = OpenCodeRuntime.parseOpenCodeModelSlug(turn.modelSelection.model);
               if (parsedModel === null) {
                 return yield* protocolError(
-                  `OpenCode model '${turn.modelSelection.model}' must use provider/model format`,
+                  t("orchestration-v2.openCodeAdapterV2.modelFormatInvalid", {
+                    model: turn.modelSelection.model,
+                  }),
                 );
               }
               const text = providerMessageTextWithAttachmentPaths({
@@ -3323,7 +3334,9 @@ export function makeOpenCodeAdapterV2(
                   }),
               });
               if (text.length === 0 && files.length === 0) {
-                return yield* protocolError("OpenCode steering requires text or an attachment");
+                return yield* protocolError(
+                  t("orchestration-v2.openCodeAdapterV2.steeringRequiresTextOrAttachment"),
+                );
               }
               const parts = [
                 ...(text.length === 0 ? [] : [{ type: "text" as const, text }]),
@@ -3527,7 +3540,9 @@ export function makeOpenCodeAdapterV2(
               const state = threads.get(sessionId);
               if (state?.activeTurn !== null && state?.activeTurn !== undefined) {
                 return yield* protocolError(
-                  `Cannot roll back OpenCode thread ${rollbackInput.providerThread.id} while a turn is active`,
+                  t("orchestration-v2.openCodeAdapterV2.rollbackWhileTurnActive", {
+                    threadId: rollbackInput.providerThread.id,
+                  }),
                 );
               }
               const response = yield* sdkCall("session.messages", { sessionID: sessionId }, () =>
@@ -3550,7 +3565,7 @@ export function makeOpenCodeAdapterV2(
                 );
                 if (boundaryIndex < 0)
                   return yield* protocolError(
-                    "The OpenCode rewind boundary is no longer available.",
+                    t("orchestration-v2.openCodeAdapterV2.rewindBoundaryUnavailable"),
                   );
                 const fork = unwrapData(
                   "session.fork",
@@ -3611,7 +3626,9 @@ export function makeOpenCodeAdapterV2(
               const sourceState = threads.get(sourceSessionId);
               if (sourceState?.activeTurn !== null && sourceState?.activeTurn !== undefined) {
                 return yield* protocolError(
-                  `Cannot fork OpenCode thread ${forkInput.sourceProviderThread.id} while a turn is active`,
+                  t("orchestration-v2.openCodeAdapterV2.forkWhileTurnActive", {
+                    threadId: forkInput.sourceProviderThread.id,
+                  }),
                 );
               }
               let boundaryMessageId: string | undefined;
@@ -3726,7 +3743,7 @@ export const OpenCodeAdapterV2Driver: ProviderAdapterDriver<
             new ProviderAdapterDriverCreateError({
               driver: OPENCODE_PROVIDER,
               instanceId: input.instanceId,
-              detail: "Failed to create OpenCode v2 adapter.",
+              detail: t("orchestration-v2.openCodeAdapterV2.adapterCreateFailed"),
               cause,
             }),
         ),

@@ -14,6 +14,7 @@ import {
   type PullRequestRef,
   type PullRequestSetFilesViewedInput,
 } from "@t3tools/contracts";
+import { t } from "@t3tools/shared/i18n";
 
 import type * as PullRequestFilesViewed from "../persistence/PullRequestFilesViewed.ts";
 import type { ProviderFileRevisions, PullRequestProviderError } from "./PullRequestProvider.ts";
@@ -231,7 +232,7 @@ export const make = (dependencies: Dependencies) => {
   const toFilesViewedStoreError = (operation: string) => (cause: unknown) =>
     new PullRequestOperationError({
       operation,
-      detail: "This environment could not reach its record of which files you have seen.",
+      detail: t("pullRequest.pullRequestViewedFiles.storeUnreachable"),
       cause,
     });
 
@@ -382,7 +383,7 @@ export const make = (dependencies: Dependencies) => {
         return Effect.fail(
           new PullRequestOperationError({
             operation: "filesViewed",
-            detail: "This host does not track which files a reader has seen.",
+            detail: t("pullRequest.pullRequestViewedFiles.viewedFilesUnsupported"),
           }),
         );
       }),
@@ -413,7 +414,7 @@ export const make = (dependencies: Dependencies) => {
         return Effect.fail(
           new PullRequestOperationError({
             operation: "setFilesViewed",
-            detail: "This host does not track which files a reader has seen.",
+            detail: t("pullRequest.pullRequestViewedFiles.viewedFilesUnsupported"),
           }),
         );
       }),

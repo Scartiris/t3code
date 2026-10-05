@@ -1,4 +1,5 @@
 import type { ModelSelection, OrchestrationV2ProviderCapabilities } from "@t3tools/contracts";
+import { t } from "@t3tools/shared/i18n";
 
 export interface ProviderSelectionTransitionInput {
   readonly current: ModelSelection;
@@ -30,7 +31,7 @@ export function acpSelectionTransition(
   ) {
     return {
       type: "reject",
-      reason: "The active ACP session does not expose a model-switch capability.",
+      reason: t("orchestration-v2.providerSelectionTransition.acpModelSwitchUnsupported"),
     };
   }
   return { type: "apply_on_next_turn" };

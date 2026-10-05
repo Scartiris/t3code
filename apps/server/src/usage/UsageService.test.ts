@@ -9,6 +9,7 @@ import * as NodeSqlite from "node:sqlite";
 import { assert, describe, it } from "@effect/vitest";
 import * as NodeServices from "@effect/platform-node/NodeServices";
 import { HostProcessEnvironment, HostProcessPlatform } from "@t3tools/shared/hostProcess";
+import { t } from "@t3tools/shared/i18n";
 import { mergeUsage } from "@t3tools/shared/usageMerge";
 import {
   EnvironmentId,
@@ -351,7 +352,7 @@ describe("UsageService", () => {
         const summary = yield* service.readSummary(WINDOW);
         const cursor = summary.sources.find((source) => source.fingerprint.provider === "cursor");
         assert.strictEqual(cursor?.status, "missing");
-        assert.include(cursor?.message ?? "", "Cursor CLI login");
+        assert.include(cursor?.message ?? "", t("usage.usageService.cursorLoginRequired"));
         assert.isFalse(summary.buckets.some((bucket) => bucket.provider === "cursor"));
       }
     }).pipe(Effect.scoped),

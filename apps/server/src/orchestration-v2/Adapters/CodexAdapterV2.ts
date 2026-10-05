@@ -30,6 +30,7 @@ import {
 } from "@t3tools/contracts";
 import { SKILL_MENTION_PATTERN } from "@t3tools/shared/composerInlineTokens";
 import { HostProcessEnvironment } from "@t3tools/shared/hostProcess";
+import { t } from "@t3tools/shared/i18n";
 import { dynamicToolTitle } from "@t3tools/shared/toolActivity";
 import { getModelSelectionStringOptionValue, modelSelectionsEqual } from "@t3tools/shared/model";
 import { resolveSpawnCommand } from "@t3tools/shared/shell";
@@ -799,7 +800,9 @@ function getNativeThreadId(providerThread: OrchestrationV2ProviderThread) {
     const nativeThreadId = providerThread.nativeThreadRef?.nativeId;
     if (nativeThreadId === undefined || nativeThreadId === null) {
       return yield* toProtocolError(
-        `Provider thread ${providerThread.id} is missing a native Codex thread id.`,
+        t("orchestration-v2.codexAdapterV2.nativeThreadIdMissing", {
+          providerThreadId: providerThread.id,
+        }),
       );
     }
     return nativeThreadId;
@@ -1460,7 +1463,7 @@ export const createCodexAdapterV2 = (
           new ProviderAdapterDriverCreateError({
             driver: CODEX_DRIVER_KIND,
             instanceId,
-            detail: "Failed to materialize the Codex shadow home.",
+            detail: t("orchestration-v2.codexAdapterV2.shadowHomeMaterializeFailed"),
             cause,
           }),
       ),
@@ -2070,7 +2073,9 @@ export function makeCodexAdapterV2(adapterOptions: CodexAdapterV2Options): Provi
                 yield* decodeCodexBackgroundTerminalsListResponse(response);
               if (page.data.some((terminal) => terminal.processId === processId)) {
                 return yield* toProtocolError(
-                  `Codex background terminal ${processId} remained active after termination.`,
+                  t("orchestration-v2.codexAdapterV2.backgroundTerminalStillActive", {
+                    processId,
+                  }),
                 );
               }
               if (page.nextCursor === null) return;
@@ -2800,15 +2805,22 @@ export function makeCodexAdapterV2(adapterOptions: CodexAdapterV2Options): Provi
               attachment,
             });
             if (attachmentPath === null) {
-              return yield* toProtocolError(`Invalid attachment id '${attachment.id}'`);
-            }
-            const bytes = yield* fileSystem
-              .readFile(attachmentPath)
-              .pipe(
-                Effect.mapError((cause) =>
-                  toProtocolError(`Failed to read attachment '${attachment.id}'.`, cause),
-                ),
+              return yield* toProtocolError(
+                t("orchestration-v2.codexAdapterV2.invalidAttachmentId", {
+                  attachmentId: attachment.id,
+                }),
               );
+            }
+            const bytes = yield* fileSystem.readFile(attachmentPath).pipe(
+              Effect.mapError((cause) =>
+                toProtocolError(
+                  t("orchestration-v2.codexAdapterV2.attachmentReadFailed", {
+                    attachmentId: attachment.id,
+                  }),
+                  cause,
+                ),
+              ),
+            );
             return {
               type: "image" as const,
               url: `data:${attachment.mimeType};base64,${Buffer.from(bytes).toString("base64")}`,
@@ -2838,7 +2850,7 @@ export function makeCodexAdapterV2(adapterOptions: CodexAdapterV2Options): Provi
             );
             inputItems.push(...attachmentItems);
             if (inputItems.length === 0) {
-              return yield* toProtocolError("Turn requires non-empty text or attachments.");
+              return yield* toProtocolError(t("orchestration-v2.codexAdapterV2.emptyTurnInput"));
             }
             return inputItems;
           });
@@ -3546,7 +3558,9 @@ export function makeCodexAdapterV2(adapterOptions: CodexAdapterV2Options): Provi
             const providerSessionId = owner.input.providerThread.providerSessionId;
             if (providerSessionId === null) {
               return yield* toProtocolError(
-                `Provider thread ${owner.providerThread.id} is missing a provider session id.`,
+                t("orchestration-v2.codexAdapterV2.providerSessionIdMissing", {
+                  providerThreadId: owner.providerThread.id,
+                }),
               );
             }
             const node: OrchestrationV2ExecutionNode = {
@@ -3628,7 +3642,9 @@ export function makeCodexAdapterV2(adapterOptions: CodexAdapterV2Options): Provi
             const providerSessionId = input.context.input.providerThread.providerSessionId;
             if (providerSessionId === null) {
               return yield* toProtocolError(
-                `Provider thread ${input.context.providerThread.id} is missing a provider session id.`,
+                t("orchestration-v2.codexAdapterV2.providerSessionIdMissing", {
+                  providerThreadId: input.context.providerThread.id,
+                }),
               );
             }
             const questions = input.questions.map((question, index) => ({
@@ -4475,7 +4491,9 @@ export function makeCodexAdapterV2(adapterOptions: CodexAdapterV2Options): Provi
             const context = yield* awaitActiveTurn(payload.turnId);
             if (context === undefined) {
               return yield* toProtocolError(
-                `No active Codex turn context for approval turn ${payload.turnId}.`,
+                t("orchestration-v2.codexAdapterV2.noActiveTurnForApproval", {
+                  turnId: payload.turnId,
+                }),
                 payload,
               );
             }
@@ -4538,7 +4556,9 @@ export function makeCodexAdapterV2(adapterOptions: CodexAdapterV2Options): Provi
             const context = yield* awaitActiveTurn(payload.turnId);
             if (context === undefined) {
               return yield* toProtocolError(
-                `No active Codex turn context for file change approval turn ${payload.turnId}.`,
+                t("orchestration-v2.codexAdapterV2.noActiveTurnForFileChangeApproval", {
+                  turnId: payload.turnId,
+                }),
                 payload,
               );
             }
@@ -4598,7 +4618,9 @@ export function makeCodexAdapterV2(adapterOptions: CodexAdapterV2Options): Provi
             const context = yield* awaitActiveTurn(payload.turnId);
             if (context === undefined) {
               return yield* toProtocolError(
-                `No active Codex turn context for permissions approval turn ${payload.turnId}.`,
+                t("orchestration-v2.codexAdapterV2.noActiveTurnForPermissionsApproval", {
+                  turnId: payload.turnId,
+                }),
                 payload,
               );
             }
@@ -4742,7 +4764,9 @@ export function makeCodexAdapterV2(adapterOptions: CodexAdapterV2Options): Provi
             const context = yield* findActiveTurnByNativeThreadId(payload.conversationId);
             if (context === undefined) {
               return yield* toProtocolError(
-                `No active Codex turn context for exec approval thread ${payload.conversationId}.`,
+                t("orchestration-v2.codexAdapterV2.noActiveTurnForExecApproval", {
+                  threadId: payload.conversationId,
+                }),
                 payload,
               );
             }
@@ -4803,7 +4827,9 @@ export function makeCodexAdapterV2(adapterOptions: CodexAdapterV2Options): Provi
             const context = yield* findActiveTurnByNativeThreadId(payload.conversationId);
             if (context === undefined) {
               return yield* toProtocolError(
-                `No active Codex turn context for apply patch approval thread ${payload.conversationId}.`,
+                t("orchestration-v2.codexAdapterV2.noActiveTurnForApplyPatchApproval", {
+                  threadId: payload.conversationId,
+                }),
                 payload,
               );
             }
@@ -4863,7 +4889,9 @@ export function makeCodexAdapterV2(adapterOptions: CodexAdapterV2Options): Provi
             const context = yield* awaitActiveTurn(payload.turnId);
             if (context === undefined) {
               return yield* toProtocolError(
-                `No active Codex turn context for user input request turn ${payload.turnId}.`,
+                t("orchestration-v2.codexAdapterV2.noActiveTurnForUserInput", {
+                  turnId: payload.turnId,
+                }),
                 payload,
               );
             }
@@ -5539,7 +5567,7 @@ export function makeCodexAdapterV2(adapterOptions: CodexAdapterV2Options): Provi
                 (cause) =>
                   new ProviderAdapterProtocolError({
                     driver: CODEX_PROVIDER,
-                    detail: "Failed to inject historical context",
+                    detail: t("orchestration-v2.codexAdapterV2.historyInjectionFailed"),
                     cause,
                   }),
               ),
@@ -5618,7 +5646,9 @@ export function makeCodexAdapterV2(adapterOptions: CodexAdapterV2Options): Provi
               );
               if (activeTurn === undefined) {
                 return yield* toProtocolError(
-                  `Provider turn ${turnInput.providerTurnId} is not active and cannot be steered.`,
+                  t("orchestration-v2.codexAdapterV2.turnNotActiveForSteering", {
+                    providerTurnId: turnInput.providerTurnId,
+                  }),
                 );
               }
 
@@ -5652,7 +5682,9 @@ export function makeCodexAdapterV2(adapterOptions: CodexAdapterV2Options): Provi
                   ? cause
                   : new ProviderAdapterProtocolError({
                       driver: CODEX_PROVIDER,
-                      detail: `Failed to unload Codex thread for provider thread ${unloadInput.providerThread.id}`,
+                      detail: t("orchestration-v2.codexAdapterV2.threadUnloadFailed", {
+                        providerThreadId: unloadInput.providerThread.id,
+                      }),
                       cause: normalizeCodexCause(cause),
                     }),
               ),
@@ -5682,7 +5714,9 @@ export function makeCodexAdapterV2(adapterOptions: CodexAdapterV2Options): Provi
                 // (released, restarted, or every command already reported).
                 if (turnInput.requestRuntimeRestart === true) return;
                 return yield* toProtocolError(
-                  `Provider turn ${turnInput.providerTurnId} is not active and cannot be interrupted.`,
+                  t("orchestration-v2.codexAdapterV2.turnNotActiveForInterrupt", {
+                    providerTurnId: turnInput.providerTurnId,
+                  }),
                 );
               }
               const interruptTargetContexts = [
@@ -5894,7 +5928,7 @@ export function makeCodexAdapterV2(adapterOptions: CodexAdapterV2Options): Provi
                     );
                     if (Option.isNone(ready)) {
                       return yield* toProtocolError(
-                        "Codex did not start the queued turn within 10 seconds; Stop could not be delivered.",
+                        t("orchestration-v2.codexAdapterV2.queuedTurnStartTimedOut"),
                       );
                     }
                   }
@@ -6046,7 +6080,9 @@ export function makeCodexAdapterV2(adapterOptions: CodexAdapterV2Options): Provi
                   driver: CODEX_PROVIDER,
                   requestId: requestInput.requestId,
                   cause: toProtocolError(
-                    `No pending Codex runtime request ${requestInput.requestId}.`,
+                    t("orchestration-v2.codexAdapterV2.pendingRuntimeRequestMissing", {
+                      requestId: requestInput.requestId,
+                    }),
                   ),
                 });
               }
@@ -6056,7 +6092,9 @@ export function makeCodexAdapterV2(adapterOptions: CodexAdapterV2Options): Provi
                     driver: CODEX_PROVIDER,
                     requestId: requestInput.requestId,
                     cause: toProtocolError(
-                      `Codex user input request ${requestInput.requestId} requires answers.`,
+                      t("orchestration-v2.codexAdapterV2.userInputRequestNeedsAnswers", {
+                        requestId: requestInput.requestId,
+                      }),
                     ),
                   });
                 }
@@ -6068,7 +6106,10 @@ export function makeCodexAdapterV2(adapterOptions: CodexAdapterV2Options): Provi
                   driver: CODEX_PROVIDER,
                   requestId: requestInput.requestId,
                   cause: toProtocolError(
-                    `Codex ${pending.requestKind} request ${requestInput.requestId} requires an approval decision.`,
+                    t("orchestration-v2.codexAdapterV2.approvalRequestNeedsDecision", {
+                      kind: pending.requestKind,
+                      requestId: requestInput.requestId,
+                    }),
                   ),
                 });
               }
@@ -6103,7 +6144,7 @@ export function makeCodexAdapterV2(adapterOptions: CodexAdapterV2Options): Provi
                 (cause) =>
                   new ProviderAdapterProtocolError({
                     driver: CODEX_PROVIDER,
-                    detail: "Failed to upload Codex thread feedback.",
+                    detail: t("orchestration-v2.codexAdapterV2.threadFeedbackUploadFailed"),
                     payload: cause,
                   }),
               ),

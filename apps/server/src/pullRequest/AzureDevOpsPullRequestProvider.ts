@@ -1,6 +1,7 @@
 import * as Effect from "effect/Effect";
 import * as Semaphore from "effect/Semaphore";
 import type { PullRequestCapabilities, PullRequestViewerPermissions } from "@t3tools/contracts";
+import { t } from "@t3tools/shared/i18n";
 
 import * as AzureDevOpsPullRequestCli from "./AzureDevOpsPullRequestCli.ts";
 import {
@@ -171,7 +172,7 @@ export const make = Effect.gen(function* () {
         provider: "azure-devops",
         operation,
         reason: "failed",
-        detail: "Azure DevOps reviews cannot be written from here yet.",
+        detail: t("pullRequest.azureDevOpsPullRequestProvider.reviewUnsupported"),
       }),
     );
 
@@ -613,7 +614,7 @@ export const make = Effect.gen(function* () {
           provider: "azure-devops",
           operation: "listReviewerCandidates",
           reason: "failed",
-          detail: "Azure DevOps cannot say who may review a pull request.",
+          detail: t("pullRequest.azureDevOpsPullRequestProvider.reviewerCandidatesUnsupported"),
         }),
       ),
 

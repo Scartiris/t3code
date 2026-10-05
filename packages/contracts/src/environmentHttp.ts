@@ -1,3 +1,4 @@
+import { t } from "@t3tools/i18n";
 import * as Context from "effect/Context";
 import type * as DateTime from "effect/DateTime";
 import * as Schema from "effect/Schema";
@@ -127,7 +128,7 @@ export class EnvironmentRequestInvalidError extends Schema.TaggedError<Environme
   }
 
   override get message(): string {
-    return `The environment rejected the request (${this.reason}).`;
+    return t("contractErrors.environmentHttp.requestRejected", { reason: this.reason });
   }
 }
 
@@ -147,7 +148,7 @@ export class EnvironmentAuthInvalidError extends Schema.TaggedError<EnvironmentA
   }
 
   override get message(): string {
-    return `The environment rejected this client's credentials (${this.reason}).`;
+    return t("contractErrors.environmentHttp.credentialsRejected", { reason: this.reason });
   }
 }
 
@@ -165,7 +166,7 @@ export class EnvironmentScopeRequiredError extends Schema.TaggedError<Environmen
   }
 
   override get message(): string {
-    return `This request needs the ${this.requiredScope} scope, which this client does not have.`;
+    return t("contractErrors.environmentHttp.scopeRequired", { scope: this.requiredScope });
   }
 }
 
@@ -183,7 +184,7 @@ export class EnvironmentOperationForbiddenError extends Schema.TaggedError<Envir
   }
 
   override get message(): string {
-    return `The environment refused this operation (${this.reason}).`;
+    return t("contractErrors.environmentHttp.operationRefused", { reason: this.reason });
   }
 }
 
@@ -201,7 +202,7 @@ export class EnvironmentInternalError extends Schema.TaggedError<EnvironmentInte
   }
 
   override get message(): string {
-    return `The environment failed to answer this request (${this.reason}).`;
+    return t("contractErrors.environmentHttp.requestFailed", { reason: this.reason });
   }
 }
 
@@ -222,7 +223,7 @@ export class EnvironmentResourceNotFoundError extends Schema.TaggedError<Environ
   }
 
   override get message(): string {
-    return `The environment could not find what this request named (${this.reason}).`;
+    return t("contractErrors.environmentHttp.resourceNotFound", { reason: this.reason });
   }
 }
 

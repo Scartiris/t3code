@@ -16,6 +16,7 @@ import { ChildProcess, ChildProcessSpawner } from "effect/unstable/process";
 
 import { type ClaudeSettings, type ModelSelection } from "@t3tools/contracts";
 import { formatGeneratedBranchName, sanitizeFeatureBranchName } from "@t3tools/shared/git";
+import { t } from "@t3tools/shared/i18n";
 import { resolveSpawnCommand } from "@t3tools/shared/shell";
 
 import { TextGenerationError } from "@t3tools/contracts";
@@ -93,7 +94,12 @@ export const makeClaudeTextGeneration = Effect.fn("makeClaudeTextGeneration")(fu
         (acc, chunk) => acc + chunk,
       ),
       Effect.mapError((cause) =>
-        normalizeCliError("claude", operation, cause, "Failed to collect process output"),
+        normalizeCliError(
+          "claude",
+          operation,
+          cause,
+          t("textGeneration.claudeTextGeneration.collectProcessOutputFailed"),
+        ),
       ),
     );
 
@@ -146,7 +152,7 @@ export const makeClaudeTextGeneration = Effect.fn("makeClaudeTextGeneration")(fu
     const jsonSchemaStr = yield* encodeJsonForOperation(
       operation,
       toJsonSchemaObject(outputSchemaJson),
-      "Failed to encode structured output schema.",
+      t("textGeneration.claudeTextGeneration.encodeOutputSchemaFailed"),
     );
     const caps = getClaudeCatalogModelCapabilities(catalog, resolvedModelSelection.model);
     const descriptors = getProviderOptionDescriptors({
@@ -181,7 +187,7 @@ export const makeClaudeTextGeneration = Effect.fn("makeClaudeTextGeneration")(fu
     const settingsJson = yield* encodeJsonForOperation(
       operation,
       settings,
-      "Failed to encode Claude CLI settings.",
+      t("textGeneration.claudeTextGeneration.encodeSettingsFailed"),
     );
 
     const runClaudeCommand = Effect.fn("runClaudeJson.runClaudeCommand")(function* () {
@@ -192,7 +198,12 @@ export const makeClaudeTextGeneration = Effect.fn("makeClaudeTextGeneration")(fu
               .makeTempDirectoryScoped({ prefix: "t3code-claude-title-" })
               .pipe(
                 Effect.mapError((cause) =>
-                  normalizeCliError("claude", operation, cause, "Failed to create title directory"),
+                  normalizeCliError(
+                    "claude",
+                    operation,
+                    cause,
+                    t("textGeneration.claudeTextGeneration.titleDirectoryCreateFailed"),
+                  ),
                 ),
               )
           : cwd;
@@ -232,7 +243,12 @@ export const makeClaudeTextGeneration = Effect.fn("makeClaudeTextGeneration")(fu
         .spawn(command)
         .pipe(
           Effect.mapError((cause) =>
-            normalizeCliError("claude", operation, cause, "Failed to spawn Claude CLI process"),
+            normalizeCliError(
+              "claude",
+              operation,
+              cause,
+              t("textGeneration.claudeTextGeneration.spawnCliFailed"),
+            ),
           ),
         );
 
@@ -242,7 +258,12 @@ export const makeClaudeTextGeneration = Effect.fn("makeClaudeTextGeneration")(fu
           readStreamAsString(operation, child.stderr),
           child.exitCode.pipe(
             Effect.mapError((cause) =>
-              normalizeCliError("claude", operation, cause, "Failed to read Claude CLI exit code"),
+              normalizeCliError(
+                "claude",
+                operation,
+                cause,
+                t("textGeneration.claudeTextGeneration.readExitCodeFailed"),
+              ),
             ),
           ),
         ],
@@ -257,8 +278,8 @@ export const makeClaudeTextGeneration = Effect.fn("makeClaudeTextGeneration")(fu
           operation,
           detail:
             detail.length > 0
-              ? `Claude CLI command failed: ${detail}`
-              : `Claude CLI command failed with code ${exitCode}.`,
+              ? t("textGeneration.claudeTextGeneration.commandFailed", { detail })
+              : t("textGeneration.claudeTextGeneration.commandFailedWithCode", { exitCode }),
         });
       }
 
@@ -272,7 +293,10 @@ export const makeClaudeTextGeneration = Effect.fn("makeClaudeTextGeneration")(fu
         Option.match({
           onNone: () =>
             Effect.fail(
-              new TextGenerationError({ operation, detail: "Claude CLI request timed out." }),
+              new TextGenerationError({
+                operation,
+                detail: t("textGeneration.claudeTextGeneration.requestTimedOut"),
+              }),
             ),
           onSome: (value) => Effect.succeed(value),
         }),
@@ -285,7 +309,7 @@ export const makeClaudeTextGeneration = Effect.fn("makeClaudeTextGeneration")(fu
           Effect.fail(
             new TextGenerationError({
               operation,
-              detail: "Claude CLI returned unexpected output format.",
+              detail: t("textGeneration.claudeTextGeneration.unexpectedOutputFormat"),
               cause,
             }),
           ),
@@ -302,7 +326,7 @@ export const makeClaudeTextGeneration = Effect.fn("makeClaudeTextGeneration")(fu
           Effect.fail(
             new TextGenerationError({
               operation,
-              detail: "Claude returned invalid structured output.",
+              detail: t("textGeneration.claudeTextGeneration.invalidStructuredOutput"),
               cause,
             }),
           ),

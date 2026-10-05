@@ -14,6 +14,7 @@ import {
   ResourceMonitorCommand as ResourceMonitorCommandSchema,
   ResourceMonitorEvent as ResourceMonitorEventSchema,
 } from "@t3tools/contracts";
+import { t } from "@t3tools/shared/i18n";
 import * as Cause from "effect/Cause";
 import * as Context from "effect/Context";
 import * as Crypto from "effect/Crypto";
@@ -60,7 +61,7 @@ export class NativeTelemetrySpawnFailed extends Schema.TaggedError<NativeTelemet
   },
 ) {
   override get message(): string {
-    return `Failed to start resource monitor '${this.path}'.`;
+    return t("resourceTelemetry.nativeTelemetryClient.spawnFailed", { path: this.path });
   }
 }
 
@@ -71,7 +72,9 @@ export class NativeTelemetryHandshakeTimedOut extends Schema.TaggedError<NativeT
   },
 ) {
   override get message(): string {
-    return `Resource monitor handshake timed out after ${this.timeoutMs}ms.`;
+    return t("resourceTelemetry.nativeTelemetryClient.handshakeTimedOut", {
+      timeoutMs: this.timeoutMs,
+    });
   }
 }
 
@@ -83,7 +86,10 @@ class NativeTelemetryRequestTimedOut extends Schema.TaggedError<NativeTelemetryR
   },
 ) {
   override get message(): string {
-    return `Resource monitor '${this.operation}' request timed out after ${this.timeoutMs}ms.`;
+    return t("resourceTelemetry.nativeTelemetryClient.requestTimedOut", {
+      operation: this.operation,
+      timeoutMs: this.timeoutMs,
+    });
   }
 }
 
@@ -95,7 +101,10 @@ export class NativeTelemetryProtocolMismatch extends Schema.TaggedError<NativeTe
   },
 ) {
   override get message(): string {
-    return `Resource monitor protocol ${this.receivedVersion} is incompatible with expected protocol ${this.expectedVersion}.`;
+    return t("resourceTelemetry.nativeTelemetryClient.protocolMismatch", {
+      receivedVersion: this.receivedVersion,
+      expectedVersion: this.expectedVersion,
+    });
   }
 }
 
@@ -106,7 +115,7 @@ export class NativeTelemetryDecodeFailed extends Schema.TaggedError<NativeTeleme
   },
 ) {
   override get message(): string {
-    return "Failed to decode resource monitor output.";
+    return t("resourceTelemetry.nativeTelemetryClient.decodeFailed");
   }
 }
 
@@ -118,7 +127,9 @@ export class NativeTelemetryCommandFailed extends Schema.TaggedError<NativeTelem
   },
 ) {
   override get message(): string {
-    return `Resource monitor command '${this.operation}' failed.`;
+    return t("resourceTelemetry.nativeTelemetryClient.commandFailed", {
+      operation: this.operation,
+    });
   }
 }
 
@@ -129,7 +140,7 @@ export class NativeTelemetryExited extends Schema.TaggedError<NativeTelemetryExi
   },
 ) {
   override get message(): string {
-    return `Resource monitor exited with code ${this.exitCode}.`;
+    return t("resourceTelemetry.nativeTelemetryClient.exited", { exitCode: this.exitCode });
   }
 }
 
@@ -138,7 +149,7 @@ class NativeTelemetryStreamClosed extends Schema.TaggedError<NativeTelemetryStre
   {},
 ) {
   override get message(): string {
-    return "Resource monitor event stream closed unexpectedly.";
+    return t("resourceTelemetry.nativeTelemetryClient.streamClosed");
   }
 }
 
@@ -149,7 +160,7 @@ export class NativeTelemetryUnavailable extends Schema.TaggedError<NativeTelemet
   },
 ) {
   override get message(): string {
-    return `Resource monitor is unavailable: ${this.reason}`;
+    return t("resourceTelemetry.nativeTelemetryClient.unavailable", { reason: this.reason });
   }
 }
 
@@ -762,7 +773,7 @@ export const make = Effect.fn("resourceTelemetry.nativeTelemetryClient.make")(fu
             ...current,
             status: "unavailable" as const,
             hello: Option.none(),
-            lastError: Option.some("Resource monitor supervisor stopped unexpectedly."),
+            lastError: Option.some(t("resourceTelemetry.nativeTelemetryClient.supervisorStopped")),
           })).pipe(
             Effect.andThen(publishHealth),
             Effect.andThen(
@@ -859,7 +870,9 @@ export const make = Effect.fn("resourceTelemetry.nativeTelemetryClient.make")(fu
       const current = yield* Ref.get(state);
       if (!canCommandNativeTelemetrySidecar(current.status, Option.isSome(current.handle))) {
         return yield* new NativeTelemetryUnavailable({
-          reason: Option.getOrElse(current.lastError, () => "sidecar is not running"),
+          reason: Option.getOrElse(current.lastError, () =>
+            t("resourceTelemetry.nativeTelemetryClient.sidecarNotRunning"),
+          ),
         });
       }
       const requestId = yield* crypto.randomUUIDv4.pipe(
@@ -1031,7 +1044,9 @@ export const make = Effect.fn("resourceTelemetry.nativeTelemetryClient.make")(fu
           onNone: () =>
             Effect.fail(
               new NativeTelemetryUnavailable({
-                reason: Option.getOrElse(current.lastError, () => "handshake is incomplete"),
+                reason: Option.getOrElse(current.lastError, () =>
+                  t("resourceTelemetry.nativeTelemetryClient.handshakeIncomplete"),
+                ),
               }),
             ),
           onSome: (hello) => Effect.succeed(hello.capabilities),

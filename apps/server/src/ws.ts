@@ -100,6 +100,7 @@ import {
   WsRpcGroup,
 } from "@t3tools/contracts";
 import { resolveServerBackgroundActivitySettings } from "@t3tools/shared/backgroundActivitySettings";
+import { t } from "@t3tools/shared/i18n";
 import {
   HttpRouter,
   HttpServerRequest,
@@ -379,27 +380,27 @@ const persistChatAttachments = Effect.fn("ws.assets.persistChatAttachments")(fun
       const parsed = parseBase64DataUrl(attachment.dataUrl);
       if (parsed === null || parsed.mimeType !== attachment.mimeType.toLowerCase()) {
         return yield* new PersistChatAttachmentsError({
-          message: `Attachment ${attachment.name} has an invalid image payload.`,
+          message: t("server.ws.attachmentInvalidImagePayload", { name: attachment.name }),
         });
       }
       const bytes = yield* Effect.fromResult(Encoding.decodeBase64(parsed.base64)).pipe(
         Effect.mapError(
           (cause) =>
             new PersistChatAttachmentsError({
-              message: `Attachment ${attachment.name} is not valid base64.`,
+              message: t("server.ws.attachmentInvalidBase64", { name: attachment.name }),
               cause,
             }),
         ),
       );
       if (bytes.byteLength !== attachment.sizeBytes) {
         return yield* new PersistChatAttachmentsError({
-          message: `Attachment ${attachment.name} size does not match its payload.`,
+          message: t("server.ws.attachmentSizeMismatch", { name: attachment.name }),
         });
       }
       const rawId = createDeterministicAttachmentId(input.threadId, `${input.messageId}:${index}`);
       if (rawId === null) {
         return yield* new PersistChatAttachmentsError({
-          message: "Could not allocate an attachment identifier.",
+          message: t("server.ws.attachmentIdUnavailable"),
         });
       }
       const persisted = {
@@ -415,7 +416,7 @@ const persistChatAttachments = Effect.fn("ws.assets.persistChatAttachments")(fun
           Effect.mapError(
             (cause) =>
               new PersistChatAttachmentsError({
-                message: `Could not persist attachment ${attachment.name}.`,
+                message: t("server.ws.attachmentPersistFailed", { name: attachment.name }),
                 cause,
               }),
           ),
@@ -1331,7 +1332,7 @@ const makeWsRpcLayer = (
             (cause) =>
               new AcpRegistryOperationError({
                 reason: "project_not_found",
-                message: `Project ${projectId} is unavailable.`,
+                message: t("server.ws.projectUnavailable", { projectId }),
                 cause,
               }),
           ),
@@ -1341,7 +1342,7 @@ const makeWsRpcLayer = (
             Effect.fail(
               new AcpRegistryOperationError({
                 reason: "project_not_found",
-                message: `Project ${projectId} was not found.`,
+                message: t("server.ws.projectNotFound", { projectId }),
               }),
             ),
           onSome: Effect.succeed,
@@ -1355,13 +1356,13 @@ const makeWsRpcLayer = (
         if (instance === undefined) {
           return yield* new AcpRegistryOperationError({
             reason: "instance_not_found",
-            message: `Provider instance ${instanceId} was not found.`,
+            message: t("server.ws.providerInstanceNotFound", { instanceId }),
           });
         }
         if (instance.acpSessionManagement === undefined) {
           return yield* new AcpRegistryOperationError({
             reason: "session_list_unsupported",
-            message: `Provider instance ${instanceId} does not expose ACP session management.`,
+            message: t("server.ws.acpSessionManagementUnsupported", { instanceId }),
           });
         }
         return { instance, manager: instance.acpSessionManagement };
@@ -1404,7 +1405,7 @@ const makeWsRpcLayer = (
                 (cause) =>
                   new AcpRegistryOperationError({
                     reason: "session_import_failed",
-                    message: "Could not inspect existing imported ACP sessions.",
+                    message: t("server.ws.acpSessionsInspectFailed"),
                     cause,
                   }),
               ),
@@ -1429,7 +1430,7 @@ const makeWsRpcLayer = (
             ) {
               return yield* new AcpRegistryOperationError({
                 reason: "session_resume_unsupported",
-                message: "The ACP agent cannot load or resume native sessions.",
+                message: t("server.ws.acpNativeSessionsUnsupported"),
               });
             }
             const threadId = importedAcpThreadId({
@@ -1442,7 +1443,7 @@ const makeWsRpcLayer = (
                 (cause) =>
                   new AcpRegistryOperationError({
                     reason: "session_import_failed",
-                    message: "Could not inspect the imported ACP session mapping.",
+                    message: t("server.ws.acpSessionMappingInspectFailed"),
                     cause,
                   }),
               ),
@@ -1491,7 +1492,7 @@ const makeWsRpcLayer = (
                   (cause) =>
                     new AcpRegistryOperationError({
                       reason: "session_import_failed",
-                      message: "Could not inspect the imported ACP session after launch failed.",
+                      message: t("server.ws.acpSessionInspectAfterLaunchFailed"),
                       cause,
                     }),
                 ),
@@ -1499,7 +1500,7 @@ const makeWsRpcLayer = (
               if (racedImport !== null) return { threadId, imported: false } as const;
               return yield* new AcpRegistryOperationError({
                 reason: "session_import_failed",
-                message: "Could not create a T3 thread for the ACP session.",
+                message: t("server.ws.acpThreadCreateFailed"),
                 cause: launched.failure,
               });
             }
@@ -1519,7 +1520,7 @@ const makeWsRpcLayer = (
             if (snapshot.nativeSessions?.canDelete !== true) {
               return yield* new AcpRegistryOperationError({
                 reason: "session_delete_unsupported",
-                message: "The ACP agent does not advertise session deletion.",
+                message: t("server.ws.acpSessionDeleteUnsupported"),
               });
             }
             const threadId = importedAcpThreadId({
@@ -1532,7 +1533,7 @@ const makeWsRpcLayer = (
                 (cause) =>
                   new AcpRegistryOperationError({
                     reason: "session_delete_failed",
-                    message: "Could not inspect the imported ACP session mapping.",
+                    message: t("server.ws.acpSessionMappingInspectFailed"),
                     cause,
                   }),
               ),
@@ -1540,7 +1541,7 @@ const makeWsRpcLayer = (
             if (importedThread !== null) {
               return yield* new AcpRegistryOperationError({
                 reason: "session_delete_failed",
-                message: "Delete the imported T3 thread before deleting its native ACP session.",
+                message: t("server.ws.acpSessionDeleteBlockedByThread"),
               });
             }
             yield* manager.deleteSession({
@@ -1561,7 +1562,7 @@ const makeWsRpcLayer = (
         if (snapshot.configurableProviders !== true) {
           return yield* new AcpRegistryOperationError({
             reason: "providers_unsupported",
-            message: "The ACP agent does not advertise provider configuration.",
+            message: t("server.ws.acpProviderConfigUnsupported"),
           });
         }
         return yield* manager.listProviders(project.workspaceRoot);
@@ -1575,7 +1576,7 @@ const makeWsRpcLayer = (
         if (input.headers !== undefined && Object.keys(input.headers).length > 32) {
           return yield* new AcpRegistryOperationError({
             reason: "provider_configuration_failed",
-            message: "ACP provider configuration accepts at most 32 headers.",
+            message: t("server.ws.acpProviderHeaderLimit"),
           });
         }
         const listed = yield* manager.listProviders(project.workspaceRoot);
@@ -1585,7 +1586,10 @@ const makeWsRpcLayer = (
         if (provider === undefined || !provider.supported.includes(input.apiType)) {
           return yield* new AcpRegistryOperationError({
             reason: "provider_configuration_failed",
-            message: `Provider ${input.providerId} does not support ${input.apiType}.`,
+            message: t("server.ws.acpProviderApiUnsupported", {
+              providerId: input.providerId,
+              apiType: input.apiType,
+            }),
           });
         }
         yield* providerSessionManager.closeInstance(input.instanceId).pipe(
@@ -1593,7 +1597,7 @@ const makeWsRpcLayer = (
             (cause) =>
               new AcpRegistryOperationError({
                 reason: "provider_configuration_failed",
-                message: "Could not stop live sessions before updating the ACP provider.",
+                message: t("server.ws.acpSessionsStopBeforeUpdateFailed"),
                 cause,
               }),
           ),
@@ -1623,8 +1627,8 @@ const makeWsRpcLayer = (
             reason: "provider_configuration_failed",
             message:
               provider === undefined
-                ? `Provider ${input.providerId} was not advertised by the ACP agent.`
-                : `Provider ${input.providerId} is required and cannot be disabled.`,
+                ? t("server.ws.acpProviderNotAdvertised", { providerId: input.providerId })
+                : t("server.ws.acpProviderRequired", { providerId: input.providerId }),
           });
         }
         yield* providerSessionManager.closeInstance(input.instanceId).pipe(
@@ -1632,7 +1636,7 @@ const makeWsRpcLayer = (
             (cause) =>
               new AcpRegistryOperationError({
                 reason: "provider_configuration_failed",
-                message: "Could not stop live sessions before disabling the ACP provider.",
+                message: t("server.ws.acpSessionsStopBeforeDisableFailed"),
                 cause,
               }),
           ),
@@ -1854,7 +1858,7 @@ const makeWsRpcLayer = (
               Effect.mapError(
                 (cause) =>
                   new OrchestrationGetTurnDiffError({
-                    message: "Failed to load turn diff",
+                    message: t("server.ws.turnDiffLoadFailed"),
                     cause,
                   }),
               ),
@@ -1868,7 +1872,7 @@ const makeWsRpcLayer = (
               Effect.mapError(
                 (cause) =>
                   new OrchestrationGetFullThreadDiffError({
-                    message: "Failed to load full thread diff",
+                    message: t("server.ws.fullThreadDiffLoadFailed"),
                     cause,
                   }),
               ),
@@ -1882,7 +1886,7 @@ const makeWsRpcLayer = (
               Effect.mapError(
                 (cause) =>
                   new OrchestrationSearchThreadsError({
-                    message: "Failed to search threads",
+                    message: t("server.ws.threadSearchFailed"),
                     cause,
                   }),
               ),
@@ -1994,14 +1998,14 @@ const makeWsRpcLayer = (
                     new OrchestrationV2ThreadLaunchError({
                       commandId: input.commandId,
                       projectId: input.projectId,
-                      message: "Failed to launch thread",
+                      message: t("server.ws.threadLaunchFailed"),
                       cause,
                     }),
                   ServerRuntimeStartupError: (cause) =>
                     new OrchestrationV2ThreadLaunchError({
                       commandId: input.commandId,
                       projectId: input.projectId,
-                      message: "Failed to launch thread",
+                      message: t("server.ws.threadLaunchFailed"),
                       cause,
                     }),
                 }),
@@ -2120,7 +2124,9 @@ const makeWsRpcLayer = (
                     ? cause
                     : new AcpRegistrySupport.AcpRegistryError({
                         reason: "install_failed",
-                        detail: `Could not read provider settings while checking references for ACP Registry agent ${input.agentId}.`,
+                        detail: t("server.ws.acpRegistrySettingsUnreadable", {
+                          agentId: input.agentId,
+                        }),
                         cause,
                       }),
                 ),
@@ -2207,7 +2213,7 @@ const makeWsRpcLayer = (
               if (snapshot.auth.canLogout !== true) {
                 return yield* new AcpRegistryOperationError({
                   reason: "logout_unsupported",
-                  message: "The ACP agent does not advertise logout.",
+                  message: t("server.ws.acpLogoutUnsupported"),
                 });
               }
               if (instance.auth) {
@@ -2216,7 +2222,7 @@ const makeWsRpcLayer = (
                     (cause) =>
                       new AcpRegistryOperationError({
                         reason: "logout_failed",
-                        message: "Could not sign out of the ACP agent.",
+                        message: t("server.ws.acpLogoutFailed"),
                         cause,
                       }),
                   ),
@@ -2227,7 +2233,7 @@ const makeWsRpcLayer = (
                     (cause) =>
                       new AcpRegistryOperationError({
                         reason: "logout_failed",
-                        message: "Could not stop live sessions before ACP logout.",
+                        message: t("server.ws.acpSessionsStopBeforeLogoutFailed"),
                         cause,
                       }),
                   ),
@@ -2387,14 +2393,16 @@ const makeWsRpcLayer = (
                 return yield* new ProviderSetupError({
                   instanceId: input.instanceId,
                   operation: "consume-reset-credit",
-                  detail: instance ? "This provider is disabled." : "Provider instance not found.",
+                  detail: instance
+                    ? t("server.ws.providerDisabled")
+                    : t("server.ws.providerInstanceMissing"),
                 });
               }
               if (instance.consumeResetCredit === undefined) {
                 return yield* new ProviderSetupError({
                   instanceId: input.instanceId,
                   operation: "consume-reset-credit",
-                  detail: "This provider does not bank reset credits.",
+                  detail: t("server.ws.providerNoResetCredits"),
                 });
               }
               const outcome = yield* instance.consumeResetCredit().pipe(
@@ -2937,7 +2945,7 @@ const makeWsRpcLayer = (
                     Effect.mapError(
                       (cause) =>
                         new OrchestrationDispatchCommandError({
-                          message: "Failed to create clone project.",
+                          message: t("server.ws.cloneProjectCreateFailed"),
                           cause,
                         }),
                     ),
@@ -3102,7 +3110,7 @@ const makeWsRpcLayer = (
                     message:
                       cause._tag === "ProjectNotEmptyError"
                         ? cause.message
-                        : "Failed to mutate project.",
+                        : t("server.ws.projectMutationFailed"),
                     cause,
                   }),
               ),
@@ -3779,7 +3787,9 @@ export const websocketRpcRouteLayer = Layer.unwrap(
           return HttpServerResponse.jsonUnsafe(
             {
               code: "orchestration_protocol_incompatible",
-              message: `Update this client to one that supports orchestration protocol ${ORCHESTRATION_PROTOCOL_VERSION}.`,
+              message: t("server.ws.clientProtocolOutdated", {
+                version: ORCHESTRATION_PROTOCOL_VERSION,
+              }),
               orchestrationProtocolVersion: ORCHESTRATION_PROTOCOL_VERSION,
             },
             { status: 426 },

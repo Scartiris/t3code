@@ -14,6 +14,7 @@ import * as Result from "effect/Result";
 import { ChildProcess, ChildProcessSpawner } from "effect/unstable/process";
 import { createModelCapabilities } from "@t3tools/shared/model";
 import { resolveSpawnCommand } from "@t3tools/shared/shell";
+import { t } from "@t3tools/shared/i18n";
 import {
   query as claudeQuery,
   type Options as ClaudeQueryOptions,
@@ -453,7 +454,7 @@ export const checkClaudeProviderStatus = Effect.fn("checkClaudeProviderStatus")(
         version: null,
         status: "warning",
         auth: { status: "unknown" },
-        message: "Claude is disabled in T3 Code settings.",
+        message: t("provider.claudeProvider.claudeDisabled"),
       },
     });
   }
@@ -481,7 +482,7 @@ export const checkClaudeProviderStatus = Effect.fn("checkClaudeProviderStatus")(
         auth: { status: "unknown" },
         message: isCommandMissingCause(error)
           ? "Claude Agent CLI (`claude`) was not found on PATH."
-          : "Failed to execute Claude Agent CLI health check.",
+          : t("provider.claudeProvider.healthCheckFailed"),
       },
     });
   }
@@ -497,8 +498,7 @@ export const checkClaudeProviderStatus = Effect.fn("checkClaudeProviderStatus")(
         version: null,
         status: "error",
         auth: { status: "unknown" },
-        message:
-          "Claude Agent CLI is installed but failed to run. Timed out while running command.",
+        message: t("provider.claudeProvider.versionProbeTimedOut"),
       },
     });
   }
@@ -625,7 +625,7 @@ export const makePendingClaudeProvider = (
           version: null,
           status: "warning",
           auth: { status: "unknown" },
-          message: "Claude is disabled in T3 Code settings.",
+          message: t("provider.claudeProvider.claudeDisabled"),
         },
       });
     }
@@ -640,7 +640,7 @@ export const makePendingClaudeProvider = (
         version: null,
         status: "warning",
         auth: { status: "unknown" },
-        message: "Claude provider status has not been checked in this session yet.",
+        message: t("provider.claudeProvider.statusNotChecked"),
       },
     });
   });

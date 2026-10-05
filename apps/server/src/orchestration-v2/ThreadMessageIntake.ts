@@ -1,4 +1,5 @@
 import { remapComposerContextAttachments } from "@t3tools/shared/composerContextReferences";
+import { t } from "@t3tools/shared/i18n";
 import { appendUserInputAttachmentPaths } from "../provider/userInputAttachments.ts";
 import type { ChatAttachment, OrchestrationV2Command } from "@t3tools/contracts";
 import * as Effect from "effect/Effect";
@@ -188,7 +189,7 @@ export const launchThread = Effect.fn("ThreadMessageIntake.launchThread")(functi
   }
   if (input.threadId === undefined) {
     return yield* new AttachmentClaims.AttachmentClaimError({
-      message: "Uploaded attachments need a thread id at launch.",
+      message: t("orchestration-v2.threadMessageIntake.attachmentsNeedThreadId"),
     });
   }
   const claimed = yield* AttachmentClaims.claimPendingAttachments({

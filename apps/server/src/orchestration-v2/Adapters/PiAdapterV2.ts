@@ -23,6 +23,7 @@
  * Terminal-only decoration such as status, widget, title, and editor-text
  * updates has no matching T3 surface and is ignored.
  */
+import { t } from "@t3tools/shared/i18n";
 import { HostProcessEnvironment } from "@t3tools/shared/hostProcess";
 import { getModelSelectionStringOptionValue } from "@t3tools/shared/model";
 import {
@@ -1605,7 +1606,9 @@ export function makePiAdapterV2(
             yield* completeOpenStreamItems(turn);
             if (recordString(message, "stopReason") === "error" && turn.failure === null) {
               turn.failure = makeProviderFailure({
-                message: recordString(message, "errorMessage") ?? "Pi reported a model error.",
+                message:
+                  recordString(message, "errorMessage") ??
+                  t("orchestration-v2.piAdapterV2.modelError"),
                 class: "provider_error",
               });
             }
@@ -1657,7 +1660,8 @@ export function makePiAdapterV2(
                 return;
               }
               const errorMessage =
-                recordString(event, "errorMessage") ?? "Pi context compaction failed.";
+                recordString(event, "errorMessage") ??
+                t("orchestration-v2.piAdapterV2.contextCompactionFailed");
               yield* emitCompaction(turn, compaction, "failed", {
                 summary: errorMessage.slice(0, 1_000),
               });
@@ -1697,7 +1701,9 @@ export function makePiAdapterV2(
             );
             const retryDelayMs = Math.max(0, Math.trunc(recordNumber(event, "delayMs") ?? 0));
             const failure = makeProviderFailure({
-              message: recordString(event, "errorMessage") ?? "Pi provider request failed.",
+              message:
+                recordString(event, "errorMessage") ??
+                t("orchestration-v2.piAdapterV2.providerRequestFailed"),
               class: "provider_error",
               retryable: true,
             });
@@ -1739,7 +1745,9 @@ export function makePiAdapterV2(
               return;
             }
             const failure = makeProviderFailure({
-              message: recordString(event, "finalError") ?? "Pi auto-retry failed.",
+              message:
+                recordString(event, "finalError") ??
+                t("orchestration-v2.piAdapterV2.autoRetryFailed"),
               class: "provider_error",
               retryable: false,
             });
@@ -1812,7 +1820,8 @@ export function makePiAdapterV2(
               }
               if (!compactTurn.sawCompaction) {
                 compactTurn.failure = makeProviderFailure({
-                  message: recordString(event, "error") ?? "Pi compact failed.",
+                  message:
+                    recordString(event, "error") ?? t("orchestration-v2.piAdapterV2.compactFailed"),
                   class: "provider_error",
                 });
                 if (state !== null) yield* finalizeTurn(state);
@@ -1860,7 +1869,8 @@ export function makePiAdapterV2(
                   : null;
             if (failedTurn !== null) {
               failedTurn.failure = makeProviderFailure({
-                message: recordString(event, "error") ?? "Pi rejected the prompt.",
+                message:
+                  recordString(event, "error") ?? t("orchestration-v2.piAdapterV2.promptRejected"),
                 class: "provider_error",
               });
               if (state !== null) yield* finalizeTurn(state);
@@ -1942,7 +1952,7 @@ export function makePiAdapterV2(
                   ? null
                   : makeProviderFailure({
                       cause,
-                      message: "Pi process exited unexpectedly.",
+                      message: t("orchestration-v2.piAdapterV2.processExitedUnexpectedly"),
                       class: "transport_error",
                     });
                 yield* finalizeTurn(state, false);
@@ -1956,7 +1966,9 @@ export function makePiAdapterV2(
               } else {
                 yield* updateProviderSession(
                   "error",
-                  interrupted ? "Pi process was stopped." : "Pi process exited unexpectedly.",
+                  interrupted
+                    ? t("orchestration-v2.piAdapterV2.processStopped")
+                    : t("orchestration-v2.piAdapterV2.processExitedUnexpectedly"),
                 );
                 yield* Queue.fail(
                   events,
@@ -2136,7 +2148,9 @@ export function makePiAdapterV2(
           const parsed = parsePiModelSlug(modelSelection.model);
           if (parsed === null) {
             return yield* protocolError(
-              `Pi model '${modelSelection.model}' must use provider/model format`,
+              t("orchestration-v2.piAdapterV2.modelFormatInvalid", {
+                model: modelSelection.model,
+              }),
             );
           }
           const selectedModel = yield* request({
@@ -2878,10 +2892,10 @@ function piSubagentOutput(result: unknown): string {
 }
 
 function piExtensionDisplayName(extensionPath: string | undefined): string {
-  if (extensionPath === undefined) return "Pi extension";
+  if (extensionPath === undefined) return t("orchestration-v2.piAdapterV2.extensionFallbackName");
   const normalized = extensionPath.replace(/\\/g, "/").replace(/\/+$/, "");
   const name = normalized.slice(normalized.lastIndexOf("/") + 1).replace(/\.[^.]+$/, "");
-  return name.length === 0 ? "Pi extension" : name;
+  return name.length === 0 ? t("orchestration-v2.piAdapterV2.extensionFallbackName") : name;
 }
 
 function piThreadSnapshot(
@@ -2903,8 +2917,8 @@ function piQuestion(
           .map((option) => ({ label: option || "Empty value", description: option, value: option }))
       : [
           {
-            label: "Submit empty value",
-            description: "Send an empty string to the extension.",
+            label: t("orchestration-v2.piAdapterV2.submitEmptyValue"),
+            description: t("orchestration-v2.piAdapterV2.emptyValueDescription"),
             value: "",
           },
         ];
@@ -2977,7 +2991,7 @@ export const PiAdapterV2Driver: ProviderAdapterDriver<PiSettings, PiAdapterV2Dri
             new ProviderAdapterDriverCreateError({
               driver: PI_DRIVER_KIND,
               instanceId: input.instanceId,
-              detail: "Failed to create Pi adapter.",
+              detail: t("orchestration-v2.piAdapterV2.adapterCreateFailed"),
               cause,
             }),
         ),

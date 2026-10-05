@@ -18,6 +18,7 @@ import {
   type RuntimeMode,
   ThreadId,
 } from "@t3tools/contracts";
+import { t } from "@t3tools/shared/i18n";
 import * as Effect from "effect/Effect";
 import * as Layer from "effect/Layer";
 import * as FileSystem from "effect/FileSystem";
@@ -1014,7 +1015,10 @@ describe("OpenCode 2 through the orchestrator", () => {
         );
         assert.lengthOf(projection.subagents, 1);
         assert.deepInclude(projection.subagents[0], { status: "interrupted" });
-        assert.include(projection.subagents[0]?.result ?? "", "lost its connection to OpenCode");
+        assert.include(
+          projection.subagents[0]?.result ?? "",
+          t("orchestration-v2.openCode2AdapterV2.backgroundResultLost"),
+        );
         assert.isFalse(
           projection.turnItems.some(
             (item) => item.status === "running" || item.status === "waiting",

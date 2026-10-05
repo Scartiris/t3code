@@ -18,6 +18,7 @@ import {
   type DevicePlatformAvailability,
   LOCAL_DEVICE_HOST_ID,
 } from "@t3tools/contracts";
+import { t } from "@t3tools/shared/i18n";
 import { waitForHttpReady } from "@t3tools/shared/httpReadiness";
 import { HostProcessEnvironment, HostProcessPlatform } from "@t3tools/shared/hostProcess";
 import {
@@ -260,7 +261,7 @@ export const make = Effect.fn("LocalDeviceHost.make")(function* () {
       tools,
       id: hostId,
       kind: "local",
-      label: "This machine",
+      label: t("device.localDeviceHost.thisMachine"),
       platforms,
       hubInstalled,
       agentDeviceInstalled,

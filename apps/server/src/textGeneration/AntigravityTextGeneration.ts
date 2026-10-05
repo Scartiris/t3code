@@ -5,6 +5,7 @@ import {
 } from "@t3tools/contracts";
 import { formatGeneratedBranchName, sanitizeFeatureBranchName } from "@t3tools/shared/git";
 import { extractJsonObject } from "@t3tools/shared/schemaJson";
+import { t } from "@t3tools/shared/i18n";
 import * as Deferred from "effect/Deferred";
 import * as Effect from "effect/Effect";
 import * as Exit from "effect/Exit";
@@ -133,8 +134,7 @@ export const makeAntigravityTextGeneration = Effect.fn("makeAntigravityTextGener
         if (!(yield* available)) {
           return yield* new TextGenerationError({
             operation,
-            detail:
-              "Antigravity text generation is unavailable for profiles with global hooks or MCP configuration. Select another system model.",
+            detail: t("textGeneration.antigravityTextGeneration.globalHooksUnavailable"),
           });
         }
 
@@ -168,7 +168,7 @@ export const makeAntigravityTextGeneration = Effect.fn("makeAntigravityTextGener
               Effect.asVoid,
             );
           const rejectToolRequest = () =>
-            reject("Antigravity text generation requested a tool or user input.").pipe(
+            reject(t("textGeneration.antigravityTextGeneration.toolOrInputRequested")).pipe(
               Effect.andThen(
                 Effect.fail(
                   new AcpRequestError({
@@ -180,12 +180,12 @@ export const makeAntigravityTextGeneration = Effect.fn("makeAntigravityTextGener
             );
 
           yield* runtime.handleRequestPermission(() =>
-            reject("Antigravity text generation requested a tool permission or user input.").pipe(
+            reject(t("textGeneration.antigravityTextGeneration.toolPermissionRequested")).pipe(
               Effect.as({ outcome: { outcome: "cancelled" as const } }),
             ),
           );
           yield* runtime.handleElicitation(() =>
-            reject("Antigravity text generation requested user input.").pipe(
+            reject(t("textGeneration.antigravityTextGeneration.userInputRequested")).pipe(
               Effect.as({ action: "decline" as const }),
             ),
           );
@@ -204,7 +204,9 @@ export const makeAntigravityTextGeneration = Effect.fn("makeAntigravityTextGener
                 update.sessionUpdate === "tool_call" ||
                 update.sessionUpdate === "tool_call_update"
               ) {
-                return yield* reject("Antigravity attempted tool work during text generation.");
+                return yield* reject(
+                  t("textGeneration.antigravityTextGeneration.toolWorkAttempted"),
+                );
               }
               if (
                 notification.sessionId !== sessionId ||
@@ -220,7 +222,9 @@ export const makeAntigravityTextGeneration = Effect.fn("makeAntigravityTextGener
                   : [false, current + text],
               );
               if (exceeded) {
-                return yield* reject("Antigravity text generation exceeded the output limit.");
+                return yield* reject(
+                  t("textGeneration.antigravityTextGeneration.outputLimitExceeded"),
+                );
               }
             }),
           );
@@ -231,7 +235,7 @@ export const makeAntigravityTextGeneration = Effect.fn("makeAntigravityTextGener
             if (!isNativeSessionId(sessionId)) {
               return yield* new TextGenerationError({
                 operation,
-                detail: "Antigravity returned an invalid text helper session ID.",
+                detail: t("textGeneration.antigravityTextGeneration.invalidSessionId"),
               });
             }
             yield* runtime.setMode("default");
@@ -242,7 +246,7 @@ export const makeAntigravityTextGeneration = Effect.fn("makeAntigravityTextGener
               mapError: (cause) =>
                 new TextGenerationError({
                   operation,
-                  detail: "Could not select the Antigravity model for text generation.",
+                  detail: t("textGeneration.antigravityTextGeneration.modelSelectionFailed"),
                   cause,
                 }),
             });
@@ -266,7 +270,7 @@ export const makeAntigravityTextGeneration = Effect.fn("makeAntigravityTextGener
             if (result.stopReason === "cancelled") {
               return yield* new TextGenerationError({
                 operation,
-                detail: "Antigravity text generation was cancelled.",
+                detail: t("textGeneration.antigravityTextGeneration.cancelled"),
               });
             }
             return (yield* Ref.get(output)).trim();
@@ -281,13 +285,13 @@ export const makeAntigravityTextGeneration = Effect.fn("makeAntigravityTextGener
         if ((yield* fs.readDirectory(cwd)).length > 0) {
           return yield* new TextGenerationError({
             operation,
-            detail: "Antigravity wrote files during text generation.",
+            detail: t("textGeneration.antigravityTextGeneration.filesWritten"),
           });
         }
         if (!rawResult) {
           return yield* new TextGenerationError({
             operation,
-            detail: "Antigravity returned empty text generation output.",
+            detail: t("textGeneration.antigravityTextGeneration.emptyOutput"),
           });
         }
         const decodeOutput = Schema.decodeEffect(Schema.fromJsonString(input.outputSchema));
@@ -296,7 +300,7 @@ export const makeAntigravityTextGeneration = Effect.fn("makeAntigravityTextGener
             (cause) =>
               new TextGenerationError({
                 operation,
-                detail: "Antigravity returned invalid structured output.",
+                detail: t("textGeneration.antigravityTextGeneration.invalidStructuredOutput"),
                 cause,
               }),
           ),
@@ -310,7 +314,7 @@ export const makeAntigravityTextGeneration = Effect.fn("makeAntigravityTextGener
               Effect.fail(
                 new TextGenerationError({
                   operation,
-                  detail: "Antigravity text generation timed out.",
+                  detail: t("textGeneration.antigravityTextGeneration.timedOut"),
                 }),
               ),
             onSome: Effect.succeed,
@@ -329,7 +333,7 @@ export const makeAntigravityTextGeneration = Effect.fn("makeAntigravityTextGener
             ? cause
             : new TextGenerationError({
                 operation: input.operation,
-                detail: "Antigravity text generation failed.",
+                detail: t("textGeneration.antigravityTextGeneration.generationFailed"),
                 cause,
               }),
         ),

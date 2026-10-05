@@ -19,6 +19,7 @@ import {
   DpopFailureReason,
   type DpopFailureReason as DpopFailureReasonType,
 } from "@t3tools/contracts";
+import { t } from "@t3tools/shared/i18n";
 import { encodeOAuthScope } from "@t3tools/shared/oauthScope";
 import * as Context from "effect/Context";
 import * as Crypto from "effect/Crypto";
@@ -1002,7 +1003,7 @@ export const make = Effect.gen(function* () {
             ({
               id: session.sessionId,
               credential: devAuth.credential,
-              label: "Reusable dev token",
+              label: t("auth.environmentAuth.reusableDevTokenLabel"),
               expiresAt: DateTime.toUtc(session.expiresAt ?? REUSABLE_DEV_SESSION_EXPIRES_AT),
             }) satisfies AuthPairingCredentialResult,
         ),

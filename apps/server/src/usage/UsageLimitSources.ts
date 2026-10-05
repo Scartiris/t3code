@@ -22,6 +22,7 @@ import {
   type UsageLimitSourceSnapshot,
 } from "@t3tools/contracts";
 import { resolveServerBackgroundActivitySettings } from "@t3tools/shared/backgroundActivitySettings";
+import { t } from "@t3tools/shared/i18n";
 import * as Context from "effect/Context";
 import * as DateTime from "effect/DateTime";
 import * as Duration from "effect/Duration";
@@ -78,7 +79,7 @@ export const make = Effect.gen(function* () {
     const checkedAt = DateTime.formatIso(yield* DateTime.now);
     const base = { id, kind: config.kind, label: sourceLabel(id, config), checkedAt } as const;
     if (config.managementKey.length === 0) {
-      return { ...base, accounts: [], error: "No management key configured." };
+      return { ...base, accounts: [], error: t("usage.usageLimitSources.noManagementKey") };
     }
     const accounts = yield* api.readAccounts(config).pipe(Effect.result);
     if (accounts._tag === "Failure") {
@@ -120,13 +121,16 @@ export const make = Effect.gen(function* () {
     Effect.gen(function* () {
       const settings = yield* settingsService.getSettings.pipe(
         Effect.mapError(
-          () => new UsageLimitSourceError({ detail: "Could not read hub settings." }),
+          () =>
+            new UsageLimitSourceError({
+              detail: t("usage.usageLimitSources.hubSettingsUnreadable"),
+            }),
         ),
       );
       const config = settings.usageLimitSources[input.sourceId];
       if (!config?.enabled || !config.managementKey) {
         return yield* new UsageLimitSourceError({
-          detail: "The usage limit source is missing or disabled.",
+          detail: t("usage.usageLimitSources.sourceMissingOrDisabled"),
         });
       }
       const result = yield* api.consume(config, input.accountId, input.creditId);

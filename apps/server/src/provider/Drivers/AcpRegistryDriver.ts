@@ -9,6 +9,7 @@ import {
   type ServerProviderModel,
 } from "@t3tools/contracts";
 import { HostProcessEnvironment } from "@t3tools/shared/hostProcess";
+import { t } from "@t3tools/shared/i18n";
 import { createModelCapabilities } from "@t3tools/shared/model";
 import * as Clock from "effect/Clock";
 import * as Crypto from "effect/Crypto";
@@ -80,7 +81,7 @@ const makeUnsupportedTextGeneration = (): TextGeneration["Service"] => {
     Effect.fail(
       new TextGenerationError({
         operation,
-        detail: "ACP Registry instances do not provide application text generation.",
+        detail: t("provider.acpRegistryDriver.textGenerationUnsupported"),
       }),
     );
   return {
@@ -138,35 +139,42 @@ export function acpRegistrySnapshotReadiness(
         installed: false,
         version: null,
         status: "warning",
-        message: "Select an ACP Registry agent before starting a thread.",
+        message: t("provider.acpRegistryDriver.selectAgentBeforeStart"),
       };
     case "not_found":
       return {
         installed: false,
         version: null,
         status: "error",
-        message: `ACP Registry does not contain agent '${inspection.agentId}'.`,
+        message: t("provider.acpRegistryDriver.agentNotFound", { agentId: inspection.agentId }),
       };
     case "unsupported":
       return {
         installed: false,
         version: inspection.version,
         status: "error",
-        message: `ACP Registry agent '${inspection.agentId}' has no compatible distribution for this environment.`,
+        message: t("provider.acpRegistryDriver.agentDistributionUnsupported", {
+          agentId: inspection.agentId,
+        }),
       };
     case "missing_runner":
       return {
         installed: false,
         version: inspection.version,
         status: "error",
-        message: `ACP Registry agent '${inspection.agentId}' requires '${inspection.runner}' on this environment's PATH.`,
+        message: t("provider.acpRegistryDriver.agentRunnerMissing", {
+          agentId: inspection.agentId,
+          runner: inspection.runner,
+        }),
       };
     case "unprepared":
       return {
         installed: false,
         version: inspection.version,
         status: "warning",
-        message: `ACP Registry agent '${inspection.agentId}' has not been prepared on this environment.`,
+        message: t("provider.acpRegistryDriver.agentUnprepared", {
+          agentId: inspection.agentId,
+        }),
       };
     case "failed":
       return {
@@ -293,8 +301,8 @@ const buildInitialAcpRegistrySnapshot = Effect.fn("AcpRegistryDriver.buildInitia
       status: "warning",
       auth: { status: "unknown" },
       message: input.settings.enabled
-        ? "Checking ACP Registry agent readiness..."
-        : "ACP Registry is disabled in T3 Code settings.",
+        ? t("provider.acpRegistryDriver.checkingAgentReadiness")
+        : t("provider.acpRegistryDriver.disabledInSettings"),
     });
   },
 );
@@ -320,10 +328,14 @@ export function buildCheckedAcpRegistrySnapshot(
       : undefined;
   const authenticationMessage = advertisedAuthMethod
     ? advertisedAuthMethod.type === "terminal" && advertisedAuthMethod.command
-      ? `Sign in in provider settings using "${advertisedAuthMethod.name}". The login terminal runs on this environment.`
+      ? t("provider.acpRegistryDriver.signInWithLoginTerminal", {
+          name: advertisedAuthMethod.name,
+        })
       : advertisedAuthMethod.type === "env_var" &&
           (advertisedAuthMethod.envVarNames?.length ?? 0) > 0
-        ? `Set ${advertisedAuthMethod.envVarNames!.join(", ")} under this instance's environment variables in provider settings. T3 Code will detect it on the next provider refresh.`
+        ? t("provider.acpRegistryDriver.setEnvironmentVariable", {
+            envVarNames: advertisedAuthMethod.envVarNames!.join(", "),
+          })
         : `Sign in in provider settings using "${advertisedAuthMethod.name}".`
     : undefined;
   return baseSnapshot({
@@ -383,7 +395,9 @@ export const checkAcpRegistryProviderStatus = Effect.fn("AcpRegistryDriver.check
         checkedAt,
         inspection: {
           status: "failed",
-          message: `Could not inspect ACP Registry agent: ${inspected.failure.message}`,
+          message: t("provider.acpRegistryDriver.inspectionFailed", {
+            message: inspected.failure.message,
+          }),
         },
       });
     }
@@ -439,7 +453,9 @@ export const checkAcpRegistryProviderReadiness = Effect.fn(
     inspection: Result.isFailure(inspected)
       ? {
           status: "failed",
-          message: `Could not inspect ACP Registry agent: ${inspected.failure.message}`,
+          message: t("provider.acpRegistryDriver.inspectionFailed", {
+            message: inspected.failure.message,
+          }),
         }
       : inspected.success,
   });
@@ -510,7 +526,7 @@ export const AcpRegistryDriver: ProviderDriver<AcpRegistrySettings, AcpRegistryD
             new ProviderDriverError({
               driver: DRIVER_KIND,
               instanceId,
-              detail: "Failed to build ACP Registry orchestration adapter.",
+              detail: t("provider.acpRegistryDriver.orchestrationAdapterBuildFailed"),
               cause,
             }),
         ),
@@ -720,7 +736,7 @@ export const AcpRegistryDriver: ProviderDriver<AcpRegistrySettings, AcpRegistryD
             new ProviderDriverError({
               driver: DRIVER_KIND,
               instanceId,
-              detail: "Failed to build the ACP Registry provider snapshot.",
+              detail: t("provider.acpRegistryDriver.providerSnapshotBuildFailed"),
               cause,
             }),
         ),

@@ -22,6 +22,7 @@
  * @module provider/Drivers/CodexDriver
  */
 import { CodexSettings, ProviderDriverKind } from "@t3tools/contracts";
+import { t } from "@t3tools/shared/i18n";
 import * as Crypto from "effect/Crypto";
 import * as Effect from "effect/Effect";
 import * as FileSystem from "effect/FileSystem";
@@ -207,7 +208,7 @@ export const CodexDriver: ProviderDriver<CodexSettings, CodexDriverEnv> = {
             new ProviderDriverError({
               driver: DRIVER_KIND,
               instanceId,
-              detail: "Failed to build Codex orchestration adapter.",
+              detail: t("provider.codexDriver.orchestrationAdapterBuildFailed"),
               cause,
             }),
         ),
@@ -262,7 +263,9 @@ export const CodexDriver: ProviderDriver<CodexSettings, CodexDriverEnv> = {
             new ProviderDriverError({
               driver: DRIVER_KIND,
               instanceId,
-              detail: `Failed to build Codex snapshot: ${cause.message ?? String(cause)}`,
+              detail: t("provider.codexDriver.snapshotBuildFailed", {
+                message: cause.message ?? String(cause),
+              }),
               cause,
             }),
         ),
@@ -295,7 +298,7 @@ export const CodexDriver: ProviderDriver<CodexSettings, CodexDriverEnv> = {
                   new ProviderDriverError({
                     driver: DRIVER_KIND,
                     instanceId,
-                    detail: `Failed to probe Codex skills for '${cwd}'`,
+                    detail: t("provider.codexDriver.skillsProbeFailed", { cwd }),
                     cause,
                   }),
               ),
@@ -334,7 +337,7 @@ export const CodexDriver: ProviderDriver<CodexSettings, CodexDriverEnv> = {
                 new ProviderDriverError({
                   driver: DRIVER_KIND,
                   instanceId,
-                  detail: "Codex could not redeem the reset credit.",
+                  detail: t("provider.codexDriver.resetCreditRedeemFailed"),
                   cause,
                 }),
             ),
@@ -358,8 +361,7 @@ export const CodexDriver: ProviderDriver<CodexSettings, CodexDriverEnv> = {
                   return yield* new ProviderDriverError({
                     driver: DRIVER_KIND,
                     instanceId,
-                    detail:
-                      "The reset was applied, but Codex could not confirm the new limits. Refresh to check.",
+                    detail: t("provider.codexDriver.resetLimitsUnconfirmed"),
                   });
                 }
               }),

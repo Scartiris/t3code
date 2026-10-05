@@ -25,6 +25,7 @@ import type {
 } from "@t3tools/contracts";
 import { PREFERRED_DEFAULT_CODEX_MODELS, ServerSettingsError } from "@t3tools/contracts";
 
+import { t } from "@t3tools/shared/i18n";
 import {
   codexModelFamily,
   createModelCapabilities,
@@ -457,7 +458,7 @@ const probeCodexAppServerProvider = Effect.fn("probeCodexAppServerProvider")(fun
             Effect.timeoutOption(Duration.millis(RATE_LIMITS_PROBE_TIMEOUT_MS)),
             Effect.map(
               Option.getOrElse((): CodexRateLimitsProbe => ({
-                failure: "Codex did not answer the usage request.",
+                failure: t("provider.codexProvider.usageRequestUnanswered"),
               })),
             ),
             Effect.catch((error) =>
@@ -531,7 +532,7 @@ const makePendingCodexProvider = (
         version: null,
         status: "warning",
         auth: { status: "unknown" },
-        message: "Codex provider status has not been checked in this session yet.",
+        message: t("provider.codexProvider.statusNotChecked"),
       },
     });
   });
@@ -637,11 +638,11 @@ export const checkCodexProviderStatus = Effect.fn("checkCodexProviderStatus")(fu
         status: "error",
         auth: { status: "unknown" },
         message: installed
-          ? `Codex app-server provider probe failed: ${error.message}.`
-          : `Could not start Codex CLI (\`${codexSettings.binaryPath}\`). Check Settings → Providers → Codex → Binary path on the server.` +
+          ? t("provider.codexProvider.probeFailed", { message: error.message })
+          : t("provider.codexProvider.cliStartFailed", { path: codexSettings.binaryPath }) +
             (codexSettings.binaryPath === "codex"
-              ? " Installing ChatGPT or Codex desktop may not add codex to PATH."
-              : " Make sure the configured executable exists and can be run."),
+              ? t("provider.codexProvider.cliStartFailedPathHint")
+              : t("provider.codexProvider.cliStartFailedBinaryHint")),
       },
     });
   }

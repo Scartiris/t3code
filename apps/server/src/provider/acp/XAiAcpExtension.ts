@@ -2,6 +2,7 @@
 import * as NodeOS from "node:os";
 
 import type { ProviderUserInputAnswers, UserInputQuestion } from "@t3tools/contracts";
+import { t } from "@t3tools/shared/i18n";
 import * as Cause from "effect/Cause";
 import * as Deferred from "effect/Deferred";
 import * as Effect from "effect/Effect";
@@ -740,7 +741,8 @@ export function extractXAiAcpBackgroundToolMutation(
           : /exited|failed|error|signal/i.test(outcome)
             ? "failed"
             : "completed",
-      appendOutput: summary.length > 0 ? `${summary}\n` : "Monitor ended.\n",
+      appendOutput:
+        summary.length > 0 ? `${summary}\n` : t("provider.xAiAcpExtension.monitorEnded"),
     });
   }
 
@@ -1025,8 +1027,7 @@ function unwrapExitPlanModeParams(params: XAiExitPlanModeRequest): XAiExitPlanMo
 }
 
 /** Empty-state copy when Grok exits plan mode without a plan file. */
-export const XAI_EMPTY_PLAN_MARKDOWN =
-  "# No plan written yet\n\n(The agent exited plan mode without writing a plan.)";
+export const XAI_EMPTY_PLAN_MARKDOWN = t("provider.xAiAcpExtension.emptyPlanMarkdown");
 
 export function extractXAiExitPlanMarkdown(
   params: XAiExitPlanModeRequest,
@@ -1234,7 +1235,12 @@ export function extractXAiAskUserQuestions(
             label: option.label,
             description: option.description ?? option.label,
           }))
-        : [{ label: "OK", description: "Continue" }],
+        : [
+            {
+              label: t("provider.xAiAcpExtension.answerOk"),
+              description: t("provider.xAiAcpExtension.answerContinue"),
+            },
+          ],
   }));
 }
 
@@ -1419,7 +1425,7 @@ function xAiPromptFailure(
     const agentResult = nonEmptyString(notification.agentResult);
     return new EffectAcpErrors.AcpRequestError({
       code: -32603,
-      errorMessage: "Grok ended the turn with an error.",
+      errorMessage: t("provider.xAiAcpExtension.grokTurnEndedWithError"),
       operation: "receive-response",
       ...(agentResult === undefined ? {} : { cause: new XAiPromptFailureText(agentResult) }),
     });

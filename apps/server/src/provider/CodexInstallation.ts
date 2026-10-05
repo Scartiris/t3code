@@ -5,6 +5,7 @@ import {
   HostProcessEnvironment,
   HostProcessPlatform,
 } from "@t3tools/shared/hostProcess";
+import { t } from "@t3tools/shared/i18n";
 import { resolveCommandPath, resolveSpawnCommand } from "@t3tools/shared/shell";
 import * as Clock from "effect/Clock";
 import * as Cause from "effect/Cause";
@@ -202,7 +203,7 @@ export const makeCodexInstallation = Effect.fn("makeCodexInstallation")(function
     if (info.type !== "File" || Number(info.size) > 8192)
       return yield* installationError(
         "resolve",
-        "The managed Codex installation record is invalid. Reinstall Codex.",
+        t("provider.codexInstallation.managedRecordInvalid"),
       );
     return yield* Schema.decodeUnknownEffect(Schema.fromJsonString(schema))(
       yield* fs.readFileString(file),
@@ -221,7 +222,7 @@ export const makeCodexInstallation = Effect.fn("makeCodexInstallation")(function
     )
       return yield* installationError(
         "verify",
-        "The downloaded Codex package does not match the expected release.",
+        t("provider.codexInstallation.downloadedPackageMismatch"),
       );
     for (const name of [
       `bin/${executableName}`,
@@ -236,7 +237,7 @@ export const makeCodexInstallation = Effect.fn("makeCodexInstallation")(function
       )
         return yield* installationError(
           "verify",
-          "The managed Codex package is incomplete. Reinstall Codex.",
+          t("provider.codexInstallation.managedPackageIncomplete"),
         );
     }
     return {
@@ -258,7 +259,7 @@ export const makeCodexInstallation = Effect.fn("makeCodexInstallation")(function
     if (record.version !== version)
       return yield* installationError(
         "resolve",
-        "The managed Codex installation record has the wrong version.",
+        t("provider.codexInstallation.managedRecordVersionMismatch"),
       );
     return yield* fromDirectory(directory, version, record.target);
   });
@@ -281,13 +282,11 @@ export const makeCodexInstallation = Effect.fn("makeCodexInstallation")(function
       if (advisory?.status !== "supported")
         return yield* installationError(
           "resolve",
-          advisory?.message ?? "Update the managed Codex installation to continue.",
+          advisory?.message ?? t("provider.codexInstallation.updateManagedInstallation"),
         );
       return executable;
     },
-    Effect.mapError(
-      wrapFailure("resolve", "Codex is not installed in T3 Code. Install it to continue."),
-    ),
+    Effect.mapError(wrapFailure("resolve", t("provider.codexInstallation.notInstalled"))),
   );
   const acquire = Effect.fn("CodexInstallation.acquire")(function* () {
     return yield* Effect.acquireRelease(
@@ -325,10 +324,7 @@ export const makeCodexInstallation = Effect.fn("makeCodexInstallation")(function
       { concurrency: "unbounded" },
     );
     if (exitCode !== 0)
-      return yield* installationError(
-        "verify",
-        "Could not unpack or start the downloaded Codex package.",
-      );
+      return yield* installationError("verify", t("provider.codexInstallation.unpackFailed"));
     return output;
   }, Effect.scoped);
   const localCache = new Map<string, { fingerprint: string; executable: CodexExecutable | null }>();
@@ -410,10 +406,12 @@ export const makeCodexInstallation = Effect.fn("makeCodexInstallation")(function
         if (output.trim() !== `codex-cli ${version}`)
           return yield* installationError(
             "verify",
-            "The downloaded Codex executable has the wrong version.",
+            t("provider.codexInstallation.downloadedExecutableVersionMismatch"),
           );
       },
-      Effect.mapError(wrapFailure("verify", "The downloaded Codex runtime could not start.")),
+      Effect.mapError(
+        wrapFailure("verify", t("provider.codexInstallation.downloadedRuntimeStartFailed")),
+      ),
     );
   const install = Effect.fn("CodexInstallation.install")(
     function* (release: CodexReleaseAsset) {
@@ -459,7 +457,7 @@ export const makeCodexInstallation = Effect.fn("makeCodexInstallation")(function
         if (record.sha256 !== release.sha256 || record.target !== release.target)
           return yield* installationError(
             "verify",
-            "The existing managed Codex release differs from the official package. Remove it and reinstall.",
+            t("provider.codexInstallation.existingReleaseDiffers"),
           );
         yield* validate(existing, release.version).pipe(
           Effect.scoped,
@@ -488,7 +486,7 @@ export const makeCodexInstallation = Effect.fn("makeCodexInstallation")(function
             if (downloadedBytes > release.archiveBytes)
               return yield* installationError(
                 "download",
-                "The Codex download exceeded the expected release size.",
+                t("provider.codexInstallation.downloadTooLarge"),
               );
             hash.update(chunk);
             const now = yield* Clock.currentTimeMillis;
@@ -512,7 +510,7 @@ export const makeCodexInstallation = Effect.fn("makeCodexInstallation")(function
           ({
             ...current,
             phase: "extracting",
-            message: "Extracting Codex.",
+            message: t("provider.codexInstallation.extracting"),
           }) satisfies ProviderInstallState,
       );
       const entries = (yield* runCommand("tar", ["-tzf", archivePath])).trim().split("\n");
@@ -531,7 +529,10 @@ export const makeCodexInstallation = Effect.fn("makeCodexInstallation")(function
           );
         })
       )
-        return yield* installationError("extract", "The Codex archive contains unsafe entries.");
+        return yield* installationError(
+          "extract",
+          t("provider.codexInstallation.archiveUnsafeEntries"),
+        );
       yield* runCommand("tar", ["-xzf", archivePath, "-C", runtime]);
       yield* SubscriptionRef.update(
         state,
@@ -539,7 +540,7 @@ export const makeCodexInstallation = Effect.fn("makeCodexInstallation")(function
           ({
             ...current,
             phase: "verifying",
-            message: "Checking Codex.",
+            message: t("provider.codexInstallation.checking"),
           }) satisfies ProviderInstallState,
       );
       const executable = yield* fromDirectory(runtime, release.version, release.target);
@@ -560,12 +561,7 @@ export const makeCodexInstallation = Effect.fn("makeCodexInstallation")(function
       yield* activate();
     },
     Effect.scoped,
-    Effect.mapError(
-      wrapFailure(
-        "install",
-        "Could not install Codex. Check disk space and directory access, then try again.",
-      ),
-    ),
+    Effect.mapError(wrapFailure("install", t("provider.codexInstallation.installFailed"))),
   );
   const start = gate
     .withPermit(
@@ -576,7 +572,7 @@ export const makeCodexInstallation = Effect.fn("makeCodexInstallation")(function
         if (!asset) {
           return yield* installationError(
             "start",
-            `OpenAI does not publish a Codex runtime for ${platform}-${arch}. Use a supported remote environment or a custom executable.`,
+            t("provider.codexInstallation.platformUnsupported", { platform, arch }),
           );
         }
         const operationId = yield* crypto.randomUUIDv4;
@@ -589,7 +585,7 @@ export const makeCodexInstallation = Effect.fn("makeCodexInstallation")(function
           version: asset.version,
           installedVersion: current.installedVersion,
           canRemove: current.canRemove,
-          message: "Downloading Codex.",
+          message: t("provider.codexInstallation.downloading"),
         };
         yield* SubscriptionRef.set(state, next);
         const work = install(asset).pipe(
@@ -604,10 +600,10 @@ export const makeCodexInstallation = Effect.fn("makeCodexInstallation")(function
                     ...value,
                     phase: cancelled ? "cancelled" : "failed",
                     message: cancelled
-                      ? "Installation cancelled. The previous runtime is unchanged."
+                      ? t("provider.codexInstallation.installCancelled")
                       : Option.isSome(error)
                         ? error.value.detail
-                        : "Could not finish the Codex installation. Check disk space and directory access.",
+                        : t("provider.codexInstallation.installIncomplete"),
                   } satisfies ProviderInstallState;
                 })
               : Effect.void,
@@ -624,7 +620,7 @@ export const makeCodexInstallation = Effect.fn("makeCodexInstallation")(function
         return next;
       }).pipe(Effect.uninterruptible),
     )
-    .pipe(Effect.mapError(wrapFailure("start", "Could not start the Codex installation.")));
+    .pipe(Effect.mapError(wrapFailure("start", t("provider.codexInstallation.startFailed"))));
 
   const cancel = Effect.fn("CodexInstallation.cancel")(function* (operationId: string) {
     return yield* gate.withPermit(
@@ -633,7 +629,7 @@ export const makeCodexInstallation = Effect.fn("makeCodexInstallation")(function
         if (current.operationId !== operationId) {
           return yield* installationError(
             "cancel",
-            "This installation is no longer current. Refresh its status before cancelling.",
+            t("provider.codexInstallation.installationNotCurrent"),
           );
         }
         if (running?.operationId === operationId && isRunning(current)) {
@@ -662,7 +658,7 @@ export const makeCodexInstallation = Effect.fn("makeCodexInstallation")(function
               if (candidate.startsWith(`${realManaged.value}${path.sep}`))
                 return yield* installationError(
                   "remove",
-                  "A provider instance uses a custom path inside managed Codex. Clear that path before removing it.",
+                  t("provider.codexInstallation.customPathInManagedInstall"),
                 );
             }
           }
@@ -686,12 +682,7 @@ export const makeCodexInstallation = Effect.fn("makeCodexInstallation")(function
         }).pipe(Effect.uninterruptible),
       );
     },
-    Effect.mapError(
-      wrapFailure(
-        "remove",
-        "Could not remove the managed Codex runtime. Check for open processes and try again.",
-      ),
-    ),
+    Effect.mapError(wrapFailure("remove", t("provider.codexInstallation.removeFailed"))),
   );
 
   yield* Effect.gen(function* () {
@@ -719,7 +710,7 @@ export const makeCodexInstallation = Effect.fn("makeCodexInstallation")(function
           ({
             ...current,
             phase: "failed",
-            message: "The managed Codex runtime is incomplete. Remove it and reinstall.",
+            message: t("provider.codexInstallation.managedRuntimeIncomplete"),
           }) satisfies ProviderInstallState,
       ),
     ),

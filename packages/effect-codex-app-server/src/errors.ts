@@ -1,3 +1,4 @@
+import { t } from "@t3tools/i18n";
 import * as Schema from "effect/Schema";
 import type * as SchemaIssue from "effect/SchemaIssue";
 
@@ -138,8 +139,8 @@ export class CodexAppServerSpawnError extends Schema.TaggedError<CodexAppServerS
 ) {
   override get message() {
     return this.command
-      ? `Failed to spawn Codex App Server process for command: ${this.command}`
-      : "Failed to spawn Codex App Server process";
+      ? t("codexAppServer.errors.spawnFailedWithCommand", { command: this.command })
+      : t("codexAppServer.errors.spawnFailed");
   }
 }
 
@@ -153,8 +154,8 @@ export class CodexAppServerProcessExitedError extends Schema.TaggedError<CodexAp
 ) {
   override get message() {
     return this.code === undefined
-      ? "Codex App Server process exited"
-      : `Codex App Server process exited with code ${this.code}`;
+      ? t("codexAppServer.errors.processExited")
+      : t("codexAppServer.errors.processExitedWithCode", { code: this.code });
   }
 }
 
@@ -173,8 +174,12 @@ export class CodexAppServerProtocolParseError extends Schema.TaggedError<CodexAp
   },
 ) {
   override get message() {
-    const method = this.method === undefined ? "" : ` for method '${this.method}'`;
-    return `Codex App Server protocol operation '${this.operation}' failed${method}.`;
+    return this.method === undefined
+      ? t("codexAppServer.errors.protocolOperationFailed", { operation: this.operation })
+      : t("codexAppServer.errors.protocolOperationFailedForMethod", {
+          operation: this.operation,
+          method: this.method,
+        });
   }
 
   static fromSchemaError(
@@ -240,7 +245,7 @@ export class CodexAppServerTransportError extends Schema.TaggedError<CodexAppSer
   },
 ) {
   override get message() {
-    return `Codex App Server transport operation '${this.operation}' failed.`;
+    return t("codexAppServer.errors.transportOperationFailed", { operation: this.operation });
   }
 }
 
@@ -252,7 +257,7 @@ export class CodexAppServerIdentifierGenerationError extends Schema.TaggedError<
   },
 ) {
   override get message() {
-    return `Failed to generate Codex App Server identifier for ${this.purpose}.`;
+    return t("codexAppServer.errors.identifierGenerationFailed", { purpose: this.purpose });
   }
 }
 
@@ -261,7 +266,7 @@ export class CodexAppServerInputStreamEndedError extends Schema.TaggedError<Code
   {},
 ) {
   override get message() {
-    return "Codex App Server input stream ended.";
+    return t("codexAppServer.errors.inputStreamEnded");
   }
 }
 

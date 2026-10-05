@@ -78,6 +78,7 @@ import * as McpProviderSession from "../../mcp/McpProviderSession.ts";
 import { buildRuntimeInstructions } from "../../provider/RuntimeInstructions.ts";
 import { t3OrchestrationSystemPrompt } from "../../provider/T3OrchestrationInstructions.ts";
 import { SKILL_MENTION_PATTERN } from "@t3tools/shared/composerInlineTokens";
+import { t } from "@t3tools/shared/i18n";
 import { getModelSelectionStringOptionValue, modelSelectionsEqual } from "@t3tools/shared/model";
 import { causeErrorTag } from "@t3tools/shared/observability";
 
@@ -533,9 +534,15 @@ const formQuestions = (
     }
     if (field.hidden === true) return { unsupported: "a hidden field" };
     if ((field.when?.length ?? 0) > 0) return { unsupported: "a field that depends on another" };
-    const header = text(field.title, `Question ${index + 1}`);
+    const header = text(
+      field.title,
+      t("orchestration-v2.openCode2AdapterV2.questionNumber", { number: index + 1 }),
+    );
     const options = (field.options ?? []).map((option) => {
-      const label = text(option.label, text(option.value, "Option"));
+      const label = text(
+        option.label,
+        text(option.value, t("orchestration-v2.openCode2AdapterV2.optionFallback")),
+      );
       return { label, description: text(option.description, label), value: option.value };
     });
     questions.push({
@@ -603,7 +610,9 @@ const sessionIdOf = (providerThread: OrchestrationV2ProviderThread) => {
     ? Effect.fail(
         new ProviderAdapter.ProviderAdapterProtocolError({
           driver: OPENCODE_PROVIDER,
-          detail: `Provider thread ${providerThread.id} has no OpenCode session`,
+          detail: t("orchestration-v2.openCode2AdapterV2.providerThreadMissingSession", {
+            providerThreadId: providerThread.id,
+          }),
         }),
       )
     : Effect.succeed(nativeId);
@@ -649,8 +658,7 @@ const RECONCILE_TIMEOUT = "15 seconds";
 /** How long a new turn waits for a reconnect in progress. */
 const RECONNECT_WAIT = "30 seconds";
 /** A background subagent's result when its end was lost with the event stream. */
-const LOST_BACKGROUND =
-  "T3 Code lost its connection to OpenCode while this subagent ran, so its result is not shown.";
+const LOST_BACKGROUND = t("orchestration-v2.openCode2AdapterV2.backgroundResultLost");
 /** How long a turn waits on the directory's commands or skills before sending the text as is. */
 const INVENTORY_TIMEOUT = "5 seconds";
 const ACTIVE_CHECK_TIMEOUT = "5 seconds";
@@ -663,8 +671,9 @@ const CLEAR_PROMPT_REJECTIONS: ReadonlySet<string> = new Set([
   "SkillNotFoundError",
 ]);
 
-export const OPENCODE_2_STILL_STOPPING =
-  "OpenCode is still stopping the previous turn. Send the message again in a moment.";
+export const OPENCODE_2_STILL_STOPPING = t(
+  "orchestration-v2.openCode2AdapterV2.stillStoppingPreviousTurn",
+);
 const REQUEST_REPLY_TIMEOUT = "10 seconds";
 
 /** Whether an answer to a paused request reached the server, trying twice. */
@@ -729,8 +738,7 @@ const boundaryAfter = (
     return Effect.fail(
       new ProviderAdapter.ProviderAdapterProtocolError({
         driver: OPENCODE_PROVIDER,
-        detail:
-          "This OpenCode conversation has turns from an earlier T3 Code version, so it can't be cut there.",
+        detail: t("orchestration-v2.openCode2AdapterV2.conversationFromOlderVersion"),
       }),
     );
   }
@@ -759,7 +767,7 @@ const modelRef = (selection: ProviderAdapter.ProviderAdapterV2TurnInput["modelSe
   });
 };
 const malformedModel = (model: string) =>
-  `OpenCode model '${model}' must use provider/model format`;
+  t("orchestration-v2.openCode2AdapterV2.malformedModel", { model });
 const sameModel = (left: ModelRef, right: ModelRef | undefined) =>
   left.providerID === right?.providerID &&
   left.id === right?.id &&
@@ -2005,7 +2013,7 @@ export const make = Effect.fn("OpenCode2Adapter.make")(function* (instanceId: Pr
             }
           : {
               ...base,
-              title: "User input",
+              title: t("orchestration-v2.openCode2AdapterV2.userInputTitle"),
               type: "user_input_request",
               requestId,
               questions: body.questions,
@@ -2047,8 +2055,14 @@ export const make = Effect.fn("OpenCode2Adapter.make")(function* (instanceId: Pr
           // "Always" in OpenCode saves a grant for the whole project, so the
           // session-wide choice is T3's own rule on this session instead.
           options: [
-            { decision: "cancel", label: "Cancel" },
-            { decision: "decline", label: "Decline" },
+            {
+              decision: "cancel",
+              label: t("orchestration-v2.openCode2AdapterV2.permissionCancel"),
+            },
+            {
+              decision: "decline",
+              label: t("orchestration-v2.openCode2AdapterV2.permissionDecline"),
+            },
             ...(save.length > 0
               ? [
                   {
@@ -2057,7 +2071,10 @@ export const make = Effect.fn("OpenCode2Adapter.make")(function* (instanceId: Pr
                   },
                 ]
               : []),
-            { decision: "accept", label: "Approve" },
+            {
+              decision: "accept",
+              label: t("orchestration-v2.openCode2AdapterV2.permissionApprove"),
+            },
           ],
         },
       );
@@ -2516,7 +2533,7 @@ export const make = Effect.fn("OpenCode2Adapter.make")(function* (instanceId: Pr
               : {
                   status: "failed",
                   failure: makeProviderFailure({
-                    message: "OpenCode ended the turn with an error this version cannot read.",
+                    message: t("orchestration-v2.openCode2AdapterV2.turnEndedWithUnreadableError"),
                     class: "provider_error",
                   }),
                 },
@@ -2757,8 +2774,9 @@ export const make = Effect.fn("OpenCode2Adapter.make")(function* (instanceId: Pr
               ? {
                   status: "failed",
                   failure: makeProviderFailure({
-                    message:
-                      "OpenCode ended the turn with an error while T3 Code was reconnecting.",
+                    message: t(
+                      "orchestration-v2.openCode2AdapterV2.turnEndedWithErrorWhileReconnecting",
+                    ),
                     class: "provider_error",
                   }),
                 }
@@ -2857,7 +2875,9 @@ export const make = Effect.fn("OpenCode2Adapter.make")(function* (instanceId: Pr
               Effect.option,
             );
             if (next._tag === "None") {
-              return yield* failAll("The OpenCode event stream was lost and could not reconnect.");
+              return yield* failAll(
+                t("orchestration-v2.openCode2AdapterV2.eventStreamLostNoReconnect"),
+              );
             }
             streamFailure = undefined;
             const done = reconnected;
@@ -3044,7 +3064,10 @@ export const make = Effect.fn("OpenCode2Adapter.make")(function* (instanceId: Pr
       if (busyHere || busyThere) {
         return yield* new ProviderAdapter.ProviderAdapterProtocolError({
           driver: OPENCODE_PROVIDER,
-          detail: `Cannot ${verb} OpenCode session ${sessionId} while it is still working`,
+          detail:
+            verb === "fork"
+              ? t("orchestration-v2.openCode2AdapterV2.forkWhileWorking", { sessionId })
+              : t("orchestration-v2.openCode2AdapterV2.rollBackWhileWorking", { sessionId }),
         });
       }
     });
@@ -3706,13 +3729,17 @@ export const make = Effect.fn("OpenCode2Adapter.make")(function* (instanceId: Pr
               if (state === undefined) {
                 return yield* new ProviderAdapter.ProviderAdapterProtocolError({
                   driver: OPENCODE_PROVIDER,
-                  detail: `OpenCode session ${sessionId} is not registered`,
+                  detail: t("orchestration-v2.openCode2AdapterV2.sessionNotRegistered", {
+                    sessionId,
+                  }),
                 });
               }
               if (state.active !== undefined) {
                 return yield* new ProviderAdapter.ProviderAdapterProtocolError({
                   driver: OPENCODE_PROVIDER,
-                  detail: `OpenCode session ${sessionId} already has an active turn`,
+                  detail: t("orchestration-v2.openCode2AdapterV2.sessionHasActiveTurn", {
+                    sessionId,
+                  }),
                 });
               }
               // OpenCode already ran this turn on its own; it prompts nothing.
@@ -3814,8 +3841,7 @@ export const make = Effect.fn("OpenCode2Adapter.make")(function* (instanceId: Pr
                   {
                     status: "failed",
                     failure: makeProviderFailure({
-                      message:
-                        "The OpenCode session no longer exists. Send the message again to continue in a new session.",
+                      message: t("orchestration-v2.openCode2AdapterV2.sessionNoLongerExists"),
                       class: "provider_error",
                     }),
                   },
@@ -3862,7 +3888,9 @@ export const make = Effect.fn("OpenCode2Adapter.make")(function* (instanceId: Pr
           ) {
             return yield* new ProviderAdapter.ProviderAdapterProtocolError({
               driver: OPENCODE_PROVIDER,
-              detail: `OpenCode turn ${steerInput.providerTurnId} is not active`,
+              detail: t("orchestration-v2.openCode2AdapterV2.turnNotActive", {
+                providerTurnId: steerInput.providerTurnId,
+              }),
             });
           }
           const inboxID = steerPromptId(sessionId, steerInput.message.messageId);
@@ -3957,7 +3985,7 @@ export const make = Effect.fn("OpenCode2Adapter.make")(function* (instanceId: Pr
             turn.interrupted = false;
             return yield* new ProviderAdapter.ProviderAdapterProtocolError({
               driver: OPENCODE_PROVIDER,
-              detail: `OpenCode session ${sessionId} had nothing running to stop`,
+              detail: t("orchestration-v2.openCode2AdapterV2.nothingRunningToStop", { sessionId }),
             });
           }
         }).pipe(
@@ -3998,7 +4026,9 @@ export const make = Effect.fn("OpenCode2Adapter.make")(function* (instanceId: Pr
           if (entry === undefined || entry.answering) {
             return yield* new ProviderAdapter.ProviderAdapterProtocolError({
               driver,
-              detail: `No pending OpenCode request ${requestInput.requestId}`,
+              detail: t("orchestration-v2.openCode2AdapterV2.noPendingRequest", {
+                requestId: requestInput.requestId,
+              }),
             });
           }
           const { decision, answers } = requestInput;
@@ -4006,7 +4036,9 @@ export const make = Effect.fn("OpenCode2Adapter.make")(function* (instanceId: Pr
           if (native.type === "permission" && decision === undefined) {
             return yield* new ProviderAdapter.ProviderAdapterProtocolError({
               driver,
-              detail: `OpenCode approval request ${requestInput.requestId} requires a decision`,
+              detail: t("orchestration-v2.openCode2AdapterV2.approvalNeedsDecision", {
+                requestId: requestInput.requestId,
+              }),
             });
           }
           entry.answering = true;
@@ -4168,7 +4200,9 @@ export const make = Effect.fn("OpenCode2Adapter.make")(function* (instanceId: Pr
           if (forkInput.providerTurnId !== undefined && selected === undefined) {
             return yield* new ProviderAdapter.ProviderAdapterProtocolError({
               driver: OPENCODE_PROVIDER,
-              detail: `OpenCode fork boundary turn ${forkInput.providerTurnId} was not found`,
+              detail: t("orchestration-v2.openCode2AdapterV2.forkBoundaryTurnNotFound", {
+                providerTurnId: forkInput.providerTurnId,
+              }),
             });
           }
           const before =

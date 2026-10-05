@@ -7,6 +7,7 @@ import type {
   ServerTraceDiagnosticsSpanOccurrence,
   ServerTraceDiagnosticsSpanSummary,
 } from "@t3tools/contracts";
+import { t } from "@t3tools/shared/i18n";
 import * as Context from "effect/Context";
 import * as DateTime from "effect/DateTime";
 import * as Effect from "effect/Effect";
@@ -462,7 +463,7 @@ export const make = Effect.gen(function* () {
             readFailureError ??
             ({
               kind: "trace-file-not-found",
-              message: "No local trace files were found.",
+              message: t("diagnostics.traceDiagnostics.noTraceFiles"),
             } satisfies TraceDiagnosticsErrorSummary),
         });
       }

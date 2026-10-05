@@ -34,6 +34,7 @@ import * as PlatformError from "effect/PlatformError";
 import { HttpClient, HttpClientResponse } from "effect/unstable/http";
 import { ChildProcessSpawner } from "effect/unstable/process";
 import { deepMerge } from "@t3tools/shared/Struct";
+import { t } from "@t3tools/shared/i18n";
 import { createModelCapabilities } from "@t3tools/shared/model";
 import { applyServerSettingsPatch } from "@t3tools/shared/serverSettings";
 
@@ -574,10 +575,10 @@ it.layer(Layer.mergeAll(TestNodeServices, ServerSettingsModule.layerTest(), Test
           assert.include(status.message, binaryPath);
           assert.include(
             status.message,
-            "Settings → Providers → Codex → Binary path on the server",
+            t("provider.codexProvider.cliStartFailed", { path: binaryPath }),
           );
           assert.strictEqual(
-            status.message?.includes("Installing ChatGPT or Codex desktop"),
+            status.message?.includes(t("provider.codexProvider.cliStartFailedPathHint")),
             binaryPath === "codex",
           );
           assert.strictEqual(settings.binaryPath, binaryPath);
@@ -2596,7 +2597,10 @@ it.layer(Layer.mergeAll(TestNodeServices, ServerSettingsModule.layerTest(), Test
             );
             assert.strictEqual(codexPersonal?.installed, false);
             assert.include(codexPersonal?.message, missingBinary);
-            assert.include(codexPersonal?.message, "Settings → Providers → Codex → Binary path");
+            assert.include(
+              codexPersonal?.message,
+              t("provider.codexProvider.cliStartFailed", { path: missingBinary }),
+            );
           }).pipe(Effect.provide(runtimeServices));
         }),
       );

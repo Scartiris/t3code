@@ -9,6 +9,7 @@ import {
 import { runSshCommand, baseSshArgs, resolveSshCommand } from "@t3tools/ssh/command";
 import * as NetService from "@t3tools/shared/Net";
 import { waitForHttpReady } from "@t3tools/shared/httpReadiness";
+import { t } from "@t3tools/shared/i18n";
 import * as Exit from "effect/Exit";
 import * as Effect from "effect/Effect";
 import * as FileSystem from "effect/FileSystem";
@@ -328,7 +329,7 @@ export const make = Effect.fn("SshDeviceHost.make")(function* (
       yield* Effect.raceFirst(child.exitCode.pipe(Effect.ignore), unhealthy);
       if (stopped || connectionScope !== scope) return;
       ready = null;
-      yield* onStatus("starting", "Reconnecting to device host…");
+      yield* onStatus("starting", t("device.sshDeviceHost.reconnecting"));
       yield* Scope.close(scope, Exit.void);
       let delay = 1000;
       while (true) {
@@ -467,7 +468,7 @@ export const make = Effect.fn("SshDeviceHost.make")(function* (
         Effect.orElseSucceed(() => ({
           platform,
           available: false,
-          reason: "Cannot reach device host. Test its SSH connection in Settings.",
+          reason: t("device.sshDeviceHost.cannotReachHost"),
         })),
       ),
   } satisfies DeviceHost.DeviceHost["Service"];

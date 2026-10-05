@@ -1,3 +1,4 @@
+import { t } from "@t3tools/i18n";
 import { SshDeviceHostConfigs } from "./device.ts";
 import * as Effect from "effect/Effect";
 import * as Duration from "effect/Duration";
@@ -591,16 +592,16 @@ export const CodexSettings = makeProviderSettingsSchema(
     ),
     binaryPath: makeBinaryPathSetting("codex").pipe(
       Schema.annotateKey({
-        title: "Binary path",
-        description: "Path to the Codex binary used by this instance.",
+        title: t("providerSettings.settings.binaryPath"),
+        description: t("providerSettings.settings.codexBinaryPathDescription"),
         providerSettingsForm: { placeholder: "codex", clearWhenEmpty: "omit" },
       }),
     ),
     homePath: TrimmedString.pipe(
       Schema.withDecodingDefault(Effect.succeed("")),
       Schema.annotateKey({
-        title: "CODEX_HOME path",
-        description: "Custom Codex home and config directory.",
+        title: t("providerSettings.settings.codexHomePath"),
+        description: t("providerSettings.settings.codexHomePathDescription"),
         providerSettingsForm: {
           placeholder: "~/.codex",
           clearWhenEmpty: "omit",
@@ -610,9 +611,8 @@ export const CodexSettings = makeProviderSettingsSchema(
     shadowHomePath: TrimmedString.pipe(
       Schema.withDecodingDefault(Effect.succeed("")),
       Schema.annotateKey({
-        title: "Shadow home path",
-        description:
-          "Account-specific Codex home. Keeps auth.json separate while sharing state from CODEX_HOME.",
+        title: t("providerSettings.settings.codexShadowHomePath"),
+        description: t("providerSettings.settings.codexShadowHomePathDescription"),
         providerSettingsForm: {
           placeholder: "~/.codex-t3/personal",
           clearWhenEmpty: "omit",
@@ -622,8 +622,8 @@ export const CodexSettings = makeProviderSettingsSchema(
     launchArgs: TrimmedString.pipe(
       Schema.withDecodingDefault(Effect.succeed("")),
       Schema.annotateKey({
-        title: "Launch arguments",
-        description: "Additional CLI arguments passed to codex app-server on session start.",
+        title: t("providerSettings.settings.launchArguments"),
+        description: t("providerSettings.settings.codexLaunchArgumentsDescription"),
       }),
     ),
     customModels: Schema.Array(CustomModelSetting).pipe(
@@ -650,17 +650,16 @@ export const ClaudeSettings = makeProviderSettingsSchema(
     ),
     binaryPath: makeBinaryPathSetting("claude").pipe(
       Schema.annotateKey({
-        title: "Binary path",
-        description: "Path to the Claude binary used by this instance.",
+        title: t("providerSettings.settings.binaryPath"),
+        description: t("providerSettings.settings.claudeBinaryPathDescription"),
         providerSettingsForm: { placeholder: "claude", clearWhenEmpty: "omit" },
       }),
     ),
     homePath: TrimmedString.pipe(
       Schema.withDecodingDefault(Effect.succeed("")),
       Schema.annotateKey({
-        title: "CLAUDE_CONFIG_DIR path",
-        description:
-          "Custom Claude home and config directory. Keeps .claude.json and .claude separate.",
+        title: t("providerSettings.settings.claudeHomePath"),
+        description: t("providerSettings.settings.claudeHomePathDescription"),
         providerSettingsForm: { placeholder: "~/.claude", clearWhenEmpty: "omit" },
       }),
     ),
@@ -671,8 +670,8 @@ export const ClaudeSettings = makeProviderSettingsSchema(
     launchArgs: Schema.String.pipe(
       Schema.withDecodingDefault(Effect.succeed("")),
       Schema.annotateKey({
-        title: "Launch arguments",
-        description: "Additional CLI arguments passed on session start.",
+        title: t("providerSettings.settings.launchArguments"),
+        description: t("providerSettings.settings.claudeLaunchArgumentsDescription"),
         providerSettingsForm: {
           placeholder: "e.g. --chrome",
           clearWhenEmpty: "omit",
@@ -684,9 +683,8 @@ export const ClaudeSettings = makeProviderSettingsSchema(
     ).pipe(
       Schema.withDecodingDefault(Effect.succeed("")),
       Schema.annotateKey({
-        title: "Auto-compact after",
-        description:
-          "Compact after 100,000 to 1,000,000 tokens. Leave empty to use Claude's default.",
+        title: t("providerSettings.settings.autoCompactAfter"),
+        description: t("providerSettings.settings.autoCompactAfterDescription"),
         providerSettingsForm: {
           placeholder: "e.g. 300000",
           clearWhenEmpty: "omit",
@@ -736,8 +734,8 @@ export const GrokSettings = makeProviderSettingsSchema(
     ),
     binaryPath: makeBinaryPathSetting("grok").pipe(
       Schema.annotateKey({
-        title: "Binary path",
-        description: "Path to the Grok CLI binary.",
+        title: t("providerSettings.settings.binaryPath"),
+        description: t("providerSettings.settings.grokBinaryPathDescription"),
         providerSettingsForm: { placeholder: "grok", clearWhenEmpty: "omit" },
       }),
     ),
@@ -758,10 +756,10 @@ export type GrokSettings = typeof GrokSettings.Type;
  * the instance config and never open a browser.
  */
 export const ANTIGRAVITY_AUTH_METHODS = [
-  { value: "oauth-personal", label: "Google account" },
-  { value: "oauth-business", label: "Gemini Enterprise" },
-  { value: "gemini-api-key", label: "Gemini API key" },
-  { value: "agent-platform", label: "Agent Platform (Vertex AI)" },
+  { value: "oauth-personal", label: t("providerSettings.settings.authMethodGoogleAccount") },
+  { value: "oauth-business", label: t("providerSettings.settings.authMethodGeminiEnterprise") },
+  { value: "gemini-api-key", label: t("providerSettings.settings.authMethodGeminiApiKey") },
+  { value: "agent-platform", label: t("providerSettings.settings.authMethodAgentPlatform") },
 ] as const satisfies ReadonlyArray<ProviderSettingsFormOption>;
 export const AntigravityAuthMethod = Schema.Literals(
   ANTIGRAVITY_AUTH_METHODS.map((method) => method.value),
@@ -777,9 +775,8 @@ export const AntigravitySettings = makeProviderSettingsSchema(
     authMethod: AntigravityAuthMethod.pipe(
       Schema.withDecodingDefault(Effect.succeed("oauth-personal" as const)),
       Schema.annotateKey({
-        title: "Sign-in method",
-        description:
-          "Google accounts use your subscription; API keys and Agent Platform bill usage.",
+        title: t("providerSettings.settings.signInMethod"),
+        description: t("providerSettings.settings.signInMethodDescription"),
         providerSettingsForm: {
           control: "select",
           options: ANTIGRAVITY_AUTH_METHODS,
@@ -790,8 +787,8 @@ export const AntigravitySettings = makeProviderSettingsSchema(
     apiKey: TrimmedString.pipe(
       Schema.withDecodingDefault(Effect.succeed("")),
       Schema.annotateKey({
-        title: "API key",
-        description: "Gemini or Vertex AI express key. Stored in plain text.",
+        title: t("providerSettings.settings.apiKey"),
+        description: t("providerSettings.settings.apiKeyDescription"),
         providerSettingsForm: {
           control: "password",
           placeholder: "Optional",
@@ -802,25 +799,24 @@ export const AntigravitySettings = makeProviderSettingsSchema(
     gcpProject: TrimmedString.pipe(
       Schema.withDecodingDefault(Effect.succeed("")),
       Schema.annotateKey({
-        title: "GCP project",
-        description:
-          "Required for Gemini Enterprise. Agent Platform uses it when no API key is set.",
+        title: t("providerSettings.settings.gcpProject"),
+        description: t("providerSettings.settings.gcpProjectDescription"),
         providerSettingsForm: { placeholder: "my-project-id", clearWhenEmpty: "omit" },
       }),
     ),
     gcpLocation: TrimmedString.pipe(
       Schema.withDecodingDefault(Effect.succeed("")),
       Schema.annotateKey({
-        title: "GCP location",
-        description: "Region for Gemini Enterprise or Agent Platform.",
+        title: t("providerSettings.settings.gcpLocation"),
+        description: t("providerSettings.settings.gcpLocationDescription"),
         providerSettingsForm: { placeholder: "us-central1", clearWhenEmpty: "omit" },
       }),
     ),
     binaryPath: TrimmedString.pipe(
       Schema.withDecodingDefault(Effect.succeed("")),
       Schema.annotateKey({
-        title: "Binary path",
-        description: "Custom ACP executable. Leave empty to select automatically.",
+        title: t("providerSettings.settings.binaryPath"),
+        description: t("providerSettings.settings.antigravityBinaryPathDescription"),
         providerSettingsForm: { placeholder: "Automatic", clearWhenEmpty: "persist" },
       }),
     ),
@@ -842,16 +838,16 @@ export const PiSettings = makeProviderSettingsSchema(
     ),
     binaryPath: makeBinaryPathSetting("pi").pipe(
       Schema.annotateKey({
-        title: "Binary path",
-        description: "Path to the Pi coding agent binary.",
+        title: t("providerSettings.settings.binaryPath"),
+        description: t("providerSettings.settings.piBinaryPathDescription"),
         providerSettingsForm: { placeholder: "pi", clearWhenEmpty: "omit" },
       }),
     ),
     launchArgs: TrimmedString.pipe(
       Schema.withDecodingDefault(Effect.succeed("")),
       Schema.annotateKey({
-        title: "Launch arguments",
-        description: "Additional CLI arguments passed to pi --mode rpc on session start.",
+        title: t("providerSettings.settings.launchArguments"),
+        description: t("providerSettings.settings.piLaunchArgumentsDescription"),
         providerSettingsForm: { clearWhenEmpty: "omit" },
       }),
     ),
@@ -878,26 +874,24 @@ export const AcpRegistrySettings = makeProviderSettingsSchema(
     agentId: TrimmedString.pipe(
       Schema.withDecodingDefault(Effect.succeed("")),
       Schema.annotateKey({
-        title: "Registry agent ID",
-        description: "Agent identifier from the official ACP Registry, for example 'devin'.",
+        title: t("providerSettings.settings.registryAgentId"),
+        description: t("providerSettings.settings.registryAgentIdDescription"),
         providerSettingsForm: { placeholder: "devin", clearWhenEmpty: "persist" },
       }),
     ),
     commandPath: TrimmedString.pipe(
       Schema.withDecodingDefault(Effect.succeed("")),
       Schema.annotateKey({
-        title: "Executable override",
-        description:
-          "Optional local executable to use instead of installing the registry distribution. Registry arguments and environment are still applied.",
+        title: t("providerSettings.settings.executableOverride"),
+        description: t("providerSettings.settings.executableOverrideDescription"),
         providerSettingsForm: { placeholder: "Registry default", clearWhenEmpty: "omit" },
       }),
     ),
     authMethodId: TrimmedString.pipe(
       Schema.withDecodingDefault(Effect.succeed("")),
       Schema.annotateKey({
-        title: "Authentication method",
-        description:
-          "Optional ACP authentication method ID. By default, the first agent-managed method is selected.",
+        title: t("providerSettings.settings.authenticationMethod"),
+        description: t("providerSettings.settings.authenticationMethodDescription"),
         providerSettingsForm: { placeholder: "auto", clearWhenEmpty: "omit" },
       }),
     ),
@@ -926,8 +920,8 @@ export const OpenCodeSettings = makeProviderSettingsSchema(
     ),
     binaryPath: makeBinaryPathSetting("opencode").pipe(
       Schema.annotateKey({
-        title: "Binary path",
-        description: "Path to the OpenCode binary.",
+        title: t("providerSettings.settings.binaryPath"),
+        description: t("providerSettings.settings.opencodeBinaryPathDescription"),
         providerSettingsForm: {
           placeholder: "opencode",
           clearWhenEmpty: "omit",
@@ -937,8 +931,8 @@ export const OpenCodeSettings = makeProviderSettingsSchema(
     serverUrl: TrimmedString.pipe(
       Schema.withDecodingDefault(Effect.succeed("")),
       Schema.annotateKey({
-        title: "Server URL",
-        description: "Leave blank to let T3 Code spawn the server when needed.",
+        title: t("providerSettings.settings.serverUrl"),
+        description: t("providerSettings.settings.serverUrlDescription"),
         providerSettingsForm: {
           placeholder: "http://127.0.0.1:4096",
           clearWhenEmpty: "omit",
@@ -948,8 +942,8 @@ export const OpenCodeSettings = makeProviderSettingsSchema(
     serverPassword: TrimmedString.pipe(
       Schema.withDecodingDefault(Effect.succeed("")),
       Schema.annotateKey({
-        title: "Server password",
-        description: "Stored in plain text on disk.",
+        title: t("providerSettings.settings.serverPassword"),
+        description: t("providerSettings.settings.serverPasswordDescription"),
         providerSettingsForm: {
           control: "password",
           placeholder: "Optional",
@@ -1490,12 +1484,19 @@ export class ServerSettingsError extends Schema.TaggedError<ServerSettingsError>
 ) {
   override get message(): string {
     const provider =
-      this.providerInstanceId === undefined ? "" : ` for provider ${this.providerInstanceId}`;
+      this.providerInstanceId === undefined
+        ? ""
+        : t("settingsErrors.settings.providerSuffix", { provider: this.providerInstanceId });
     const variable =
       this.environmentVariable === undefined
         ? ""
-        : ` and environment variable ${this.environmentVariable}`;
-    return `Server settings ${this.operation} failed${provider}${variable} at ${this.settingsPath}.`;
+        : t("settingsErrors.settings.variableSuffix", { variable: this.environmentVariable });
+    return t("settingsErrors.settings.failed", {
+      operation: this.operation,
+      provider,
+      variable,
+      path: this.settingsPath,
+    });
   }
 }
 

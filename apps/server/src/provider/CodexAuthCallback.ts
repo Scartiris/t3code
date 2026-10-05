@@ -1,6 +1,7 @@
 import { ProviderSetupError, type CodexAuthCallbackInput } from "@t3tools/contracts";
 import { receiveCodexAuthCallback } from "@t3tools/shared/codexAuthCallback";
 import { codexAuthorizationRequest } from "@t3tools/shared/codexAuthHandoff";
+import { t } from "@t3tools/shared/i18n";
 import { providerAuthReturnUrl } from "@t3tools/shared/providerAuthReturnUrl";
 import { isLoopbackHost } from "@t3tools/shared/preview";
 import * as Deferred from "effect/Deferred";
@@ -15,7 +16,9 @@ export function subscribeCodexAuthCallback(input: CodexAuthCallbackInput) {
       instanceId: input.instanceId,
       operation: "callback",
       detail:
-        error instanceof Error ? error.message : "Could not receive sign-in on this computer.",
+        error instanceof Error
+          ? error.message
+          : t("provider.codexAuthCallback.signInReceiveFailed"),
     });
   return Stream.unwrap(
     Effect.gen(function* () {
@@ -24,7 +27,7 @@ export function subscribeCodexAuthCallback(input: CodexAuthCallbackInput) {
           codexAuthorizationRequest(input.authorizationUrl);
           const destination = providerAuthReturnUrl(input.returnUrl);
           if (!destination || !isLoopbackHost(new URL(destination).hostname))
-            throw new Error("The local sign-in receiver needs a local T3 Code return address.");
+            throw new Error(t("provider.codexAuthCallback.localReturnAddressRequired"));
           return destination;
         },
         catch: failure,

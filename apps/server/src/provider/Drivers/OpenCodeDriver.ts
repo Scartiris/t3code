@@ -13,6 +13,7 @@
  * @module provider/Drivers/OpenCodeDriver
  */
 import { OpenCodeSettings, ProviderDriverKind } from "@t3tools/contracts";
+import { t } from "@t3tools/shared/i18n";
 import * as Crypto from "effect/Crypto";
 import * as Deferred from "effect/Deferred";
 import * as Effect from "effect/Effect";
@@ -270,7 +271,7 @@ export const OpenCodeDriver: ProviderDriver<OpenCodeSettings, OpenCodeDriverEnv>
             new ProviderDriverError({
               driver: DRIVER_KIND,
               instanceId,
-              detail: "Failed to build OpenCode orchestration adapter.",
+              detail: t("provider.openCodeDriver.orchestrationAdapterBuildFailed"),
               cause,
             }),
         ),
@@ -306,7 +307,7 @@ export const OpenCodeDriver: ProviderDriver<OpenCodeSettings, OpenCodeDriverEnv>
               (cause) =>
                 new OpenCodeRuntime.OpenCodeRuntimeError({
                   operation: "model.list",
-                  detail: "The OpenCode server could not list its models.",
+                  detail: t("provider.openCodeDriver.modelsListFailed"),
                   cause,
                 }),
             ),
@@ -476,7 +477,9 @@ export const OpenCodeDriver: ProviderDriver<OpenCodeSettings, OpenCodeDriverEnv>
             new ProviderDriverError({
               driver: DRIVER_KIND,
               instanceId,
-              detail: `Failed to build OpenCode snapshot: ${cause.message ?? String(cause)}`,
+              detail: t("provider.openCodeDriver.snapshotBuildFailed", {
+                message: cause.message ?? String(cause),
+              }),
               cause,
             }),
         ),
@@ -503,7 +506,7 @@ export const OpenCodeDriver: ProviderDriver<OpenCodeSettings, OpenCodeDriverEnv>
                         new ProviderDriverError({
                           driver: DRIVER_KIND,
                           instanceId,
-                          detail: `Failed to list OpenCode commands and skills for '${cwd}'`,
+                          detail: t("provider.openCodeDriver.commandsAndSkillsListFailed", { cwd }),
                           cause,
                         }),
                     ),
@@ -529,7 +532,7 @@ export const OpenCodeDriver: ProviderDriver<OpenCodeSettings, OpenCodeDriverEnv>
                       new ProviderDriverError({
                         driver: DRIVER_KIND,
                         instanceId,
-                        detail: `Failed to probe OpenCode commands and skills for '${cwd}'`,
+                        detail: t("provider.openCodeDriver.commandsAndSkillsProbeFailed", { cwd }),
                         cause,
                       }),
                   ),

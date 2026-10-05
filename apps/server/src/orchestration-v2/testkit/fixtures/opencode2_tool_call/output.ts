@@ -1,5 +1,6 @@
 import { assert } from "@effect/vitest";
 import type { ProviderReplayTranscript } from "@t3tools/contracts";
+import { t } from "@t3tools/shared/i18n";
 
 import type { OrchestratorV2ScenarioResult } from "../../OrchestratorScenario.ts";
 import {
@@ -37,7 +38,10 @@ export function assertOpenCode2ToolCallOutput(
 
   const read = projection.turnItems.find((item) => item.type === "dynamic_tool");
   assert.equal(read?.status, "completed");
-  assert.equal(read?.title, "Read hello.txt");
+  assert.equal(
+    read?.title,
+    t("toolActivity.toolActivity.readPath", { path: "hello.txt", extra: "" }),
+  );
   assert.include(read?.type === "dynamic_tool" ? read.output : "", "hello from the spike");
 
   const shell = projection.turnItems.find((item) => item.type === "command_execution");

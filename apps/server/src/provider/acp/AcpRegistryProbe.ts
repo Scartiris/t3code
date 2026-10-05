@@ -11,6 +11,7 @@ import {
   type ServerProviderSkill,
   type ServerProviderSlashCommand,
 } from "@t3tools/contracts";
+import { t } from "@t3tools/shared/i18n";
 import * as Crypto from "effect/Crypto";
 import * as Deferred from "effect/Deferred";
 import * as Duration from "effect/Duration";
@@ -544,20 +545,20 @@ function managementFailure(
     if (operation === "delete") {
       return new AcpRegistryOperationError({
         reason: "session_delete_unsupported",
-        message: "The ACP agent does not advertise session deletion.",
+        message: t("provider.acpRegistryProbe.sessionDeleteUnsupported"),
         cause: error,
       });
     }
     if (operation.startsWith("providers_")) {
       return new AcpRegistryOperationError({
         reason: "providers_unsupported",
-        message: "The ACP agent does not advertise provider configuration.",
+        message: t("provider.acpRegistryProbe.providerConfigurationUnsupported"),
         cause: error,
       });
     }
     return new AcpRegistryOperationError({
       reason: "logout_unsupported",
-      message: "The ACP agent does not advertise logout.",
+      message: t("provider.acpRegistryProbe.logoutUnsupported"),
       cause: error,
     });
   }
@@ -565,13 +566,19 @@ function managementFailure(
   if (classified.reason === "authentication_failed") return classified;
   const failure =
     operation === "delete"
-      ? { reason: "session_delete_failed" as const, message: "Could not delete the ACP session." }
+      ? {
+          reason: "session_delete_failed" as const,
+          message: t("provider.acpRegistryProbe.sessionDeleteFailed"),
+        }
       : operation === "providers_list"
-        ? { reason: "providers_list_failed" as const, message: "Could not list ACP providers." }
+        ? {
+            reason: "providers_list_failed" as const,
+            message: t("provider.acpRegistryProbe.providersListFailed"),
+          }
         : operation === "providers_set" || operation === "providers_disable"
           ? {
               reason: "provider_configuration_failed" as const,
-              message: "Could not update the ACP provider configuration.",
+              message: t("provider.acpRegistryProbe.providerConfigurationFailed"),
             }
           : undefined;
   return failure === undefined
@@ -630,7 +637,7 @@ export const listAcpRegistrySessions = Effect.fn("AcpRegistryProbe.listSessions"
           Effect.fail(
             new AcpRegistryOperationError({
               reason: "probe_failed",
-              message: "The ACP session list request timed out.",
+              message: t("provider.acpRegistryProbe.sessionListTimedOut"),
             }),
           ),
       }),
@@ -652,7 +659,7 @@ export const deleteAcpRegistrySession = Effect.fn("AcpRegistryProbe.deleteSessio
           Effect.fail(
             new AcpRegistryOperationError({
               reason: "session_delete_failed",
-              message: "The ACP session delete request timed out.",
+              message: t("provider.acpRegistryProbe.sessionDeleteTimedOut"),
             }),
           ),
       }),
@@ -702,7 +709,7 @@ export const listAcpRegistryProviders = Effect.fn("AcpRegistryProbe.listProvider
           Effect.fail(
             new AcpRegistryOperationError({
               reason: "providers_list_failed",
-              message: "The ACP provider list request timed out.",
+              message: t("provider.acpRegistryProbe.providersListTimedOut"),
             }),
           ),
       }),
@@ -729,7 +736,7 @@ export const setAcpRegistryProvider = Effect.fn("AcpRegistryProbe.setProvider")(
           Effect.fail(
             new AcpRegistryOperationError({
               reason: "provider_configuration_failed",
-              message: "The ACP provider configuration request timed out.",
+              message: t("provider.acpRegistryProbe.providerConfigurationTimedOut"),
             }),
           ),
       }),
@@ -751,7 +758,7 @@ export const disableAcpRegistryProvider = Effect.fn("AcpRegistryProbe.disablePro
           Effect.fail(
             new AcpRegistryOperationError({
               reason: "provider_configuration_failed",
-              message: "The ACP provider disable request timed out.",
+              message: t("provider.acpRegistryProbe.providerDisableTimedOut"),
             }),
           ),
       }),
@@ -773,7 +780,7 @@ export const logoutAcpRegistry = Effect.fn("AcpRegistryProbe.logout")(
           Effect.fail(
             new AcpRegistryOperationError({
               reason: "probe_failed",
-              message: "The ACP logout request timed out.",
+              message: t("provider.acpRegistryProbe.logoutTimedOut"),
             }),
           ),
       }),

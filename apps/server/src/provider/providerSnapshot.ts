@@ -16,6 +16,7 @@ import * as PlatformError from "effect/PlatformError";
 import * as Schema from "effect/Schema";
 import * as Stream from "effect/Stream";
 import { ChildProcess, ChildProcessSpawner } from "effect/unstable/process";
+import { t } from "@t3tools/shared/i18n";
 import { readCustomModelEntries } from "@t3tools/shared/model";
 import { isWindowsCommandNotFound } from "../processRunner.ts";
 import { createProviderVersionAdvisory } from "./providerMaintenance.ts";
@@ -27,7 +28,7 @@ export const AUTH_PROBE_TIMEOUT_MS = 10_000;
 
 export const COMPACT_SLASH_COMMAND = {
   name: "compact",
-  description: "Summarize the conversation and reduce context usage",
+  description: t("provider.providerSnapshot.compactSlashCommandDescription"),
 } satisfies ServerProviderSlashCommand;
 
 export interface CommandResult {

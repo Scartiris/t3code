@@ -2,6 +2,7 @@ import * as NodeOS from "node:os";
 import * as NodeCrypto from "node:crypto";
 
 import type { ServerProviderUsageWindow } from "@t3tools/contracts";
+import { t } from "@t3tools/shared/i18n";
 import * as DateTime from "effect/DateTime";
 import * as Effect from "effect/Effect";
 import * as FileSystem from "effect/FileSystem";
@@ -112,7 +113,7 @@ export const readOpenCodeGoUsageLimits = Effect.fn("readOpenCodeGoUsageLimits")(
       makeUnavailableUsageLimits({
         checkedAt,
         reason: "probeFailed",
-        message: "OpenCode Go could not read usage.",
+        message: t("provider.openCodeUsageLimits.usageUnreadable"),
       }),
     ),
   );

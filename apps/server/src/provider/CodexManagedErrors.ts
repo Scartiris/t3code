@@ -1,7 +1,8 @@
+import { t } from "@t3tools/shared/i18n";
+
 const legacyFailures = {
   subscription_sharing_v2_user_not_eligible: {
-    message:
-      "ChatGPT sharing is unavailable for this account or workspace. Use another provider or check its sharing policy.",
+    message: t("provider.codexManagedErrors.chatGptSharingUnavailable"),
     revoke: false,
   },
   subscription_sharing_usage_limit_exceeded: {
@@ -10,7 +11,7 @@ const legacyFailures = {
     revoke: false,
   },
   subscription_sharing_usage_unavailable: {
-    message: "ChatGPT usage is temporarily unavailable. Try again shortly.",
+    message: t("provider.codexManagedErrors.chatGptUsageUnavailable"),
     revoke: false,
   },
   subscription_sharing_unsupported_capability: {
@@ -19,12 +20,11 @@ const legacyFailures = {
     revoke: false,
   },
   subscription_sharing_v2_client_not_enabled: {
-    message:
-      "This app is not enabled for this ChatGPT connection. Use your existing CLI or another provider.",
+    message: t("provider.codexManagedErrors.chatGptAppNotEnabled"),
     revoke: false,
   },
   subscription_sharing_v2_route_not_supported: {
-    message: "ChatGPT does not support this request route.",
+    message: t("provider.codexManagedErrors.chatGptRouteNotSupported"),
     revoke: false,
   },
   subscription_sharing_v2_invalid_user: {
@@ -33,7 +33,7 @@ const legacyFailures = {
     revoke: false,
   },
   subscription_sharing_v2_user_unavailable: {
-    message: "ChatGPT is temporarily unavailable. Try again shortly.",
+    message: t("provider.codexManagedErrors.chatGptUnavailable"),
     revoke: false,
   },
 } as const;
@@ -45,13 +45,11 @@ const failures = {
   subscription_sharing_invalid_user: legacyFailures.subscription_sharing_v2_invalid_user,
   subscription_sharing_user_unavailable: legacyFailures.subscription_sharing_v2_user_unavailable,
   chatpass_v2_scope_not_authorized: {
-    message:
-      "This ChatGPT grant does not authorize the request. Check the connection's sharing permissions.",
+    message: t("provider.codexManagedErrors.chatGptGrantNotAuthorized"),
     revoke: false,
   },
   chatpass_v2_invalid_authorization_context: {
-    message:
-      "ChatGPT could not authorize this connection. Check the client and sharing permissions.",
+    message: t("provider.codexManagedErrors.chatGptAuthorizationFailed"),
     revoke: false,
   },
 };

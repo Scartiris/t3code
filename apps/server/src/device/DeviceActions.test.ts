@@ -1,5 +1,6 @@
 import { describe, expect, it } from "@effect/vitest";
 import type { DeviceActionInput } from "@t3tools/contracts";
+import { t } from "@t3tools/shared/i18n";
 import * as Effect from "effect/Effect";
 
 import { readDeviceDetail, runDeviceAction, supportsAction } from "./DeviceActions.ts";
@@ -165,7 +166,9 @@ describe("runDeviceAction", () => {
         }),
       );
       expect(error._tag).toBe("DeviceActionUnavailableError");
-      expect(error.message).toContain("requires a helper");
+      expect(error.message).toContain(
+        t("device.device.actionHelperMissing", { operation: "accessibility" }),
+      );
     }),
   );
 
@@ -180,7 +183,9 @@ describe("runDeviceAction", () => {
           payload: "hi",
         }),
       );
-      expect(error.message).toContain("not supported on android");
+      expect(error.message).toContain(
+        t("device.device.actionUnsupported", { operation: "sendPush", platform: "android" }),
+      );
       expect(calls).toEqual([]);
     }),
   );
@@ -192,7 +197,9 @@ describe("runDeviceAction", () => {
         runDeviceAction(ready, "ios", { type: "setAppearance", deviceId: udid, value: "dark" }),
       );
       expect(error.operation).toBe("appearance");
-      expect(error.message).toContain("exit code 1");
+      expect(error.message).toContain(
+        t("device.device.operationCommandFailedExit", { exitCode: 1 }),
+      );
       expect(error.message).not.toContain("Invalid device: SIM-1");
       expect(error._tag === "DeviceOperationError" && error.cause).toMatchObject({
         stderr: "Invalid device: SIM-1",

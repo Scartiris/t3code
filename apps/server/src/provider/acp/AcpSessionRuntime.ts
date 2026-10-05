@@ -28,6 +28,7 @@ import type * as EffectAcpSchema from "effect-acp/compat";
 import type * as EffectAcpProtocol from "effect-acp/protocol";
 import { resolveSpawnCommand } from "@t3tools/shared/shell";
 import { HostProcessPlatform } from "@t3tools/shared/hostProcess";
+import { t } from "@t3tools/shared/i18n";
 
 import { signalProcessGroup } from "../../process/processGroup.ts";
 import { appendAcpStderrTail, sanitizeAcpStderrExcerpt } from "./AcpStderr.ts";
@@ -1397,7 +1398,7 @@ export const make = (
       Effect.mapError(
         (cause) =>
           new EffectAcpErrors.AcpTransportError({
-            detail: "Failed to generate an ACP assistant item runtime identifier.",
+            detail: t("provider.acpSessionRuntime.assistantItemIdUnavailable"),
             cause,
           }),
       ),
@@ -1909,8 +1910,8 @@ export const make = (
         return state.result;
       }
       return yield* new EffectAcpErrors.AcpTransportError({
-        detail: "ACP session runtime has not been started",
-        cause: "ACP session runtime has not been started",
+        detail: t("provider.acpSessionRuntime.runtimeNotStarted"),
+        cause: t("provider.acpSessionRuntime.runtimeNotStarted"),
       });
     });
 
@@ -2079,8 +2080,7 @@ export const make = (
                       new EffectAcpErrors.AcpTransportError({
                         operation: "call-rpc",
                         method: "session/load",
-                        detail:
-                          "session/load timed out waiting for RPC response or replay idle gap",
+                        detail: t("provider.acpSessionRuntime.sessionLoadTimedOut"),
                         cause: undefined,
                       }),
                     ),
@@ -2236,7 +2236,9 @@ export const make = (
             authMethod === undefined
           ) {
             return yield* new EffectAcpErrors.AcpTransportError({
-              detail: `ACP agent did not advertise configured authentication method "${configuredAuthMethodId}"`,
+              detail: t("provider.acpSessionRuntime.authMethodNotAdvertised", {
+                method: configuredAuthMethodId,
+              }),
               cause: { configuredAuthMethodId, authMethods: initializeResult.authMethods },
             });
           }
@@ -2246,7 +2248,10 @@ export const make = (
             authMethod.type !== "agent"
           ) {
             return yield* new EffectAcpErrors.AcpTransportError({
-              detail: `ACP authentication method "${authMethod.id}" requires ${authMethod.type} authentication, which cannot run inside a headless provider session`,
+              detail: t("provider.acpSessionRuntime.authMethodRequiresInteractiveAuth", {
+                method: authMethod.id,
+                type: authMethod.type,
+              }),
               cause: authMethod,
             });
           }
@@ -2303,7 +2308,7 @@ export const make = (
           } else {
             return yield* new EffectAcpErrors.AcpRequestError({
               code: -32601,
-              errorMessage: "ACP agent does not advertise session/load or session/resume support",
+              errorMessage: t("provider.acpSessionRuntime.sessionLoadUnsupported"),
             });
           }
         } else {
@@ -2463,7 +2468,7 @@ export const make = (
         const error = new EffectAcpErrors.AcpTransportError({
           operation: "call-rpc",
           method: "session/cancel",
-          detail: "The ACP agent did not finish cancellation. Its process was stopped.",
+          detail: t("provider.acpSessionRuntime.cancelNotConfirmed"),
           cause: undefined,
         });
         yield* retireRuntime(error);
@@ -2570,7 +2575,7 @@ export const make = (
             () =>
               new EffectAcpErrors.AcpRequestError({
                 code: -32601,
-                errorMessage: "ACP agent does not advertise session/list support",
+                errorMessage: t("provider.acpSessionRuntime.sessionListUnsupported"),
               }),
           ),
           Effect.andThen(
@@ -2602,7 +2607,7 @@ export const make = (
             () =>
               new EffectAcpErrors.AcpRequestError({
                 code: -32601,
-                errorMessage: "ACP agent does not advertise session/delete support",
+                errorMessage: t("provider.acpSessionRuntime.sessionDeleteUnsupported"),
               }),
           ),
           Effect.andThen(
@@ -2619,7 +2624,7 @@ export const make = (
           () =>
             new EffectAcpErrors.AcpRequestError({
               code: -32601,
-              errorMessage: "ACP agent does not advertise provider configuration support",
+              errorMessage: t("provider.acpSessionRuntime.providerConfigurationUnsupported"),
             }),
         ),
         Effect.andThen(runLoggedRequest("providers/list", {}, acp.agent.listProviders({}))),
@@ -2631,7 +2636,7 @@ export const make = (
             () =>
               new EffectAcpErrors.AcpRequestError({
                 code: -32601,
-                errorMessage: "ACP agent does not advertise provider configuration support",
+                errorMessage: t("provider.acpSessionRuntime.providerConfigurationUnsupported"),
               }),
           ),
           Effect.andThen(
@@ -2659,7 +2664,7 @@ export const make = (
             () =>
               new EffectAcpErrors.AcpRequestError({
                 code: -32601,
-                errorMessage: "ACP agent does not advertise provider configuration support",
+                errorMessage: t("provider.acpSessionRuntime.providerConfigurationUnsupported"),
               }),
           ),
           Effect.andThen(
@@ -2673,7 +2678,7 @@ export const make = (
           () =>
             new EffectAcpErrors.AcpRequestError({
               code: -32601,
-              errorMessage: "ACP agent does not advertise logout support",
+              errorMessage: t("provider.acpSessionRuntime.logoutUnsupported"),
             }),
         ),
         Effect.andThen(runLoggedRequest("logout", {}, acp.agent.logout({}))),
@@ -2727,7 +2732,7 @@ export const make = (
                   yield* retireRuntime(
                     new EffectAcpErrors.AcpTransportError({
                       method: "session/prompt",
-                      detail: "The ACP prompt stopped before the agent confirmed completion.",
+                      detail: t("provider.acpSessionRuntime.promptStoppedBeforeCompletion"),
                       cause: undefined,
                     }),
                   );

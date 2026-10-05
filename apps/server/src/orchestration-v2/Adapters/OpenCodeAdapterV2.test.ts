@@ -17,6 +17,7 @@ import {
   type OrchestrationV2ProviderThread,
   type OrchestrationV2ProviderTurn,
 } from "@t3tools/contracts";
+import { t } from "@t3tools/shared/i18n";
 import * as Effect from "effect/Effect";
 import * as Clock from "effect/Clock";
 import * as DateTime from "effect/DateTime";
@@ -873,9 +874,15 @@ describe("OpenCodeAdapterV2", () => {
         event.type === "turn_item.updated" ? [event.turnItem] : [],
       );
       const read = items.find((item) => item.type === "dynamic_tool");
-      assert.equal(read?.title, "Read src/env.ts");
+      assert.equal(
+        read?.title,
+        t("toolActivity.toolActivity.readPath", { path: "src/env.ts", extra: "" }),
+      );
       const grep = items.find((item) => item.type === "file_search");
-      assert.equal(grep?.title, "Searched TODO in web");
+      assert.equal(
+        grep?.title,
+        t("toolActivity.toolActivity.searchedQueryInTarget", { query: "TODO", target: "web" }),
+      );
       assert.equal(grep?.type === "file_search" ? grep.pattern : null, "TODO");
       const webSearch = items.find((item) => item.type === "web_search");
       assert.deepEqual(webSearch?.type === "web_search" ? webSearch.patterns : null, [

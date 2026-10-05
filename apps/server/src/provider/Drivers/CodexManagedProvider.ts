@@ -1,4 +1,5 @@
 import { ProviderDriverKind, TextGenerationError, type CodexSettings } from "@t3tools/contracts";
+import { t } from "@t3tools/shared/i18n";
 import * as Effect from "effect/Effect";
 import * as Stream from "effect/Stream";
 import * as Option from "effect/Option";
@@ -67,7 +68,7 @@ export const makeManagedCodexProvider = Effect.fn("makeManagedCodexProvider")(fu
         ...base,
         installed: false,
         models: [],
-        message: "Set up Codex to get started.",
+        message: t("provider.codexManagedProvider.setupRequired"),
         auth: { status: "unauthenticated" as const },
       };
     const saved = yield* runtime.auth.read.pipe(Effect.orElseSucceed(() => Option.none()));
@@ -77,8 +78,7 @@ export const makeManagedCodexProvider = Effect.fn("makeManagedCodexProvider")(fu
         installed: true,
         version: executable.value.version,
         models: [],
-        message:
-          "Signed in with ChatGPT, but token sharing is disabled. Sign in again and enable token sharing, or use another provider.",
+        message: t("provider.codexManagedProvider.tokenSharingDisabled"),
         auth: {
           status: "unauthenticated" as const,
           label: "ChatGPT",
@@ -91,7 +91,7 @@ export const makeManagedCodexProvider = Effect.fn("makeManagedCodexProvider")(fu
         installed: true,
         version: executable.value.version,
         models: [],
-        message: "Sign in with ChatGPT to use Codex.",
+        message: t("provider.codexManagedProvider.signInRequired"),
         auth: { status: "unauthenticated" as const },
       };
     const usageLimits = {
@@ -99,10 +99,12 @@ export const makeManagedCodexProvider = Effect.fn("makeManagedCodexProvider")(fu
       windows: [],
       unavailable: {
         reason: "unsupported" as const,
-        message:
-          "ChatGPT tracks subscription usage across connected apps. Open Usage settings with the account you connected to Codex.",
+        message: t("provider.codexManagedProvider.usageTrackedElsewhere"),
       },
-      externalUsage: { label: "ChatGPT usage", url: "https://chatgpt.com/#settings/Usage" },
+      externalUsage: {
+        label: t("provider.codexManagedProvider.chatGptUsageLabel"),
+        url: "https://chatgpt.com/#settings/Usage",
+      },
     };
     const managedAuth = {
       subscriptionSharing: true,
@@ -181,7 +183,7 @@ export const makeManagedCodexProvider = Effect.fn("makeManagedCodexProvider")(fu
             ...(Option.isSome(current) && current.value.scopes.includes("chatgpt.tokens.use.direct")
               ? { usageLimits }
               : {}),
-            message: "Could not check Codex right now. Retry, or reconnect in provider settings.",
+            message: t("provider.codexManagedProvider.checkFailed"),
           })),
         ),
       ),
@@ -201,7 +203,7 @@ export const makeManagedCodexProvider = Effect.fn("makeManagedCodexProvider")(fu
         new ProviderDriverError({
           driver: DRIVER,
           instanceId,
-          detail: "Could not prepare managed Codex.",
+          detail: t("provider.codexManagedProvider.prepareFailed"),
           cause,
         }),
     ),
@@ -226,7 +228,7 @@ export const makeManagedCodexProvider = Effect.fn("makeManagedCodexProvider")(fu
         new ProviderDriverError({
           driver: DRIVER,
           instanceId,
-          detail: "Failed to build Codex orchestration adapter.",
+          detail: t("provider.codexManagedProvider.adapterBuildFailed"),
           cause,
         }),
     ),
@@ -244,7 +246,10 @@ export const makeManagedCodexProvider = Effect.fn("makeManagedCodexProvider")(fu
         (cause) =>
           new TextGenerationError({
             operation,
-            detail: "detail" in cause ? cause.detail : "Codex text generation failed.",
+            detail:
+              "detail" in cause
+                ? cause.detail
+                : t("provider.codexManagedProvider.textGenerationFailed"),
           }),
       ),
     );

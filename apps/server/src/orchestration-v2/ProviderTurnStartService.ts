@@ -1,5 +1,6 @@
 import { modelSelectionsEqual } from "@t3tools/shared/model";
 import { projectComposerContextForProvider } from "@t3tools/shared/composerContextReferences";
+import { t } from "@t3tools/shared/i18n";
 import {
   CommandId,
   type OrchestrationV2DomainEvent,
@@ -434,7 +435,7 @@ export const layer: Layer.Layer<
                 ? {
                     type: "error",
                     title: isEmptyCompaction
-                      ? "Cannot compact an empty thread"
+                      ? t("orchestration-v2.providerTurnStartService.cannotCompactEmptyThread")
                       : "Provider sign-out failed",
                     failure,
                   }
@@ -579,7 +580,7 @@ export const layer: Layer.Layer<
         if (input.willRetry === true) return yield* sessionResult.failure;
         yield* settleStartFailure({
           signal: "provider-session-open-failure",
-          title: "Provider session failed to open",
+          title: t("orchestration-v2.providerTurnStartService.sessionOpenFailed"),
           error: sessionResult.failure,
         });
         return;

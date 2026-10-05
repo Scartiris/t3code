@@ -13,6 +13,7 @@ import * as Scope from "effect/Scope";
 import * as ChildProcessSpawner from "effect/unstable/process/ChildProcessSpawner";
 import * as EffectAcpErrors from "effect-acp/errors";
 import { HostProcessPlatform } from "@t3tools/shared/hostProcess";
+import { t } from "@t3tools/shared/i18n";
 import { normalizeModelSlug } from "@t3tools/shared/model";
 
 import * as AcpSessionRuntime from "./AcpSessionRuntime.ts";
@@ -143,12 +144,21 @@ export function grokApprovalOptions(
         option.kind === kind && (optionId === undefined || option.optionId.trim() === optionId),
     );
   return [
-    { decision: "cancel", label: "Cancel" },
-    ...(has("reject_once") ? [{ decision: "decline", label: "Decline" } as const] : []),
-    ...(has("allow_always", GROK_ALLOW_EDITS_SESSION_OPTION_ID)
-      ? [{ decision: "acceptForSession", label: "Allow all edits this session" } as const]
+    { decision: "cancel", label: t("action.cancel") },
+    ...(has("reject_once")
+      ? [{ decision: "decline", label: t("provider.grokAcpSupport.permissionDecline") } as const]
       : []),
-    ...(has("allow_once") ? [{ decision: "accept", label: "Approve" } as const] : []),
+    ...(has("allow_always", GROK_ALLOW_EDITS_SESSION_OPTION_ID)
+      ? [
+          {
+            decision: "acceptForSession",
+            label: t("provider.grokAcpSupport.permissionAllowEditsThisSession"),
+          } as const,
+        ]
+      : []),
+    ...(has("allow_once")
+      ? [{ decision: "accept", label: t("provider.grokAcpSupport.permissionApprove") } as const]
+      : []),
   ];
 }
 

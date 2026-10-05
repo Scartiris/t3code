@@ -7,6 +7,7 @@ import {
   ThreadId,
   type DeviceServiceState,
 } from "@t3tools/contracts";
+import { t } from "@t3tools/shared/i18n";
 import * as Effect from "effect/Effect";
 import * as Exit from "effect/Exit";
 import * as Deferred from "effect/Deferred";
@@ -365,17 +366,17 @@ it.effect.each([
   {
     diagnostic: "Insufficient disk space at /private/user/path",
     reason: "disk_space",
-    message: "not enough free disk space",
+    message: t("device.device.bootDiskSpace"),
   },
   {
     diagnostic: "Timed out spawning /private/user/command",
     reason: "timeout",
-    message: "did not become ready in time",
+    message: t("device.device.bootTimeout"),
   },
   {
     diagnostic: "Unexpected failure: secret-token",
     reason: "launch_failed",
-    message: "could not start",
+    message: t("device.device.bootLaunchFailed"),
   },
 ] as const)("normalizes boot failure: $reason", ({ diagnostic, message }) =>
   Effect.gen(function* () {

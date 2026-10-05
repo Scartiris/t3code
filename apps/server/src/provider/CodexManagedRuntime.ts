@@ -1,5 +1,6 @@
 import { resolveManagedCodexHomeLayout } from "./CodexManagedHome.ts";
 import { CodexSettings, ProviderSetupError, type ProviderInstanceId } from "@t3tools/contracts";
+import { t } from "@t3tools/shared/i18n";
 import * as Effect from "effect/Effect";
 import * as FileSystem from "effect/FileSystem";
 import * as Path from "effect/Path";
@@ -60,7 +61,7 @@ export const makeCodexManagedRuntime = Effect.fn("makeCodexManagedRuntime")(func
           new ProviderSetupError({
             instanceId: options.instanceId,
             operation: "install",
-            detail: "Set up managed Codex before starting a session.",
+            detail: t("provider.codexManagedRuntime.setupRequired"),
           }),
       ),
     );
@@ -83,7 +84,7 @@ export const makeCodexManagedRuntime = Effect.fn("makeCodexManagedRuntime")(func
           new ProviderSetupError({
             instanceId: options.instanceId,
             operation: "runtime",
-            detail: "Could not prepare the managed Codex runtime.",
+            detail: t("provider.codexManagedRuntime.runtimePrepareFailed"),
           }),
       ),
     );

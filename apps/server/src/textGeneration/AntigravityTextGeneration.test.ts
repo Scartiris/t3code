@@ -5,6 +5,7 @@ import {
   ProviderInstanceId,
   ProviderSetupError,
 } from "@t3tools/contracts";
+import { t } from "@t3tools/shared/i18n";
 import * as Deferred from "effect/Deferred";
 import * as Effect from "effect/Effect";
 import * as Exit from "effect/Exit";
@@ -349,7 +350,9 @@ it.layer(NodeServices.layer)("AntigravityTextGeneration", (it) => {
         const error = yield* fixture.textGeneration
           .generateThreadTitle(fixture.titleInput)
           .pipe(Effect.flip);
-        expect(error.detail).toContain("tool work");
+        expect(error.detail).toContain(
+          t("textGeneration.antigravityTextGeneration.toolWorkAttempted"),
+        );
         expect(fixture.state.cancellations).toBe(1);
         yield* fixture.assertCleaned;
       }).pipe(Effect.scoped),
@@ -375,7 +378,9 @@ it.layer(NodeServices.layer)("AntigravityTextGeneration", (it) => {
       );
       const error = yield* Fiber.join(child).pipe(Effect.flip);
       expect(reply).toEqual({ outcome: { outcome: "cancelled" } });
-      expect(error.detail).toContain("permission or user input");
+      expect(error.detail).toContain(
+        t("textGeneration.antigravityTextGeneration.toolPermissionRequested"),
+      );
       yield* fixture.assertCleaned;
     }).pipe(Effect.scoped),
   );
@@ -398,7 +403,9 @@ it.layer(NodeServices.layer)("AntigravityTextGeneration", (it) => {
       );
       const error = yield* Fiber.join(child).pipe(Effect.flip);
       expect(reply).toEqual({ action: "decline" });
-      expect(error.detail).toContain("user input");
+      expect(error.detail).toContain(
+        t("textGeneration.antigravityTextGeneration.userInputRequested"),
+      );
       yield* fixture.assertCleaned;
     }).pipe(Effect.scoped),
   );
@@ -427,23 +434,41 @@ it.layer(NodeServices.layer)("AntigravityTextGeneration", (it) => {
         const denied = yield* request.pipe(Effect.exit);
         expect(Exit.isFailure(denied)).toBe(true);
         const error = yield* Fiber.join(child).pipe(Effect.flip);
-        expect(error.detail).toContain("tool or user input");
+        expect(error.detail).toContain(
+          t("textGeneration.antigravityTextGeneration.toolOrInputRequested"),
+        );
         yield* fixture.assertCleaned;
       }).pipe(Effect.scoped),
   );
 
   it.effect.each([
-    { output: "   ", detail: "empty" },
-    { output: "No JSON here", detail: "invalid structured output" },
-    { output: '{"title":42}', detail: "invalid structured output" },
-    { output: "x".repeat(128_001), detail: "output limit" },
-  ])("rejects $detail output and closes the runtime", ({ output, detail }) =>
+    {
+      output: "   ",
+      detail: "empty",
+      message: t("textGeneration.antigravityTextGeneration.emptyOutput"),
+    },
+    {
+      output: "No JSON here",
+      detail: "invalid structured output",
+      message: t("textGeneration.antigravityTextGeneration.invalidStructuredOutput"),
+    },
+    {
+      output: '{"title":42}',
+      detail: "invalid structured output",
+      message: t("textGeneration.antigravityTextGeneration.invalidStructuredOutput"),
+    },
+    {
+      output: "x".repeat(128_001),
+      detail: "output limit",
+      message: t("textGeneration.antigravityTextGeneration.outputLimitExceeded"),
+    },
+  ])("rejects $detail output and closes the runtime", ({ output, message }) =>
     Effect.gen(function* () {
       const fixture = yield* makeFixture({ outputs: [output] });
       const error = yield* fixture.textGeneration
         .generateThreadTitle(fixture.titleInput)
         .pipe(Effect.flip);
-      expect(error.detail).toContain(detail);
+      expect(error.detail).toContain(message);
       yield* fixture.assertCleaned;
     }).pipe(Effect.scoped),
   );
@@ -460,7 +485,7 @@ it.layer(NodeServices.layer)("AntigravityTextGeneration", (it) => {
       const error = yield* fixture.textGeneration
         .generateThreadTitle(fixture.titleInput)
         .pipe(Effect.flip);
-      expect(error.detail).toContain("cancelled");
+      expect(error.detail).toContain(t("textGeneration.antigravityTextGeneration.cancelled"));
       yield* fixture.assertCleaned;
     }).pipe(Effect.scoped),
   );
@@ -485,7 +510,7 @@ it.layer(NodeServices.layer)("AntigravityTextGeneration", (it) => {
       const error = yield* fixture.textGeneration
         .generateThreadTitle(fixture.titleInput)
         .pipe(Effect.flip);
-      expect(error.detail).toContain("wrote files");
+      expect(error.detail).toContain(t("textGeneration.antigravityTextGeneration.filesWritten"));
       yield* fixture.assertCleaned;
     }).pipe(Effect.scoped),
   );
@@ -499,7 +524,9 @@ it.layer(NodeServices.layer)("AntigravityTextGeneration", (it) => {
           modelSelection: { ...modelSelection, model: "not-in-the-account" },
         })
         .pipe(Effect.flip);
-      expect(error.detail).toContain("select the Antigravity model");
+      expect(error.detail).toContain(
+        t("textGeneration.antigravityTextGeneration.modelSelectionFailed"),
+      );
       expect(fixture.state.prompts).toEqual([]);
       yield* fixture.assertCleaned;
     }).pipe(Effect.scoped),
@@ -586,7 +613,7 @@ it.layer(NodeServices.layer)("AntigravityTextGeneration", (it) => {
       yield* Deferred.await(fixture.enteredPrompt);
       yield* TestClock.adjust(180_000);
       const error = yield* Fiber.join(child).pipe(Effect.flip);
-      expect(error.detail).toContain("timed out");
+      expect(error.detail).toContain(t("textGeneration.antigravityTextGeneration.timedOut"));
       expect(fixture.state.cancellations).toBe(1);
       yield* fixture.assertCleaned;
     }).pipe(Effect.scoped),
@@ -619,7 +646,9 @@ it.layer(NodeServices.layer)("AntigravityTextGeneration", (it) => {
       const error = yield* fixture.textGeneration
         .generateThreadTitle(fixture.titleInput)
         .pipe(Effect.flip);
-      expect(error.detail).toContain("invalid text helper session ID");
+      expect(error.detail).toContain(
+        t("textGeneration.antigravityTextGeneration.invalidSessionId"),
+      );
       expect(fixture.state.prompts).toEqual([]);
       expect(yield* fixture.fs.readFileString(`${fixture.sessionBase}.db`)).toBe("helper session");
       expect(fixture.state.closed).toEqual(fixture.state.workspaces);

@@ -15,6 +15,7 @@ import {
   TextGenerationError,
 } from "@t3tools/contracts";
 import { formatGeneratedBranchName, sanitizeFeatureBranchName } from "@t3tools/shared/git";
+import { t } from "@t3tools/shared/i18n";
 import { resolveSpawnCommand } from "@t3tools/shared/shell";
 
 import { resolveAttachmentPath } from "../attachmentStore.ts";
@@ -75,7 +76,12 @@ export const makeCodexTextGeneration = Effect.fn("makeCodexTextGeneration")(func
         (acc, chunk) => acc + chunk,
       ),
       Effect.mapError((cause) =>
-        normalizeCliError("codex", operation, cause, "Failed to collect process output"),
+        normalizeCliError(
+          "codex",
+          operation,
+          cause,
+          t("textGeneration.codexTextGeneration.collectProcessOutputFailed"),
+        ),
       ),
     );
 
@@ -110,7 +116,7 @@ export const makeCodexTextGeneration = Effect.fn("makeCodexTextGeneration")(func
           (cause) =>
             new TextGenerationError({
               operation,
-              detail: `Failed to write temp file`,
+              detail: t("textGeneration.codexTextGeneration.writeTempFileFailed"),
               cause,
             }),
         ),
@@ -129,7 +135,7 @@ export const makeCodexTextGeneration = Effect.fn("makeCodexTextGeneration")(func
         (cause) =>
           new TextGenerationError({
             operation,
-            detail: "Failed to encode structured output schema.",
+            detail: t("textGeneration.codexTextGeneration.encodeOutputSchemaFailed"),
             cause,
           }),
       ),
@@ -263,7 +269,12 @@ export const makeCodexTextGeneration = Effect.fn("makeCodexTextGeneration")(func
         .spawn(command)
         .pipe(
           Effect.mapError((cause) =>
-            normalizeCliError("codex", operation, cause, "Failed to spawn Codex CLI process"),
+            normalizeCliError(
+              "codex",
+              operation,
+              cause,
+              t("textGeneration.codexTextGeneration.spawnCliFailed"),
+            ),
           ),
         );
 
@@ -273,7 +284,12 @@ export const makeCodexTextGeneration = Effect.fn("makeCodexTextGeneration")(func
           readStreamAsString(operation, child.stderr),
           child.exitCode.pipe(
             Effect.mapError((cause) =>
-              normalizeCliError("codex", operation, cause, "Failed to read Codex CLI exit code"),
+              normalizeCliError(
+                "codex",
+                operation,
+                cause,
+                t("textGeneration.codexTextGeneration.readExitCodeFailed"),
+              ),
             ),
           ),
         ],
@@ -313,7 +329,10 @@ export const makeCodexTextGeneration = Effect.fn("makeCodexTextGeneration")(func
           Option.match({
             onNone: () =>
               Effect.fail(
-                new TextGenerationError({ operation, detail: "Codex CLI request timed out." }),
+                new TextGenerationError({
+                  operation,
+                  detail: t("textGeneration.codexTextGeneration.requestTimedOut"),
+                }),
               ),
             onSome: () => Effect.void,
           }),
@@ -327,7 +346,7 @@ export const makeCodexTextGeneration = Effect.fn("makeCodexTextGeneration")(func
           (cause) =>
             new TextGenerationError({
               operation,
-              detail: "Failed to read Codex output file.",
+              detail: t("textGeneration.codexTextGeneration.readOutputFileFailed"),
               cause,
             }),
         ),

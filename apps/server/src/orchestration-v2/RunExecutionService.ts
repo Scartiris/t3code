@@ -1,4 +1,5 @@
 import { makeAssistantStreamingFilter } from "./assistantStreaming.ts";
+import { t } from "@t3tools/shared/i18n";
 import { resolveProjectSettings } from "@t3tools/shared/projectSettings";
 import {
   isOrchestrationV2WorkActive,
@@ -1457,11 +1458,11 @@ function makeInterruptResultTurnItem(input: {
     }),
     ordinal: input.run.ordinal * 100 + 98,
     status: "interrupted",
-    title: "Interrupted",
+    title: t("orchestration-v2.runExecutionService.interrupted"),
     startedAt: input.completedAt,
     completedAt: input.completedAt,
     updatedAt: input.completedAt,
     type: "run_interrupt_result",
-    message: "Run interrupted by user",
+    message: t("orchestration-v2.runExecutionService.runInterruptedByUser"),
   };
 }

@@ -4,6 +4,7 @@ import * as Effect from "effect/Effect";
 import * as Option from "effect/Option";
 import * as Ref from "effect/Ref";
 import type * as EffectAcpSchema from "effect-acp/compat";
+import { t } from "@t3tools/shared/i18n";
 import {
   deriveToolActivityPresentation,
   mergeToolActivityData,
@@ -339,7 +340,7 @@ export function acpContentBlockDisplayText(
       const label =
         boundedContentMetadata(content.title, 512) ||
         boundedContentMetadata(content.name, 512) ||
-        "resource";
+        t("provider.acpRuntimeModel.resourceLinkLabel");
       const description = boundedContentMetadata(content.description, 2_048);
       const uri = boundedContentUri(content.uri);
       return `${description ? `${label}: ${description}` : label}${uri ? `\n${uri}` : ""}`;
@@ -1244,7 +1245,9 @@ export function parsePermissionRequest(
     toolCall?.command ??
     toolCall?.title ??
     toolCall?.detail ??
-    (typeof params.sessionId === "string" ? `Session ${params.sessionId}` : undefined);
+    (typeof params.sessionId === "string"
+      ? t("provider.acpRuntimeModel.sessionDetail", { sessionId: params.sessionId })
+      : undefined);
   return {
     kind,
     ...(detail ? { detail } : {}),

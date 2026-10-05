@@ -7,6 +7,7 @@ import {
   ProviderSetupError,
   type ProviderSetupInput,
 } from "@t3tools/contracts";
+import { t } from "@t3tools/shared/i18n";
 import { resolveCommandPath } from "@t3tools/shared/shell";
 import * as Effect from "effect/Effect";
 import * as Schema from "effect/Schema";
@@ -43,7 +44,7 @@ export const makeProviderInstallation = Effect.fn("makeProviderInstallation")(fu
           new ProviderSetupError({
             instanceId,
             operation,
-            detail: "Could not read provider installation settings.",
+            detail: t("provider.providerInstallation.settingsUnreadable"),
           }),
       ),
     );
@@ -61,7 +62,7 @@ export const makeProviderInstallation = Effect.fn("makeProviderInstallation")(fu
       return yield* new ProviderSetupError({
         instanceId,
         operation,
-        detail: "Managed installation is not available for this provider instance.",
+        detail: t("provider.providerInstallation.managedInstallationUnavailable"),
       });
     }
     const installation = isCodex ? codexInstallation : antigravityInstallation;
@@ -70,7 +71,7 @@ export const makeProviderInstallation = Effect.fn("makeProviderInstallation")(fu
       new ProviderSetupError({
         instanceId,
         operation,
-        detail: "The provider instance configuration is invalid.",
+        detail: t("provider.providerInstallation.invalidInstanceConfiguration"),
       });
     const config = isCodex
       ? yield* decodeCodexSettings(entries[instanceId]?.config ?? {}).pipe(

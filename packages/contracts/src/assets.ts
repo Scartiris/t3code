@@ -1,3 +1,4 @@
+import { t } from "@t3tools/i18n";
 import * as Schema from "effect/Schema";
 
 import { NonNegativeInt, ThreadId, TrimmedNonEmptyString } from "./baseSchemas.ts";
@@ -129,7 +130,7 @@ export class AttachmentUploadSigningKeyError extends Schema.TaggedError<Attachme
   },
 ) {
   override get message(): string {
-    return "Failed to load the attachment upload signing key.";
+    return t("contractErrors.assets.attachmentUploadSigningKeyLoadFailed");
   }
 }
 
@@ -140,7 +141,7 @@ export class AssetWorkspaceContextNotFoundError extends Schema.TaggedError<Asset
   },
 ) {
   override get message(): string {
-    return "Workspace context was not found.";
+    return t("contractErrors.assets.workspaceContextNotFound");
   }
 }
 
@@ -152,7 +153,7 @@ export class AssetWorkspaceContextResolutionError extends Schema.TaggedError<Ass
   },
 ) {
   override get message(): string {
-    return "Failed to resolve workspace context.";
+    return t("contractErrors.assets.workspaceContextResolutionFailed");
   }
 }
 
@@ -164,7 +165,7 @@ export class AssetWorkspaceRootNormalizationError extends Schema.TaggedError<Ass
   },
 ) {
   override get message(): string {
-    return "Failed to normalize the workspace root.";
+    return t("contractErrors.assets.workspaceRootNormalizationFailed");
   }
 }
 
@@ -176,7 +177,7 @@ export class AssetWorkspacePathValidationError extends Schema.TaggedError<AssetW
   },
 ) {
   override get message(): string {
-    return "Workspace file path must be relative to the project root.";
+    return t("contractErrors.assets.workspaceFilePathMustBeRelative");
   }
 }
 
@@ -190,8 +191,8 @@ export class AssetPreviewTypeValidationError extends Schema.TaggedError<AssetPre
     // Draft resources serve absolute paths through the same host-media
     // validation as media files, so they share its message.
     return this.resource._tag === "media-file" || this.resource._tag === "draft-workspace-file"
-      ? "Only images, videos, audio, HTML, and PDF files can be previewed."
-      : "Only browser documents and images can be previewed.";
+      ? t("contractErrors.assets.previewTypeUnsupportedHostMedia")
+      : t("contractErrors.assets.previewTypeUnsupportedWorkspaceFile");
   }
 }
 
@@ -204,8 +205,8 @@ export class AssetWorkspaceAssetInspectionError extends Schema.TaggedError<Asset
 ) {
   override get message(): string {
     return this.resource._tag === "media-file"
-      ? "Failed to inspect the media file."
-      : "Failed to inspect the workspace asset.";
+      ? t("contractErrors.assets.mediaFileInspectionFailed")
+      : t("contractErrors.assets.workspaceAssetInspectionFailed");
   }
 }
 
@@ -217,8 +218,8 @@ export class AssetWorkspaceAssetNotFoundError extends Schema.TaggedError<AssetWo
 ) {
   override get message(): string {
     return this.resource._tag === "media-file"
-      ? "Media file was not found."
-      : "Workspace asset was not found.";
+      ? t("contractErrors.assets.mediaFileNotFound")
+      : t("contractErrors.assets.workspaceAssetNotFound");
   }
 }
 
@@ -230,7 +231,7 @@ export class AssetWorkspaceResolutionError extends Schema.TaggedError<AssetWorks
   },
 ) {
   override get message(): string {
-    return "Failed to resolve workspace.";
+    return t("contractErrors.assets.workspaceResolutionFailed");
   }
 }
 
@@ -241,7 +242,7 @@ export class AssetAttachmentNotFoundError extends Schema.TaggedError<AssetAttach
   },
 ) {
   override get message(): string {
-    return "Attachment was not found.";
+    return t("contractErrors.assets.attachmentNotFound");
   }
 }
 
@@ -253,7 +254,7 @@ export class AssetProjectFaviconResolutionError extends Schema.TaggedError<Asset
   },
 ) {
   override get message(): string {
-    return "Failed to resolve project favicon.";
+    return t("contractErrors.assets.projectFaviconResolutionFailed");
   }
 }
 
@@ -265,7 +266,7 @@ export class AssetProjectFaviconInspectionError extends Schema.TaggedError<Asset
   },
 ) {
   override get message(): string {
-    return "Failed to inspect the project favicon.";
+    return t("contractErrors.assets.projectFaviconInspectionFailed");
   }
 }
 
@@ -276,7 +277,7 @@ export class AssetProjectFaviconNotFoundError extends Schema.TaggedError<AssetPr
   },
 ) {
   override get message(): string {
-    return "Project favicon was not found.";
+    return t("contractErrors.assets.projectFaviconNotFound");
   }
 }
 
@@ -288,7 +289,7 @@ export class AssetSigningKeyLoadError extends Schema.TaggedError<AssetSigningKey
   },
 ) {
   override get message(): string {
-    return "Failed to load the asset signing key.";
+    return t("contractErrors.assets.signingKeyLoadFailed");
   }
 }
 
@@ -297,7 +298,7 @@ export class AssetGitHubMediaUrlValidationError extends Schema.TaggedError<Asset
   {},
 ) {
   override get message(): string {
-    return "Only media hosted by GitHub can be fetched with a GitHub credential.";
+    return t("contractErrors.assets.gitHubMediaUrlNotGitHub");
   }
 }
 

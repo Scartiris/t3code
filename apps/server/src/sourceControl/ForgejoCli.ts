@@ -13,6 +13,7 @@ import { FetchHttpClient, HttpClient, HttpClientRequest } from "effect/unstable/
 import { ChildProcessSpawner } from "effect/unstable/process";
 import { decodeJsonResult } from "@t3tools/shared/schemaJson";
 import { HostProcessPlatform } from "@t3tools/shared/hostProcess";
+import { t } from "@t3tools/shared/i18n";
 import * as VcsProcess from "../vcs/VcsProcess.ts";
 import { collectUint8StreamText } from "../stream/collectUint8StreamText.ts";
 import type { SourceControlProviderContext } from "./SourceControlProvider.ts";
@@ -239,10 +240,10 @@ export const make = Effect.gen(function* () {
                   : {}),
               detail:
                 cause._tag === "VcsProcessSpawnError"
-                  ? "Install Forgejo CLI (`fj` 0.6 or later) or Gitea CLI (`tea` 0.16 or later) and retry."
+                  ? t("sourceControl.forgejoCli.missingCli")
                   : cause._tag === "VcsProcessExitError" && cause.failureKind === "authentication"
-                    ? "Authenticate this server with `fj auth login`, `fj auth add-token`, or `tea login add`."
-                    : "Forgejo CLI command failed.",
+                    ? t("sourceControl.forgejoCli.authenticateCommand")
+                    : t("sourceControl.forgejoCli.commandFailed"),
             }),
         ),
       );
@@ -263,7 +264,7 @@ export const make = Effect.gen(function* () {
               command: "fj",
               cwd,
               reason: "authentication",
-              detail: "Could not read fj authentication storage.",
+              detail: t("sourceControl.forgejoCli.authenticationStorageUnreadable"),
             }),
         ),
       );
@@ -275,7 +276,7 @@ export const make = Effect.gen(function* () {
               command: "fj",
               cwd,
               reason: "authentication",
-              detail: "Could not read fj authentication storage.",
+              detail: t("sourceControl.forgejoCli.authenticationStorageUnreadable"),
             }),
         ),
       );
@@ -285,7 +286,7 @@ export const make = Effect.gen(function* () {
           command: "fj",
           cwd,
           reason: "authentication",
-          detail: "fj authentication storage is invalid. Authenticate again with fj.",
+          detail: t("sourceControl.forgejoCli.authenticationStorageInvalid"),
         });
       return decoded.success;
     }
@@ -355,7 +356,7 @@ export const make = Effect.gen(function* () {
         return yield* new ForgejoCliError({
           command: "fj",
           cwd: input.cwd,
-          detail: "Invalid Forgejo API path.",
+          detail: t("sourceControl.forgejoCli.invalidApiPath"),
         });
       let request = HttpClientRequest.make(input.method ?? "GET")(url.toString()).pipe(
         HttpClientRequest.setHeader("Authorization", `token ${input.token}`),
@@ -378,15 +379,18 @@ export const make = Effect.gen(function* () {
           command: "fj",
           cwd: input.cwd,
           reason: "invalid-response",
-          detail: "Forgejo returned an oversized or invalid response.",
+          detail: t("sourceControl.forgejoCli.invalidResponse"),
         });
       if (status < 200 || status >= 300) {
         const detail =
           status === 404
             ? "Forgejo repository or pull request was not found."
             : body.text
-              ? `Forgejo API request failed (HTTP ${status}): ${body.text}`
-              : `Forgejo API request failed (HTTP ${status}). Check this server's fj credentials and permissions.`;
+              ? t("sourceControl.forgejoCli.apiRequestFailedWithDetail", {
+                  status,
+                  response: body.text,
+                })
+              : t("sourceControl.forgejoCli.apiRequestFailedWithCredentials", { status });
         return yield* new ForgejoCliError({
           command: "fj",
           cwd: input.cwd,
@@ -420,7 +424,7 @@ export const make = Effect.gen(function* () {
             : new ForgejoCliError({
                 command: "fj",
                 cwd: input.cwd,
-                detail: "Forgejo API request failed or timed out.",
+                detail: t("sourceControl.forgejoCli.apiRequestFailedOrTimedOut"),
               }),
         ),
       ),
@@ -443,7 +447,7 @@ export const make = Effect.gen(function* () {
         command: "fj",
         cwd,
         reason: "authentication",
-        detail: "fj has no credentials for this server. Authenticate again with fj.",
+        detail: t("sourceControl.forgejoCli.noCredentialsReauthenticate"),
       });
     authenticated.set(login.url, { token: refreshed, time: now });
     return refreshed;
@@ -461,7 +465,7 @@ export const make = Effect.gen(function* () {
         command: "fj",
         cwd: input.cwd,
         reason: "authentication",
-        detail: "fj has no credentials for this server.",
+        detail: t("sourceControl.forgejoCli.noCredentials"),
       });
     const token = yield* authenticateFj(input.cwd, login);
     const currentUser = yield* requestFj({
@@ -476,7 +480,7 @@ export const make = Effect.gen(function* () {
         command: "fj",
         cwd: input.cwd,
         reason: "invalid-response",
-        detail: "Forgejo returned an invalid account response.",
+        detail: t("sourceControl.forgejoCli.invalidAccountResponse"),
       });
     return user.success.login;
   });
@@ -508,7 +512,7 @@ export const make = Effect.gen(function* () {
               new ForgejoCliError({
                 command: "tea",
                 cwd: input.cwd,
-                detail: "Could not resolve the Forgejo repository remote.",
+                detail: t("sourceControl.forgejoCli.remoteUnresolved"),
                 cause,
               }),
           ),
@@ -579,7 +583,7 @@ export const make = Effect.gen(function* () {
           command: "fj",
           cwd: input.cwd,
           reason: "authentication",
-          detail: "Multiple fj logins match this repository. Specify its full server URL.",
+          detail: t("sourceControl.forgejoCli.ambiguousLogin"),
         });
       if (available.failure.reason !== "missing-cli") return yield* available.failure;
     }
@@ -599,8 +603,7 @@ export const make = Effect.gen(function* () {
         command: "tea",
         cwd: input.cwd,
         reason: "authentication",
-        detail:
-          "No matching Forgejo login. Use `fj auth login`, `fj auth add-token`, or `tea login add` for this server; choose a default when multiple tea accounts match.",
+        detail: t("sourceControl.forgejoCli.noMatchingLogin"),
       });
     if (hostOnly)
       return { command, login: login.name, repository: "", baseUrl: login.url.replace(/\/+$/, "") };
@@ -626,7 +629,7 @@ export const make = Effect.gen(function* () {
       return yield* new ForgejoCliError({
         command,
         cwd: input.cwd,
-        detail: "Specify a Forgejo repository as owner/repository or its full server URL.",
+        detail: t("sourceControl.forgejoCli.repositoryRequired"),
       });
     return { command, login: login.name, repository, baseUrl: login.url.replace(/\/+$/, "") };
   });
@@ -645,7 +648,7 @@ export const make = Effect.gen(function* () {
                 new ForgejoCliError({
                   command: "tea",
                   cwd: input.cwd,
-                  detail: "Could not encode the Forgejo request body.",
+                  detail: t("sourceControl.forgejoCli.encodeBodyFailed"),
                   cause,
                 }),
             ),
@@ -665,7 +668,7 @@ export const make = Effect.gen(function* () {
           command: "fj",
           cwd: input.cwd,
           reason: "authentication",
-          detail: "fj has no credentials for this server.",
+          detail: t("sourceControl.forgejoCli.noCredentials"),
         });
       return yield* requestFj({
         cwd: input.cwd,
@@ -709,12 +712,14 @@ export const make = Effect.gen(function* () {
                 : {}),
         detail:
           status === 401 || status === 403
-            ? "Forgejo denied access. Check this server's `tea login` credentials and permissions."
+            ? t("sourceControl.forgejoCli.accessDenied")
             : status === 404
               ? "Forgejo repository or pull request was not found."
               : status === 429
-                ? "Forgejo API rate limit exceeded."
-                : `Forgejo API request failed${status ? ` (HTTP ${status})` : " without an HTTP status"}.`,
+                ? t("sourceControl.forgejoCli.rateLimitExceeded")
+                : status
+                  ? t("sourceControl.forgejoCli.apiRequestFailedWithStatus", { status })
+                  : t("sourceControl.forgejoCli.apiRequestFailedWithoutStatus"),
       });
     return result;
   });

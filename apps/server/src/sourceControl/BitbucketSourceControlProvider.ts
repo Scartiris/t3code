@@ -1,6 +1,7 @@
 import * as Effect from "effect/Effect";
 import * as Option from "effect/Option";
 import { SourceControlProviderError, type ChangeRequest } from "@t3tools/contracts";
+import { t } from "@t3tools/shared/i18n";
 
 import * as BitbucketApi from "./BitbucketApi.ts";
 import type { NormalizedBitbucketPullRequestRecord } from "./bitbucketPullRequests.ts";
@@ -57,7 +58,7 @@ export const make = Effect.gen(function* () {
                 reference: SourceControlProvider.transportSafeSourceControlErrorValue(
                   input.headSelector,
                 ),
-                detail: "Failed to list change requests.",
+                detail: t("sourceControl.bitbucketSourceControlProvider.listChangeRequestsFailed"),
                 cause: error,
               }),
           ),
@@ -75,7 +76,7 @@ export const make = Effect.gen(function* () {
               reference: SourceControlProvider.transportSafeSourceControlErrorValue(
                 input.reference,
               ),
-              detail: "Failed to get change request.",
+              detail: t("sourceControl.bitbucketSourceControlProvider.getChangeRequestFailed"),
               cause: error,
             }),
         ),
@@ -103,7 +104,7 @@ export const make = Effect.gen(function* () {
                 reference: SourceControlProvider.transportSafeSourceControlErrorValue(
                   input.headSelector,
                 ),
-                detail: "Failed to create change request.",
+                detail: t("sourceControl.bitbucketSourceControlProvider.createChangeRequestFailed"),
                 cause: error,
               }),
           ),
@@ -136,7 +137,7 @@ export const make = Effect.gen(function* () {
               repository: SourceControlProvider.transportSafeSourceControlErrorValue(
                 input.repository,
               ),
-              detail: "Failed to create repository.",
+              detail: t("sourceControl.bitbucketSourceControlProvider.createRepositoryFailed"),
               cause: error,
             }),
         ),
@@ -154,7 +155,7 @@ export const make = Effect.gen(function* () {
                 provider: "bitbucket",
                 operation: "getDefaultBranch",
                 cwd: input.cwd,
-                detail: "Failed to get default branch.",
+                detail: t("sourceControl.bitbucketSourceControlProvider.getDefaultBranchFailed"),
                 cause: error,
               }),
           ),
@@ -177,7 +178,9 @@ export const make = Effect.gen(function* () {
                 reference: SourceControlProvider.transportSafeSourceControlErrorValue(
                   input.reference,
                 ),
-                detail: "Failed to check out change request.",
+                detail: t(
+                  "sourceControl.bitbucketSourceControlProvider.checkoutChangeRequestFailed",
+                ),
                 cause: error,
               }),
           ),
@@ -192,7 +195,7 @@ export const makeDiscovery = Effect.gen(function* () {
     type: "api",
     kind: "bitbucket",
     label: "Bitbucket",
-    installHint: "Add a Bitbucket token in Settings → Source Control.",
+    installHint: t("sourceControl.bitbucketSourceControlProvider.installHint"),
     probeAuth: bitbucket.probeAuth,
   } satisfies SourceControlApiDiscoverySpec;
 });

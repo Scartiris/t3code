@@ -1,3 +1,4 @@
+import { t } from "@t3tools/i18n";
 import * as Cause from "effect/Cause";
 import * as Duration from "effect/Duration";
 import * as Effect from "effect/Effect";
@@ -52,7 +53,7 @@ export class CodexAppServerReplayJsonParseError extends Schema.TaggedError<Codex
   },
 ) {
   override get message(): string {
-    return `Failed to parse outbound Codex app-server replay frame for scenario ${this.scenario}.`;
+    return t("codexReplay.replay.jsonParseFailed", { scenario: this.scenario });
   }
 }
 
@@ -65,7 +66,10 @@ export class CodexAppServerReplayExhaustedError extends Schema.TaggedError<Codex
   },
 ) {
   override get message(): string {
-    return `Codex app-server replay transcript exhausted before outbound frame ${this.cursor} in scenario ${this.scenario}.`;
+    return t("codexReplay.replay.transcriptExhausted", {
+      cursor: this.cursor,
+      scenario: this.scenario,
+    });
   }
 }
 
@@ -79,7 +83,10 @@ export class CodexAppServerReplayUnexpectedOutboundError extends Schema.TaggedEr
   },
 ) {
   override get message(): string {
-    return `Unexpected outbound Codex app-server frame at replay cursor ${this.cursor} in scenario ${this.scenario}.`;
+    return t("codexReplay.replay.unexpectedOutboundFrame", {
+      cursor: this.cursor,
+      scenario: this.scenario,
+    });
   }
 }
 
@@ -94,7 +101,12 @@ export class CodexAppServerReplayFrameMismatchError extends Schema.TaggedError<C
   },
 ) {
   override get message(): string {
-    return `Outbound Codex app-server frame did not match replay cursor ${this.cursor} in scenario ${this.scenario}. Expected ${JSON.stringify(this.expected)}, received ${JSON.stringify(this.actual)}.`;
+    return t("codexReplay.replay.frameMismatch", {
+      cursor: this.cursor,
+      scenario: this.scenario,
+      expected: JSON.stringify(this.expected),
+      actual: JSON.stringify(this.actual),
+    });
   }
 }
 
@@ -108,7 +120,11 @@ export class CodexAppServerReplayRuntimeExitError extends Schema.TaggedError<Cod
   },
 ) {
   override get message(): string {
-    return `Codex app-server replay exited with status ${this.status} at cursor ${this.cursor} in scenario ${this.scenario}.`;
+    return t("codexReplay.replay.runtimeExit", {
+      status: this.status,
+      cursor: this.cursor,
+      scenario: this.scenario,
+    });
   }
 }
 
@@ -121,7 +137,10 @@ export class CodexAppServerReplayIncompleteError extends Schema.TaggedError<Code
   },
 ) {
   override get message(): string {
-    return `Codex app-server replay ended with ${this.remaining} unconsumed entries in scenario ${this.scenario}.`;
+    return t("codexReplay.replay.incomplete", {
+      count: this.remaining,
+      scenario: this.scenario,
+    });
   }
 }
 
