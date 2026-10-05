@@ -42,6 +42,7 @@
     "generate": "node scripts/generate.ts"
   },
   "dependencies": {
+    "@t3tools/i18n": "workspace:*",
     "effect": "catalog:"
   },
   "devDependencies": {
