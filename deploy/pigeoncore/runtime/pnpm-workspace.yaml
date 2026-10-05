@@ -1,0 +1,27 @@
+packages: []
+
+# Runtime-external closure for the deployed workbench. Mirrors the allowBuilds
+# and patchedDependencies the monorepo applies to the same packages.
+#
+# Both patches are load-bearing, not cosmetic:
+#   @ff-labs/fff-node — upstream publishes an ESM-only exports map, but the
+#                       server loads it through createRequire (it dlopens a
+#                       native addon from the real filesystem). Without the
+#                       "require" condition the process dies at startup with
+#                       ERR_PACKAGE_PATH_NOT_EXPORTED.
+#   node-pty          — keeps the host's WATCH_REPORT_DEPENDENCIES out of the
+#                       conpty worker's IPC channel. Windows-only code paths,
+#                       but the patch must apply so the install matches.
+patchedDependencies:
+  "@ff-labs/fff-node@0.9.4": patches/@ff-labs__fff-node@0.9.4.patch
+  node-pty@1.2.0-beta.15: patches/node-pty@1.2.0-beta.15.patch
+
+allowBuilds:
+  node-pty: true
+  msgpackr-extract: true
+  esbuild: true
+  browser-tabs-lock: false
+  core-js: false
+  msw: false
+  sharp: true
+  workerd: false

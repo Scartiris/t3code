@@ -1,0 +1,12 @@
+{
+  "name": "t3-workbench-runtime",
+  "version": "0.0.45",
+  "private": true,
+  "description": "Runtime-external native packages for the pigeoncore T3 Code workbench. These are the only packages the server bundle leaves external; see scripts/lib/cli-external-packages.ts. Installed ON THE LINUX HOST so the native binaries match the target platform.",
+  "dependencies": {
+    "@cursor/sdk": "1.0.31",
+    "@ff-labs/fff-node": "0.9.4",
+    "@napi-rs/keyring": "^1.3.0",
+    "node-pty": "^1.2.0-beta.15"
+  }
+}

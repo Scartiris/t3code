@@ -1,0 +1,52 @@
+{
+	# 2026-10-04: the pigeon OpenChamber stack is retired. Its config
+	# (openchamber.pigeontech.cn / oc.pigeontech.cn / office.pigeontech.cn)
+	# is preserved in the snapshot at snapshot/2026-10-04-preclean/etc/caddy/.
+	#
+	# 2026-10-04: this host now carries the T3 Code workbench (t3.pigeontech.cn).
+	servers {
+		protocols h1 h2
+	}
+}
+
+t3.pigeontech.cn {
+	encode zstd gzip
+
+	# Local ACP Registry index. T3 refuses a registry URL that is not HTTPS, so
+	# a self-hosted index has to be served over TLS; this is that route. The file
+	# is static and lists agents, nothing sensitive. Built by
+	# deploy/agents/build-registry.mjs and pushed by the deploy script.
+	handle /acp-registry.json {
+		root * /srv/acp
+		header Cache-Control "no-cache"
+		file_server
+	}
+
+	# Hashed build output never changes under the same name.
+	@assets path /assets/*
+	handle @assets {
+		reverse_proxy 127.0.0.1:3773 {
+			header_down Cache-Control "public, max-age=31536000, immutable"
+		}
+	}
+
+	# Everything else: the server owns caching, auth and the WebSocket upgrade.
+	# flush_interval -1 keeps streamed responses from being buffered; the
+	# WebSocket upgrade itself is handled by reverse_proxy automatically.
+	handle {
+		reverse_proxy 127.0.0.1:3773 {
+			flush_interval -1
+			transport http {
+				read_timeout 0
+				write_timeout 0
+			}
+		}
+	}
+
+	log {
+		output file /var/log/caddy/t3.pigeontech.cn.log {
+			roll_size 20MiB
+			roll_keep 5
+		}
+	}
+}
