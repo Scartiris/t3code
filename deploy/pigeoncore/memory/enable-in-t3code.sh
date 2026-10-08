@@ -38,9 +38,9 @@ systemctl daemon-reload
 systemctl restart t3code
 echo "memory enabled for t3code; waiting for readiness"
 for _ in $(seq 1 30); do
-  if curl -fsS http://127.0.0.1:3773/.well-known/t3/environment 2>/dev/null |
+  if curl -fsS --max-time 3 http://127.0.0.1:3773/.well-known/t3/environment 2>/dev/null |
        grep environmentId >/dev/null ||
-     curl -fsS http://127.0.0.1:3773/ >/dev/null 2>&1; then
+     curl -fsS --max-time 3 http://127.0.0.1:3773/ >/dev/null 2>&1; then
     echo "t3code is $(systemctl is-active t3code)"
     exit 0
   fi
