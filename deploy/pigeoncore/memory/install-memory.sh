@@ -30,4 +30,7 @@ if ! systemd-analyze verify "$UNIT" 2>&1 | grep -v '^$'; then
   echo "unit: verify clean"
 fi
 systemctl daemon-reload
-echo "unit: daemon-reload done (service untouched)"
+# Enable without starting: a host reboot must not come back without memory.
+# The start/restart lifecycle stays deploy-remote.sh's.
+systemctl enable "$UNIT" >/dev/null 2>&1 || true
+echo "unit: enabled for boot (service start left to deploy-remote.sh)"
