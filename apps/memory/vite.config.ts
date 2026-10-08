@@ -10,7 +10,8 @@ export default mergeConfig(
       entry: ["src/bin.ts"],
       outDir: "dist",
       clean: true,
-      banner: { js: "#!/usr/bin/env node\n" },
+      // bin.ts carries the shebang itself; a banner here would duplicate it,
+      // and the second line fails to parse.
       // The deployment copies `dist/` to a host that has no node_modules for
       // this app, so the whole runtime closure — `effect`, the platform
       // package, and this repo's workspace packages — has to be inlined.
