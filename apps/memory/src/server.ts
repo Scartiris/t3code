@@ -3,6 +3,7 @@
 // @effect-diagnostics nodeBuiltinImport:off globalDate:off globalDateInEffect:off
 import * as NodeHttp from "node:http";
 
+import * as Context from "effect/Context";
 import * as Effect from "effect/Effect";
 import * as Layer from "effect/Layer";
 import { HttpRouter } from "effect/unstable/http";
@@ -49,7 +50,13 @@ export const makeMemoryServerLayer = (config: MemoryConfig) =>
   Layer.unwrap(
     Effect.gen(function* () {
       const token = readMemoryToken(config.tokenFilePath);
-      const store = yield* Effect.provide(MemoryStore, storeLayer(config.databasePath));
+      // Layer.build keeps the store's resources alive for this layer's whole
+      // scope. Effect.provide would scope them to one small effect: the built
+      // DatabaseSync closes the moment the extracted value escapes, and every
+      // later statement then fails with a closed-connection error the route
+      // layer reports as a generic internal failure.
+      const storeContext = yield* Layer.build(storeLayer(config.databasePath));
+      const store = Context.get(storeContext, MemoryStore);
       const service = makeMemoryService(store, {
         databasePath: config.databasePath,
         tokenConfigured: token !== undefined,
