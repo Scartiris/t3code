@@ -36,6 +36,8 @@ source alone does not explain. Most code changes do not need an internal documen
 - [Glossary](./internals/glossary.md)
 - [Connection runtime](./internals/connection-runtime.md)
 - [Providers](./internals/providers.md)
+- [Memory](./internals/memory.md)
+- [Localization](./internals/localization.md)
 - [Pull request file revisions](./internals/pull-request-file-revisions.md)
 - [Model classification](./internals/model-manifest.md)
 - [Remote environments](./internals/remote.md)
@@ -50,6 +52,12 @@ source alone does not explain. Most code changes do not need an internal documen
 - [Terminal runtime](./internals/terminal-runtime.md)
 - [Devices](./internals/devices.md)
 - [Voice input](./internals/voice-input.md)
+
+### Orchestration V2
+
+[Target architecture, invariants, and document map](./orchestration-v2/README.md) — start there for
+the command/event model, the core graph, provider capability, and the orchestrator MCP server. Its
+own index lists the eight documents below it.
 
 ### Runbooks
 

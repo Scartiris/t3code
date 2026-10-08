@@ -174,6 +174,7 @@ import * as NetService from "@t3tools/shared/Net";
 import * as RelayClient from "@t3tools/shared/relayClient";
 import { disableTailscaleServe, ensureTailscaleServe } from "@t3tools/tailscale";
 import * as ServerActivation from "./serverActivation.ts";
+import * as MemoryConnection from "./memory/MemoryService.ts";
 
 // MCP handoff thread IDs include escaped provenance and can exceed find-my-way's
 // 100-character default for one path segment.
@@ -472,6 +473,22 @@ const ThreadSettlementWorkerLive = Layer.effectDiscard(
 const ThreadPullRequestWorkerLive = Layer.effectDiscard(
   ThreadPullRequestService.make.pipe(Effect.flatMap((service) => service.start())),
 ).pipe(Layer.provide(PullRequestServiceLive));
+
+/**
+ * A memory deployment that is absent is a choice, and stays silent: no URL
+ * means no tools and no injected block. The one case that is a mistake rather
+ * than a choice — a URL without a usable token, or the reverse — is said out
+ * loud once at startup, because the symptom is otherwise an agent that quietly
+ * has one fewer toolset.
+ */
+const MemoryConnectionDiagnosticLive = Layer.effectDiscard(
+  Effect.gen(function* () {
+    const problem = MemoryConnection.memoryConnectionProblem();
+    if (problem !== undefined) {
+      yield* Effect.logWarning(`Memory is configured but unusable: ${problem}`);
+    }
+  }),
+);
 
 const ProviderInstallationRefreshLive = Layer.effectDiscard(
   Effect.gen(function* () {
@@ -1018,6 +1035,7 @@ const makeServerLayer = Layer.unwrap(
       tailscaleServeLayer,
       cloudDesiredLinkReconcileLayer,
       HeapSnapshot.layer,
+      MemoryConnectionDiagnosticLive,
     );
 
     return serverApplicationLayer.pipe(

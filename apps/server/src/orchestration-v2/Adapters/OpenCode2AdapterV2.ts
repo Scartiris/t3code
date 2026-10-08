@@ -76,6 +76,7 @@ import {
 } from "../../provider/opencodeRuntime.ts";
 import * as McpProviderSession from "../../mcp/McpProviderSession.ts";
 import { buildRuntimeInstructions } from "../../provider/RuntimeInstructions.ts";
+import { readThreadMemoryBlock } from "../../memory/ThreadMemoryBlock.ts";
 import { t3OrchestrationSystemPrompt } from "../../provider/T3OrchestrationInstructions.ts";
 import { SKILL_MENTION_PATTERN } from "@t3tools/shared/composerInlineTokens";
 import { t } from "@t3tools/shared/i18n";
@@ -3292,7 +3293,10 @@ export const make = Effect.fn("OpenCode2Adapter.make")(function* (instanceId: Pr
         if (added) state.mcp = wanted;
       }
       const instructions = [
-        buildRuntimeInstructions({ harness: "OpenCode", model: turnInput.modelSelection.model }),
+        buildRuntimeInstructions(
+          { harness: "OpenCode", model: turnInput.modelSelection.model },
+          readThreadMemoryBlock(turnInput.threadId),
+        ),
         t3OrchestrationSystemPrompt(state.mcp !== undefined),
       ]
         .filter((part) => part !== undefined && part.length > 0)

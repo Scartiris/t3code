@@ -56,6 +56,7 @@ import {
 import { mergeProviderInstanceEnvironment } from "../../provider/ProviderInstanceEnvironment.ts";
 import { t3OrchestrationPromptForFirstRun } from "../../provider/T3OrchestrationInstructions.ts";
 import { buildRuntimeInstructions } from "../../provider/RuntimeInstructions.ts";
+import { readThreadMemoryBlock } from "../../memory/ThreadMemoryBlock.ts";
 import * as IdAllocator from "../IdAllocator.ts";
 import { makeProviderFailure } from "../ProviderFailure.ts";
 import { turnScopedSelectionTransition } from "../ProviderSelectionTransition.ts";
@@ -2160,7 +2161,7 @@ export function makeCursorAdapterV2(
               detail: t("orchestration-v2.cursorAdapterV2.emptyTurnInput"),
             });
           }
-          const text = `${userText}\n\n${buildRuntimeInstructions({ harness: "Cursor", model: turnInput.modelSelection.model })}`;
+          const text = `${userText}\n\n${buildRuntimeInstructions({ harness: "Cursor", model: turnInput.modelSelection.model }, readThreadMemoryBlock(turnInput.threadId))}`;
           return images.length === 0
             ? text
             : ({

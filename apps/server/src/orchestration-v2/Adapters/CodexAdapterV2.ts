@@ -97,6 +97,7 @@ import {
   materializeCodexShadowHome,
   resolveCodexHomeLayout,
 } from "../../provider/Drivers/CodexHomeLayout.ts";
+import { readThreadMemoryBlock } from "../../memory/ThreadMemoryBlock.ts";
 import {
   boundProviderEventForLogging,
   type EventNdjsonLogger,
@@ -702,6 +703,8 @@ export function buildCodexTurnStartParams(input: {
   readonly hasT3Mcp?: boolean;
   readonly browserToolsAvailable?: boolean;
   readonly deviceToolsAvailable?: boolean;
+  /** Rendered `<t3_memory>` block for this thread, stable for the session. */
+  readonly memoryBlock?: string | undefined;
   /** ChatGPT token sharing does not accept service tiers. */
   readonly omitServiceTier?: boolean;
 }) {
@@ -737,6 +740,7 @@ export function buildCodexTurnStartParams(input: {
               browser: input.browserToolsAvailable ?? true,
               device: input.deviceToolsAvailable ?? false,
             },
+            input.memoryBlock,
           )
         : undefined;
     const collaborationMode: CodexSchema.ClientRequest__CollaborationMode | undefined =
@@ -5589,6 +5593,7 @@ export function makeCodexAdapterV2(adapterOptions: CodexAdapterV2Options): Provi
                 hasT3Mcp: mcpSession !== undefined,
                 browserToolsAvailable: mcpSession?.browserToolsAvailable ?? true,
                 deviceToolsAvailable: mcpSession?.capabilities?.has("device") ?? false,
+                memoryBlock: readThreadMemoryBlock(turnInput.threadId),
                 omitServiceTier: adapterOptions.resolveRuntime !== undefined,
               });
               yield* Ref.update(pendingRootTurns, (current) => {

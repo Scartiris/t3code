@@ -67,6 +67,7 @@ import {
 import { mergeProviderInstanceEnvironment } from "../../provider/ProviderInstanceEnvironment.ts";
 import { t3OrchestrationSystemPrompt } from "../../provider/T3OrchestrationInstructions.ts";
 import { buildRuntimeInstructions } from "../../provider/RuntimeInstructions.ts";
+import { readThreadMemoryBlock } from "../../memory/ThreadMemoryBlock.ts";
 import * as OpenCodeRuntime from "../../provider/opencodeRuntime.ts";
 import * as IdAllocator from "../IdAllocator.ts";
 import { makeProviderFailure } from "../ProviderFailure.ts";
@@ -3229,10 +3230,13 @@ export function makeOpenCodeAdapterV2(
               }
               const systemPrompt = [
                 orchestrationSystemPrompt,
-                buildRuntimeInstructions({
-                  harness: "OpenCode",
-                  model: turnInput.modelSelection.model,
-                }),
+                buildRuntimeInstructions(
+                  {
+                    harness: "OpenCode",
+                    model: turnInput.modelSelection.model,
+                  },
+                  readThreadMemoryBlock(turnInput.threadId),
+                ),
               ]
                 .filter(Boolean)
                 .join("\n\n");

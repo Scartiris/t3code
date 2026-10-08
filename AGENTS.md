@@ -145,6 +145,8 @@ Architecture and its constraints: `docs/internals/overview.md`. Glossary: `docs/
 - `packages/contracts` - Effect/Schema contracts plus small derived helpers. No heavy runtime logic.
 - `packages/shared` - shared runtime utils, subpath exports, no barrel.
 - `packages/client-runtime` - client code shared by web and mobile.
+- `apps/memory` - the memory service. Its own process, its own store, no UI surface. `packages/memory-protocol` is the wire contract and both sides' vocabulary; it lives outside `packages/contracts` on purpose, so a memory change there is not a place to look for RPC types. T3 Code's side of the integration is under `apps/server/src/memory`. Read [memory](docs/internals/memory.md) before touching either.
+- `deploy/` - this fork's host tooling. `deploy/pigeoncore` builds, ships, verifies and backs up the workbench and the memory service; `deploy/agents` builds the self-hosted ACP registry index the server reads. The [runbook](deploy/pigeoncore/README.md) is the source of truth for that host.
 - `.repos/` - vendored read-only references. Prefer their patterns over invented ones. Never edit or import from them. Sync with `vpr sync:repos` when bumping the matching dependency.
 
 ## Taste

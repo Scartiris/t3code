@@ -1,6 +1,6 @@
 import type { ProviderInteractionMode } from "@t3tools/contracts";
 import type { V2TurnStartParams__AdditionalContextEntry } from "effect-codex-app-server/schema";
-import { buildRuntimeInstructions } from "./RuntimeInstructions.ts";
+import { MEMORY_TOOL_GUIDANCE, buildRuntimeInstructions } from "./RuntimeInstructions.ts";
 
 import {
   T3_CODE_BROWSER_TOOL_INSTRUCTIONS,
@@ -211,8 +211,16 @@ export function buildCodexAdditionalContext(
    * setting, so the prompt cannot claim tools the turn doesn't have.
    */
   toolsAvailable: boolean | T3CodeToolAvailability = true,
+  /**
+   * Rendered `<t3_memory>` block for this thread. A separate key rather than
+   * part of `t3_code_runtime` because Codex resends an entry only when its
+   * value changes: memory arrives once per session, and folding it into the
+   * runtime entry would make that entry churn.
+   */
+  memoryBlock?: string | undefined,
 ): Record<string, V2TurnStartParams__AdditionalContextEntry> {
   const tools = toolInstructions(toolsAvailable);
+  const memory = memoryBlock?.trim() ?? "";
   // Separate keys keep each value under Codex's per-entry token cap.
   return {
     t3_code_orchestration: { kind: "application", value: T3_CODE_ORCHESTRATION_INSTRUCTIONS },
@@ -221,5 +229,8 @@ export function buildCodexAdditionalContext(
       value: buildRuntimeInstructions({ harness: "Codex", ...runtime }),
     },
     ...(tools ? { t3_code_tools: { kind: "application", value: tools } } : {}),
+    ...(memory.length === 0
+      ? {}
+      : { t3_memory: { kind: "application", value: `${MEMORY_TOOL_GUIDANCE}\n\n${memory}` } }),
   };
 }

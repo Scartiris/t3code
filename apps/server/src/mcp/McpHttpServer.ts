@@ -49,10 +49,13 @@ import { WorktreeToolkit } from "./toolkits/worktree/tools.ts";
 import * as WorktreeMcpService from "./WorktreeMcpService.ts";
 import { PullRequestsToolkitHandlersLive } from "./toolkits/pullRequests/handlers.ts";
 import { PullRequestsToolkit } from "./toolkits/pullRequests/tools.ts";
+import { memoryServiceLayerFromEnvironment } from "../memory/MemoryService.ts";
 import {
   DeviceScreenshotToolkitHandlersLive,
   DeviceStandardToolkitHandlersLive,
 } from "./toolkits/device/handlers.ts";
+import { MemoryToolkitHandlersLive } from "./toolkits/memory/handlers.ts";
+import { MemoryToolkit } from "./toolkits/memory/tools.ts";
 import {
   DeviceScreenshotTool,
   DeviceScreenshotToolkit,
@@ -708,6 +711,21 @@ export const DeviceToolkitRegistrationLive = Layer.mergeAll(
   DeviceScreenshotRegistrationLive,
 );
 
+/**
+ * Memory tools, only when this deployment configured a memory service.
+ *
+ * Registering them unconditionally would put five tools in every agent's list
+ * whose every call answers "not configured" — the same reason a withheld
+ * credential removes the browser and device tools rather than failing them.
+ */
+const MemoryToolkitRegistrationLive: Layer.Layer<never> =
+  memoryServiceLayerFromEnvironment === undefined
+    ? Layer.empty
+    : McpServer.toolkit(MemoryToolkit).pipe(
+        Layer.provide(MemoryToolkitHandlersLive),
+        Layer.provide(memoryServiceLayerFromEnvironment),
+      );
+
 const McpTransportLive = McpServer.layerHttp({
   name: "T3 Code",
   version: packageJson.version,
@@ -726,4 +744,5 @@ export const layer = Layer.mergeAll(
   WorktreeToolkitRegistrationLive,
   PullRequestsToolkitRegistrationLive,
   DeviceToolkitRegistrationLive,
+  MemoryToolkitRegistrationLive,
 ).pipe(Layer.provideMerge(McpTransportLive));

@@ -398,6 +398,12 @@ export function summarizeT3ToolCalls(
     case "capabilities":
       label = phrase("Checked", "check", `orchestration capabilities ${times}`);
       break;
+    case "memory-read":
+      label = phrase("Searched", "search", `memory ${times}`);
+      break;
+    case "memory-write":
+      label = phrase("Updated", "update", `memory ${times}`);
+      break;
   }
   return { label, failedCount };
 }

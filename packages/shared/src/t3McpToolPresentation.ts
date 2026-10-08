@@ -58,7 +58,9 @@ export type T3McpToolSummaryAction =
   | "watch-pr"
   | "unwatch-pr"
   | "browser"
-  | "device";
+  | "device"
+  | "memory-read"
+  | "memory-write";
 
 export interface T3McpToolDefinition {
   readonly displayName: string;
@@ -284,6 +286,11 @@ const T3_MCP_TOOLS: Readonly<Record<string, T3McpToolDefinition>> = {
     "attachment-discard",
   ),
   t3_thread_send_attachments: tool(["Send", "Sending", "Sent", "attachments"], "attachment-send"),
+  memory_search: tool(["Search", "Searching", "Searched", "memory"], "memory-read"),
+  memory_remember: tool(["Remember", "Remembering", "Remembered", "memories"], "memory-write"),
+  memory_update: tool(["Correct", "Correcting", "Corrected", "a memory"], "memory-write"),
+  memory_forget: tool(["Retire", "Retiring", "Retired", "a memory"], "memory-write"),
+  memory_restore: tool(["Restore", "Restoring", "Restored", "a memory"], "memory-write"),
 };
 
 /**

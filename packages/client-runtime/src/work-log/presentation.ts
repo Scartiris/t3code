@@ -567,6 +567,10 @@ function toolGroupActionLabel(action: ToolGroupAction, count: number): string {
       return t("workLog.presentation.usedBrowser", { count });
     case "search":
       return t("workLog.presentation.searchedWeb", { count });
+    case "memory-read":
+      return t("workLog.presentation.searchedMemory", { count });
+    case "memory-write":
+      return t("workLog.presentation.updatedMemory", { count });
     case "code-search":
       return t("workLog.presentation.searchedCode", { count });
     case "other":
@@ -631,6 +635,9 @@ function summaryActionPriority(action: ToolGroupAction | T3McpToolSummaryAction)
     case "attachment-prepare":
     case "attachment-discard":
     case "attachment-send":
+    // A memory write changes what every later session believes; it earns the
+    // same prominence as an edit or a sent message.
+    case "memory-write":
       return 0;
     case "other":
     case "update":

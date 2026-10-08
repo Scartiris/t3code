@@ -33,6 +33,12 @@ import * as Stream from "effect/Stream";
 import { ProviderWorkspaceMissingError } from "../provider/Errors.ts";
 import * as ProjectService from "../project/ProjectService.ts";
 import * as McpProviderSession from "../mcp/McpProviderSession.ts";
+import * as MemoryService from "../memory/MemoryService.ts";
+import {
+  clearThreadMemoryBlock,
+  readThreadMemoryBlock,
+  setThreadMemoryBlock,
+} from "../memory/ThreadMemoryBlock.ts";
 import * as ServerSettings from "../serverSettings.ts";
 import * as McpSessionRegistry from "../mcp/McpSessionRegistry.ts";
 import * as EventSink from "./EventSink.ts";
@@ -320,6 +326,15 @@ export const layerWithOptions = (
        */
       const serverSettings = yield* Effect.serviceOption(ServerSettings.ServerSettingsService);
       const projectService = yield* Effect.serviceOption(ProjectService.ProjectService);
+      /**
+       * Resolved here rather than inside `warmMemoryBlock`, which returns an
+       * Effect the caller runs later: an optional service the composition never
+       * provided reads back as absent at that point, with no type error and no
+       * log line, so every session starts with no memory block while the memory
+       * tools keep working and nothing looks broken. `runtimeLayer.ts` provides
+       * it when the deployment configured a memory service.
+       */
+      const memoryService = yield* Effect.serviceOption(MemoryService.MemoryService);
       const eventSink = yield* EventSink.EventSinkV2;
       const idAllocator = yield* IdAllocator.IdAllocatorV2;
       const providerEventIngestor = yield* ProviderEventIngestor.ProviderEventIngestorV2;
@@ -430,6 +445,33 @@ export const layerWithOptions = (
         (mcpCredentialReservations.get(mcpReservationKey(threadId, mcpCredentialId)) ?? 0) > 0;
       const mcpPrepareLock = yield* makeKeyedSerialExecutor<ThreadId>();
       /**
+       * Fetch the thread's memory block once, when its provider session is
+       * prepared, and keep it for the life of that session: it goes into the
+       * prompt, and a value that changed between turns would invalidate the
+       * provider's prompt cache. A failure is logged and cached as "no memory"
+       * rather than delaying or failing the session.
+       */
+      const warmMemoryBlock = (threadId: ThreadId) =>
+        Effect.gen(function* () {
+          if (readThreadMemoryBlock(threadId) !== undefined) return;
+          if (Option.isNone(memoryService)) return;
+          const thread = yield* projectionStore.getThread(threadId);
+          const block = yield* memoryService.value
+            .context({ projectId: thread.projectId })
+            .pipe(Effect.map((result) => result.text));
+          setThreadMemoryBlock(threadId, block);
+        }).pipe(
+          // Covers the thread read as well as the service call: preparing a
+          // session must never fail because memory is unavailable. The failure
+          // is cached as "no memory" so a later turn does not retry it.
+          Effect.catch((cause) =>
+            Effect.logWarning("Memory context unavailable; this session starts without it.", {
+              threadId,
+              cause,
+            }).pipe(Effect.map(() => setThreadMemoryBlock(threadId, ""))),
+          ),
+        );
+      /**
        * Resolves (or mints) the thread's MCP credential and returns it with a
        * reservation held; the caller must drop the reservation exactly once.
        * Serialized per thread so two concurrent prepares cannot interleave
@@ -442,6 +484,7 @@ export const layerWithOptions = (
         options.configureMcp === false
           ? Effect.sync((): PreparedMcpCredential => {
               McpProviderSession.clearMcpProviderSession(threadId);
+              clearThreadMemoryBlock(threadId);
               return { mcpCredentialId: undefined, issued: false };
             })
           : mcpPrepareLock.withLock(
@@ -489,6 +532,7 @@ export const layerWithOptions = (
                 });
                 McpProviderSession.setMcpProviderSession(credential.config);
                 reserveMcpCredential(threadId, credential.config.providerSessionId);
+                yield* warmMemoryBlock(threadId);
                 return { mcpCredentialId: credential.config.providerSessionId, issued: true };
               }),
             );
@@ -500,13 +544,14 @@ export const layerWithOptions = (
        */
       const clearMcpSession = (threadId: ThreadId, mcpCredentialId?: string) =>
         mcpCredentialId === undefined
-          ? mcpSessionRegistry
-              .revokeThread(threadId)
-              .pipe(
-                Effect.tap(() =>
-                  Effect.sync(() => McpProviderSession.clearMcpProviderSession(threadId)),
-                ),
-              )
+          ? mcpSessionRegistry.revokeThread(threadId).pipe(
+              Effect.tap(() =>
+                Effect.sync(() => {
+                  McpProviderSession.clearMcpProviderSession(threadId);
+                  clearThreadMemoryBlock(threadId);
+                }),
+              ),
+            )
           : mcpSessionRegistry.revokeProviderSession(mcpCredentialId).pipe(
               Effect.tap(() =>
                 Effect.sync(() => {
@@ -515,6 +560,7 @@ export const layerWithOptions = (
                     mcpCredentialId
                   ) {
                     McpProviderSession.clearMcpProviderSession(threadId);
+                    clearThreadMemoryBlock(threadId);
                   }
                 }),
               ),

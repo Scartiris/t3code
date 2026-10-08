@@ -34,8 +34,10 @@ The orchestration tools share the existing authenticated HTTP MCP endpoint:
 http://127.0.0.1:<server-port>/mcp
 ```
 
-The provider-visible server key is `t3-code`. The endpoint registers both the
-preview toolkit and the orchestration toolkit.
+The provider-visible server key is `t3-code`. The endpoint registers the preview and
+orchestration toolkits alongside the other toolkits merged in `McpHttpServer.layer`. Memory is
+the exception: its toolkit is withheld rather than registered when the deployment has no memory
+service ([Memory](../internals/memory.md)).
 
 Before `ProviderSessionManager` opens a new V2 provider session, it asks
 `McpSessionRegistry` for a credential scoped to:
@@ -49,6 +51,11 @@ The credential grants `preview` and `orchestration` capabilities. Credentials
 expire after a maximum lifetime, expire when idle, and are revoked when the
 provider session is released. The raw token is not persisted in orchestration
 state.
+
+Issuing a new credential also warms the thread's memory block inside the same
+per-thread prepare lock, and releasing the session clears it. The block is
+cached per process for the life of the session, never per turn, because it is
+part of the provider prompt.
 
 The MCP HTTP server resolves the bearer token and supplies the resulting
 `McpInvocationScope` to tool handlers. Orchestration handlers additionally

@@ -97,6 +97,7 @@ import {
   type T3AcpInstructionState,
 } from "../../provider/T3OrchestrationInstructions.ts";
 import { buildRuntimeInstructions } from "../../provider/RuntimeInstructions.ts";
+import { readThreadMemoryBlock } from "../../memory/ThreadMemoryBlock.ts";
 import * as IdAllocator from "../IdAllocator.ts";
 import { type ProviderContinuationRequest } from "../ProviderContinuationRequests.ts";
 import {
@@ -6686,10 +6687,13 @@ export function makeAcpAdapterV2(
           }
           prompt.push({
             type: "text",
-            text: buildRuntimeInstructions({
-              harness: flavor.runtimeHarness ?? driver,
-              model: turnInput.modelSelection.model,
-            }),
+            text: buildRuntimeInstructions(
+              {
+                harness: flavor.runtimeHarness ?? driver,
+                model: turnInput.modelSelection.model,
+              },
+              readThreadMemoryBlock(turnInput.threadId),
+            ),
           });
           return { prompt, instructionState: text === messageText ? undefined : instructionState };
         });

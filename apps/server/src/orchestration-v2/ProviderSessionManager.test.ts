@@ -16,6 +16,7 @@ import {
   type ProviderSessionId,
   ThreadId,
 } from "@t3tools/contracts";
+import { MemoryApiError } from "@t3tools/memory-protocol";
 import * as Cause from "effect/Cause";
 import * as DateTime from "effect/DateTime";
 import * as Deferred from "effect/Deferred";
@@ -36,6 +37,8 @@ import * as ServerEnvironment from "../environment/ServerEnvironment.ts";
 import * as ProjectService from "../project/ProjectService.ts";
 import * as McpProviderSession from "../mcp/McpProviderSession.ts";
 import * as McpSessionRegistry from "../mcp/McpSessionRegistry.ts";
+import * as MemoryService from "../memory/MemoryService.ts";
+import { clearAllThreadMemoryBlocks, readThreadMemoryBlock } from "../memory/ThreadMemoryBlock.ts";
 import { SqlitePersistenceMemory } from "../persistence/Layers/Sqlite.ts";
 import * as ServerSettings from "../serverSettings.ts";
 import { CodexProviderCapabilitiesV2 } from "./Adapters/CodexAdapterV2.ts";
@@ -412,6 +415,7 @@ function makeTestLayer(input: {
   readonly beforeUnload?: Effect.Effect<void>;
   readonly serverSettingsLayer?: ReturnType<typeof ServerSettings.layerTest>;
   readonly projectServiceLayer?: Layer.Layer<ProjectService.ProjectService>;
+  readonly memoryServiceLayer?: Layer.Layer<MemoryService.MemoryService>;
 }) {
   const configuredEventSinkLayer =
     input.flakyReleaseWrites !== undefined
@@ -463,6 +467,7 @@ function makeTestLayer(input: {
           TestStoresLayer,
           ...(input.serverSettingsLayer === undefined ? [] : [input.serverSettingsLayer]),
           ...(input.projectServiceLayer === undefined ? [] : [input.projectServiceLayer]),
+          ...(input.memoryServiceLayer === undefined ? [] : [input.memoryServiceLayer]),
         ),
       ),
     ),
@@ -1099,6 +1104,138 @@ it.effect(
             state,
             idleTimeoutMs: 1_000,
             mcpConfigs,
+          }),
+        ),
+      );
+    }),
+);
+
+it.effect(
+  "ProviderSessionManagerV2 caches the thread's memory block when it issues a credential",
+  () =>
+    Effect.gen(function* () {
+      const state = yield* Ref.make(emptyState);
+      const mcpConfigs = yield* Ref.make<
+        ReadonlyArray<McpProviderSession.McpProviderSessionConfig | undefined>
+      >([]);
+      const memoryBlock = "<t3_memory>\n- [preference] 部署前先跑测试\n</t3_memory>";
+      const requestedProjectIds: Array<string | undefined> = [];
+      const projectId = ProjectId.make("project-provider-session-manager-memory");
+      const threadId = ThreadId.make("thread-provider-session-manager-memory");
+      const memoryServiceLayer = Layer.mock(MemoryService.MemoryService)({
+        context: (input) =>
+          Effect.sync(() => {
+            requestedProjectIds.push(input.projectId);
+          }).pipe(
+            Effect.as({
+              text: memoryBlock,
+              hits: [],
+              pinned: [],
+              truncated: false,
+              chars: memoryBlock.length,
+              empty: false,
+            }),
+          ),
+      });
+
+      const effect = Effect.gen(function* () {
+        clearAllThreadMemoryBlocks();
+        const eventSink = yield* EventSink.EventSinkV2;
+        const idAllocator = yield* IdAllocator.IdAllocatorV2;
+        const manager = yield* ProviderSessionManager.ProviderSessionManagerV2;
+        const now = yield* DateTime.now;
+        const providerSessionId = yield* idAllocator.allocate.providerSession({
+          providerInstanceId: modelSelection.instanceId,
+          threadId,
+        });
+        yield* eventSink.write({
+          events: [yield* makeThreadCreatedEvent({ idAllocator, threadId, now, projectId })],
+        });
+
+        // The adapters read the block synchronously while building a turn and
+        // hold no service handle, so preparing the session is what has to make
+        // it readable. Before the fix this stayed undefined: the service was
+        // looked up in the caller's context, where nothing had composed it in.
+        assert.isUndefined(readThreadMemoryBlock(threadId));
+        yield* manager.open({ threadId, providerSessionId, modelSelection, runtimePolicy });
+        assert.equal(readThreadMemoryBlock(threadId), memoryBlock);
+
+        // Scoped by project, not thread: two threads in one project are shown
+        // the same block, which is what lets it stay byte-stable.
+        assert.deepEqual(requestedProjectIds, [projectId]);
+
+        yield* manager.close(providerSessionId);
+        assert.isUndefined(readThreadMemoryBlock(threadId));
+      });
+
+      yield* effect.pipe(
+        Effect.provide(
+          makeTestLayer({
+            state,
+            idleTimeoutMs: 1_000,
+            mcpConfigs,
+            memoryServiceLayer,
+          }),
+        ),
+      );
+    }),
+);
+
+it.effect(
+  "ProviderSessionManagerV2 opens the session without a block when the memory service fails",
+  () =>
+    Effect.gen(function* () {
+      const state = yield* Ref.make(emptyState);
+      const mcpConfigs = yield* Ref.make<
+        ReadonlyArray<McpProviderSession.McpProviderSessionConfig | undefined>
+      >([]);
+      const projectId = ProjectId.make("project-provider-session-manager-memory-failure");
+      const threadId = ThreadId.make("thread-provider-session-manager-memory-failure");
+      const memoryServiceLayer = Layer.mock(MemoryService.MemoryService)({
+        context: () =>
+          Effect.fail(
+            new MemoryApiError({
+              code: "unavailable",
+              message: "memory service is down",
+              status: 0,
+            }),
+          ),
+      });
+
+      const effect = Effect.gen(function* () {
+        clearAllThreadMemoryBlocks();
+        const eventSink = yield* EventSink.EventSinkV2;
+        const idAllocator = yield* IdAllocator.IdAllocatorV2;
+        const manager = yield* ProviderSessionManager.ProviderSessionManagerV2;
+        const now = yield* DateTime.now;
+        const providerSessionId = yield* idAllocator.allocate.providerSession({
+          providerInstanceId: modelSelection.instanceId,
+          threadId,
+        });
+        yield* eventSink.write({
+          events: [yield* makeThreadCreatedEvent({ idAllocator, threadId, now, projectId })],
+        });
+
+        yield* manager.open({ threadId, providerSessionId, modelSelection, runtimePolicy });
+
+        // A dead memory backend must not delay or fail the session, and the
+        // failure is remembered as "no memory" rather than retried every turn.
+        assert.equal(readThreadMemoryBlock(threadId), "");
+        assert.isDefined(
+          McpProviderSession.readMcpProviderSession(threadId),
+          "the session should still have its credential",
+        );
+
+        yield* manager.close(providerSessionId);
+      });
+
+      yield* effect.pipe(
+        Effect.provide(
+          makeTestLayer({
+            state,
+            idleTimeoutMs: 1_000,
+            mcpConfigs,
+            memoryServiceLayer,
           }),
         ),
       );

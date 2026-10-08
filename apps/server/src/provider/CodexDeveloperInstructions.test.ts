@@ -102,6 +102,21 @@ describe("T3 browser developer instructions", () => {
     NodeAssert.match(toolInstructions(runtime, true), /preview_open/);
     NodeAssert.doesNotMatch(toolInstructions(runtime, false), /preview_open/);
   });
+
+  it("sends memory as its own context entry, not inside the runtime entry", () => {
+    const block = "<t3_memory>\n- [preference] 部署前先跑测试\n</t3_memory>";
+    const withMemory = buildCodexAdditionalContext(runtime, true, block);
+    NodeAssert.ok(withMemory.t3_memory?.value.includes(block));
+    NodeAssert.match(withMemory.t3_memory!.value, /memory_search/);
+    // Codex resends an entry only when its value changes, so folding memory
+    // into the runtime entry would make that entry churn once per session.
+    NodeAssert.doesNotMatch(withMemory.t3_code_runtime!.value, /t3_memory/);
+  });
+
+  it("omits the memory entry when there is nothing to inject", () => {
+    NodeAssert.equal(buildCodexAdditionalContext(runtime).t3_memory, undefined);
+    NodeAssert.equal(buildCodexAdditionalContext(runtime, true, "  ").t3_memory, undefined);
+  });
 });
 
 function runtimeInstructions(runtime: Parameters<typeof buildCodexAdditionalContext>[0]) {

@@ -34,4 +34,25 @@ describe("buildRuntimeInstructions", () => {
     expect(instructions).toContain("through the Cursor harness.");
     expect(instructions).not.toContain("reasoning effort");
   });
+
+  it("carries the memory block verbatim when there is one", () => {
+    const block = "<t3_memory>\n- [preference] 部署前先跑测试: 上线之前先跑一遍\n</t3_memory>";
+    const instructions = buildRuntimeInstructions({ harness: "Claude Code" }, block);
+    expect(instructions).toContain(block);
+    expect(instructions.endsWith("</t3_memory>")).toBe(true);
+  });
+
+  it("explains the memory tools exactly when a block is present", () => {
+    const block = "<t3_memory>\n- [preference] x\n</t3_memory>";
+    expect(buildRuntimeInstructions({ harness: "Codex" }, block)).toContain("memory_search");
+    // The guidance and the tools are attached by the same configuration, so one
+    // without the other is always a bug.
+    expect(buildRuntimeInstructions({ harness: "Codex" })).not.toContain("memory_search");
+  });
+
+  it("adds nothing at all without memory", () => {
+    expect(buildRuntimeInstructions({ harness: "Codex" })).not.toContain("t3_memory");
+    expect(buildRuntimeInstructions({ harness: "Codex" }, "")).not.toContain("t3_memory");
+    expect(buildRuntimeInstructions({ harness: "Codex" }, "   \n  ")).not.toContain("t3_memory");
+  });
 });

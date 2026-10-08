@@ -3,15 +3,32 @@ When the t3-code MCP server exposes link_pull_request, you must use it to regist
 </pull_request_linking>`;
 
 /**
+ * Appended with the memory block, so it appears exactly when the memory tools
+ * are attached. Without it an agent reads the block as background and never
+ * looks anything up, which is the failure mode every memory feature has.
+ */
+export const MEMORY_TOOL_GUIDANCE = `<memory_tools>
+Long-term memory is available through the t3-code MCP server: memory_search looks up what earlier sessions recorded, memory_remember writes durable facts and decisions, memory_update corrects one, memory_forget retires one, memory_restore undoes that. Search before asking the user something they have probably already answered, and before re-deriving a decision. Write only what outlives this conversation — not secrets, and not what the repository already states.
+</memory_tools>`;
+
+/**
  * Shared runtime context; omit model and effort when the harness manages them dynamically.
  * `modelName` is the display name users see in the model picker; `model` is the slug.
+ *
+ * `memoryBlock` is the rendered `<t3_memory>` block for this thread, fetched
+ * once when the provider session was prepared. It must be byte-stable for the
+ * life of that session: it sits near the front of the prompt, and a value that
+ * changed per turn would invalidate the provider's prompt cache every turn.
  */
-export function buildRuntimeInstructions(runtime: {
-  readonly harness: string;
-  readonly model?: string | undefined;
-  readonly modelName?: string | undefined;
-  readonly reasoningEffort?: string | undefined;
-}): string {
+export function buildRuntimeInstructions(
+  runtime: {
+    readonly harness: string;
+    readonly model?: string | undefined;
+    readonly modelName?: string | undefined;
+    readonly reasoningEffort?: string | undefined;
+  },
+  memoryBlock?: string | undefined,
+): string {
   const harness = toSingleLine(runtime.harness);
   const model = toSingleLine(runtime.model ?? "");
   const modelName = toSingleLine(runtime.modelName ?? "");
@@ -20,7 +37,10 @@ export function buildRuntimeInstructions(runtime: {
     modelName && modelName !== model ? `${modelName} (model slug: ${model})` : model;
   const modelInfo = model && model !== "auto" && model !== "default" ? `, as ${modelLabel}` : "";
   const effortInfo = effort ? ` with ${effort} reasoning effort` : "";
-  return `<runtime_info>In case you're asked: you are running in T3 Code through the ${harness} harness${modelInfo}${effortInfo}. No need to mention this otherwise. You can embed images and videos in your response using Markdown with absolute file paths.</runtime_info>\n\n${PULL_REQUEST_LINKING_INSTRUCTIONS}`;
+  const memory = memoryBlock === undefined ? "" : memoryBlock.trim();
+  return `<runtime_info>In case you're asked: you are running in T3 Code through the ${harness} harness${modelInfo}${effortInfo}. No need to mention this otherwise. You can embed images and videos in your response using Markdown with absolute file paths.</runtime_info>\n\n${PULL_REQUEST_LINKING_INSTRUCTIONS}${
+    memory.length === 0 ? "" : `\n\n${MEMORY_TOOL_GUIDANCE}\n\n${memory}`
+  }`;
 }
 
 function toSingleLine(value: string): string {
