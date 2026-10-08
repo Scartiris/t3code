@@ -30,6 +30,12 @@ install on another machine, or a bundler that reads `package.json` says otherwis
 and the protocol version bumps only on breaking shape changes — every decoder ignores unknown keys,
 so an older client keeps working against a newer service.
 
+A second implementation does not have to trust that sentence:
+[`packages/memory-conformance`](../../packages/memory-conformance/README.md) is a black-box suite
+that talks to any running service through nothing but the shared client, and it is the contract's
+first consumer of its own promise. Before swapping a dedicated memory backend in, run it - the
+failures are that adapter's diff.
+
 ## Configuration is deployment-owned, never a setting
 
 `T3CODE_MEMORY_URL` and `T3CODE_MEMORY_TOKEN_FILE` are read once, at module load, by
