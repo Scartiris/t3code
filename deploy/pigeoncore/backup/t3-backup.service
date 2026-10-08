@@ -1,0 +1,12 @@
+[Unit]
+Description=Back up the T3 Code workbench state (/opt/t3/home)
+Documentation=https://github.com/Scartiris/t3code
+After=local-fs.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/bin/t3-backup
+# The archive is written to /opt/t3-backups on the same volume, so the unit is
+# cheap. Off-host copies are pulled by deploy/pigeoncore/backup.ps1.
+Nice=10
+IOSchedulingClass=idle

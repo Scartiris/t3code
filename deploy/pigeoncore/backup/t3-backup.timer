@@ -1,0 +1,12 @@
+[Unit]
+Description=Daily T3 Code workbench state backup
+Documentation=https://github.com/Scartiris/t3code
+
+[Timer]
+OnCalendar=daily
+# Catch up if the host was asleep or the timer was installed after midnight.
+Persistent=true
+RandomizedDelaySec=15m
+
+[Install]
+WantedBy=timers.target

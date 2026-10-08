@@ -4,8 +4,13 @@
 	# is preserved in the snapshot at snapshot/2026-10-04-preclean/etc/caddy/.
 	#
 	# 2026-10-04: this host now carries the T3 Code workbench (t3.pigeontech.cn).
+	#
+	# 2026-10-06: h3 enabled. Clients reach this box from China at a measured
+	# ~120 ms RTT, so a repeat visit over TCP pays a handshake that QUIC can
+	# resume without a round trip, and QUIC does not head-of-line block when the
+	# path drops packets. udp/443 was already open in ufw; nothing was listening.
 	servers {
-		protocols h1 h2
+		protocols h1 h2 h3
 	}
 }
 
@@ -23,10 +28,31 @@ t3.pigeontech.cn {
 	}
 
 	# Hashed build output never changes under the same name.
+	#
+	# 2026-10-06: served off disk instead of through the Node server. Node reads
+	# these in 64 KiB chunks on its own event loop, and the measured tail was a
+	# p95 of 6.9 s against a 73 ms median. A first load pulls ~1.4 MiB across 144
+	# files, which is exactly the traffic that should not share that loop. A
+	# missing asset now 404s rather than silently falling back to index.html.
 	@assets path /assets/*
+
+	# Encoding sidecars are not routes of their own; without this a request for
+	# /assets/app.js.br would be served as an opaque file. Listed before @assets
+	# because mutually exclusive handles are evaluated in declaration order.
+	@precompressedSidecar path_regexp \.(br|gz|zst)$
+	handle @precompressedSidecar {
+		respond 404
+	}
+
 	handle @assets {
-		reverse_proxy 127.0.0.1:3773 {
-			header_down Cache-Control "public, max-age=31536000, immutable"
+		root * /opt/t3/dist/client
+		header Cache-Control "public, max-age=31536000, immutable"
+		file_server {
+			# Produced at deploy time by deploy/pigeoncore/lib/precompress.mjs,
+			# which compresses at quality 11; Caddy's on-the-fly encoder measured
+			# ~20% larger. Falls back to the original file with on-the-fly encode
+			# whenever a sidecar is missing.
+			precompressed br gzip
 		}
 	}
 

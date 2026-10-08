@@ -143,6 +143,71 @@ function devCompressionPlugin(): Plugin {
   };
 }
 
+// The app entry (`src/bootstrap.ts`) loads everything through a dynamic
+// `import("./main")`, deliberately: bundled dev has to run the React refresh
+// preamble first, and a boot failure has to be caught before React mounts. Vite
+// therefore cannot put the eager graph in index.html as `modulepreload` links --
+// it emits a runtime preload helper instead, so the ~144-file burst only starts
+// once the entry itself has been fetched, parsed and executed. On a high-latency
+// origin that is a whole extra round trip on the critical path; the measured
+// China -> Tokyo link ranged from 123 ms to 611 ms RTT across eight samples.
+//
+// This walks the chunk graph at build time and writes the links into the HTML so
+// the burst overlaps the entry's own flight. It is byte-neutral: bootstrap.ts
+// imports main unconditionally, so every one of these chunks is fetched on every
+// load regardless of what the auth gate later decides.
+//
+// Only static imports are followed, and only one level of dynamic import (the
+// entry's own, which is the app root). Following dynamic imports transitively
+// would preload the lazy routes and the 27 MB of grammars and viewers behind them.
+function eagerModulePreloadPlugin(): Plugin {
+  return {
+    name: "t3code:eager-module-preload",
+    apply: "build",
+    enforce: "post",
+    generateBundle(_options, bundle) {
+      const html = Object.values(bundle).find(
+        (output) => output.type === "asset" && output.fileName.endsWith(".html"),
+      );
+      if (html === undefined || html.type !== "asset" || typeof html.source !== "string") {
+        this.warn("no HTML asset in the bundle; skipping eager modulepreload");
+        return;
+      }
+
+      const entryFileName = /<script[^>]+src="\/?([^"]+\.js)"/.exec(html.source)?.[1];
+      const entryChunk = entryFileName === undefined ? undefined : bundle[entryFileName];
+      if (entryChunk === undefined || entryChunk.type !== "chunk") {
+        this.warn("could not resolve the entry chunk from index.html; skipping");
+        return;
+      }
+
+      const eager = new Set<string>();
+      const visitStatic = (fileName: string) => {
+        if (eager.has(fileName)) return;
+        const chunk = bundle[fileName];
+        if (chunk === undefined || chunk.type !== "chunk") return;
+        eager.add(fileName);
+        for (const dependency of chunk.imports) visitStatic(dependency);
+      };
+      for (const dependency of entryChunk.imports) visitStatic(dependency);
+      for (const dependency of entryChunk.dynamicImports) visitStatic(dependency);
+      eager.delete(entryChunk.fileName);
+
+      if (eager.size === 0) {
+        this.warn("eager module graph came back empty; skipping");
+        return;
+      }
+
+      const links = [...eager]
+        .sort()
+        .map((fileName) => `<link rel="modulepreload" crossorigin href="/${fileName}">`)
+        .join("");
+      html.source = html.source.replace("</head>", `${links}</head>`);
+      this.info(`eager modulepreload: ${eager.size} chunks written into index.html`);
+    },
+  };
+}
+
 // Vite rejects requests whose Host header isn't localhost, which blocks sharing
 // a dev server over Tailscale/LAN. Tailnet names are safe to allow wholesale:
 // the DNS is controlled by tailscale, so they can't be rebound by an attacker.
@@ -181,6 +246,7 @@ export default defineConfig(() => {
         presets: [reactCompilerPreset()],
       }),
       tailwindPlugins(bundledDev),
+      eagerModulePreloadPlugin(),
     ],
     optimizeDeps: {
       include: [
