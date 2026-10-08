@@ -332,10 +332,27 @@ ssh pigeoncore '/opt/node24/bin/node /opt/t3-memory/dist/bin.mjs health'
 ssh pigeoncore '/opt/node24/bin/node /opt/t3-memory/dist/bin.mjs search 部署 --project <id>'
 ```
 
-The service binds to loopback and has no site block in Caddy: it is reachable
-from the workbench and from a shell on the host, and from nowhere else. Its unit
-also denies egress (`IPAddressDeny=any`, `IPAddressAllow=localhost`) — adding a
-hosted embedding or extraction endpoint later means adding it there too.
+The service binds wildcard, but the unit's cgroup filter admits loopback and
+the tailnet only (`IPAddressDeny=any` with `IPAddressAllow=localhost,
+100.64.0.0/10`): the workbench reaches it on `127.0.0.1:3211`, an agent CLI on
+any tailnet device reaches `http://100.121.96.26:3211/mcp`, and the public
+interface never completes a handshake. There is still no Caddy site block, and
+the bearer token still gates every authenticated route behind that — WireGuard
+protects the path, not the store. Adding a hosted embedding or extraction
+endpoint means adding it to the allow list too.
+
+Attach a tailnet machine (this repo must be checked out where you run it):
+
+```powershell
+scp pigeoncore:/opt/t3-memory/token $env:USERPROFILE\.t3-memory\token
+setx T3_MEMORY_TOKEN (Get-Content $env:USERPROFILE\.t3-memory\token -Raw).Trim()
+node deploy/pigeoncore\attach\attach-local-clis.mjs
+```
+
+The script is additive and idempotent: it writes a `t3-memory` entry into each
+CLI's own config (env-interpolated token where the CLI supports it, an inline
+header for Claude Code) and leaves that CLI's built-in servers and skills
+untouched. Re-run it after token rotation; `--url` points it at another host.
 
 ## Deliberately not done
 

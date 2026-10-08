@@ -12,7 +12,10 @@ StartLimitBurst=12
 Type=simple
 WorkingDirectory=/opt/t3-memory
 Environment=MEMORY_HOME=/opt/t3-memory/home
-Environment=MEMORY_HOST=127.0.0.1
+# Wildcard bind: loopback keeps serving the workbench at 127.0.0.1, and the
+# tailnet reaches it at 100.121.96.26. What may actually connect is decided by
+# the IPAddressAllow list below, not by the bind address.
+Environment=MEMORY_HOST=0.0.0.0
 Environment=MEMORY_PORT=3211
 Environment=MEMORY_TOKEN_FILE=/opt/t3-memory/token
 Environment=NODE_ENV=production
@@ -29,10 +32,14 @@ CPUWeight=20
 IOWeight=20
 TasksMax=256
 OOMPolicy=stop
-# It listens on loopback and makes no outbound connections by design. Enabling a
-# hosted embedding or extraction endpoint later means adding it to IPAddressAllow.
+# Serves loopback (the workbench) and the tailnet (every agent CLI that
+# attaches this memory directly) and nothing else: the deny is enforced per
+# cgroup in both directions, so the public interface never completes a
+# handshake. A bearer token still gates every route behind that. Enabling a
+# hosted embedding or extraction endpoint later means adding it here too.
 IPAddressDeny=any
 IPAddressAllow=localhost
+IPAddressAllow=100.64.0.0/10
 SyslogIdentifier=t3-memory
 
 [Install]

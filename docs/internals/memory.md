@@ -135,9 +135,13 @@ annotations so the two cannot drift.
 
 ## Deployment
 
-`deploy/pigeoncore/` runs the service as `t3-memory.service` on loopback, beside `t3code.service`,
-never exposed through Caddy; its unit denies egress, so adding a hosted embedding or extraction
-endpoint means adding it to `IPAddressAllow`. The link from workbench to service is a systemd
-drop-in (`t3code.service.d/memory.conf`), not an edit to the unit, so enabling memory leaves
-`t3code.service` matching `host/harden-unit.sh` and disabling is one file and one restart. See the
+`deploy/pigeoncore/` runs the service as `t3-memory.service` beside
+`t3code.service`. The bind is wildcard; who may connect is the unit's cgroup
+allow list — loopback plus the tailnet, never the public interface, and never
+through Caddy. An agent CLI outside T3 Code attaches the same service directly
+(`deploy/pigeoncore/attach/attach-local-clis.mjs`): one store, per-CLI config
+entries, nothing replaced — keep that shape rather than inventing a config-sync
+daemon. The workbench link is a systemd drop-in (`t3code.service.d/memory.conf`),
+not an edit to the unit, so enabling memory leaves `t3code.service` matching
+`host/harden-unit.sh` and disabling is one file and one restart. See the
 [deployment runbook](../../deploy/pigeoncore/README.md#memory).

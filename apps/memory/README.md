@@ -163,8 +163,11 @@ block is injected — no settings toggle, no half-advertised feature.
 - Data lives in one SQLite file; `VACUUM INTO` is a complete backup.
 - `t3-memory index-rebuild` repairs the FTS index from the entries table; the
   index is derived state and can always be thrown away.
-- Bind to loopback. The deployment (`deploy/pigeoncore/`) runs it as a systemd
-  unit beside `t3code.service` and never exposes it through Caddy.
+- The service defaults to loopback. The deployment (`deploy/pigeoncore/`) runs
+  it as a systemd unit beside `t3code.service`, never behind Caddy, and admits
+  loopback plus the tailnet through the unit's cgroup filter so agent CLIs on
+  other devices attach the same store over HTTP MCP. The bearer token is the
+  real boundary; the network only decides who can present it.
 
 ## Planned, not built
 
