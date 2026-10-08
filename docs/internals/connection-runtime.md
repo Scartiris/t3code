@@ -16,6 +16,20 @@ client of a restarted server reconnects in the same second; with a short cap, a
 client that can never connect retries all day. Offline states and authentication
 failures wait for a wakeup instead of spending attempts on unchanged conditions.
 
+That rule assumes the client can classify the failure, which a browser cannot
+always do. A rejected WebSocket upgrade reaches JavaScript as a dropped socket,
+with no status and no body, so an expired session cookie presents as a transport
+failure and retries forever. The initial auth gate compounds it: its verdict is
+memoized for the page's life, so the client never reaches the pairing surface.
+[`usePrimaryAuthRecovery`](../../apps/web/src/connection/usePrimaryAuthRecovery.ts)
+is the compensating actor. After sustained transport failures it asks the
+environment's HTTP auth session whether the browser is still authenticated and,
+only when the answer is no, reloads the page so the gate re-runs and routes to
+pairing. A second actor in the retry path is deliberate: the supervisor still
+owns every attempt, and a probe that finds a valid session changes nothing
+visible. It lives in the web and desktop renderer, where the cookie is the
+credential; mobile authenticates differently and has no equivalent.
+
 Foregrounding, an explicit retry, and an offline report probe the established
 session, and only a failed probe reconnects. Offline reports are often wrong, for
 example for a loopback server. A long mobile background suspension is the one

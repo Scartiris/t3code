@@ -470,7 +470,19 @@ export async function resolveInitialServerAuthGateState(): Promise<ServerAuthGat
     });
 }
 
-export function __resetServerAuthBootstrapForTests() {
+/**
+ * Drop the memoized gate result so the next router `beforeLoad` re-probes the
+ * server instead of replaying a verdict from when the session was still valid.
+ *
+ * Needed because a rejected WebSocket upgrade is indistinguishable from a
+ * dropped connection in the browser, so nothing in the connect path can notice
+ * that the credential is gone. See `connection/usePrimaryAuthRecovery.ts`.
+ */
+export function invalidateServerAuthGate(): void {
   bootstrapPromise = null;
   resolvedAuthenticatedGateState = null;
+}
+
+export function __resetServerAuthBootstrapForTests() {
+  invalidateServerAuthGate();
 }
