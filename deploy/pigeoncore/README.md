@@ -15,16 +15,15 @@ browser ──https/quic──> Caddy (45.92.159.178:443, Let's Encrypt)
                           T3CODE_HOME=/opt/t3/home
 ```
 
-| Piece   | Where                                                                                   |
-| ------- | --------------------------------------------------------------------------------------- |
-| Host    | `pigeoncore` (45.92.159.178), Ubuntu 26.04, 4 vCPU / 7.8 GB                             |
-| App     | `/opt/t3` — `dist/` (bundle + `client/`), `node_modules/`, `patches/`                   |
-| State   | `/opt/t3/home` (`T3CODE_HOME`); runtime data under `home/userdata`                      |
-| Service | `t3code.service`, `WantedBy=multi-user.target`                                          |
-| Memory  | `/opt/t3-memory` — `dist/` (bundle), `home/memory.sqlite`, `token`; `t3-memory.service` |
-| Proxy   | `caddy.service`, site block for `t3.pigeontech.cn`                                      |
-| Node    | `/opt/node24` (v24.21.0), linked into `/usr/local/bin`                                  |
-| DNS     | wildcard `*.pigeontech.cn → 45.92.159.178`; no per-host record needed                   |
+| Piece   | Where                                                                 |
+| ------- | --------------------------------------------------------------------- |
+| Host    | `pigeoncore` (45.92.159.178), Ubuntu 26.04, 4 vCPU / 7.8 GB           |
+| App     | `/opt/t3` — `dist/` (bundle + `client/`), `node_modules/`, `patches/` |
+| State   | `/opt/t3/home` (`T3CODE_HOME`); runtime data under `home/userdata`    |
+| Service | `t3code.service`, `WantedBy=multi-user.target`                        |
+| Proxy   | `caddy.service`, site block for `t3.pigeontech.cn`                    |
+| Node    | `/opt/node24` (v24.21.0), linked into `/usr/local/bin`                |
+| DNS     | wildcard `*.pigeontech.cn → 45.92.159.178`; no per-host record needed |
 
 The server binds to loopback only. Nothing but Caddy is exposed.
 
@@ -42,7 +41,7 @@ run by the deploy rather than by hand.
 | --------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | `host/tune-network.sh`                              | BBR + `fq` + a long-RTT sysctl set, written to `/etc/sysctl.d/99-t3-network.conf`. Applies `tc qdisc replace dev ens3`, so the interface name is hardcoded and it needs editing for another box. Clients reach this box from China at a measured ~120 ms RTT and the path is congestion-window limited, not bandwidth limited: one TCP stream moved 1.1 MB/s while eight parallel streams aggregated 5.1 MB/s against a 267 MB/s uplink. HTTP/2 multiplexes a whole first load over one connection, so the single-stream number is the one a page load gets. |
 | `host/harden-unit.sh`                               | Rewrites `t3code.service` with `Restart=always` (closes the exit-0 hole), a **reachable** start limit (the stock 10s/5 window cannot fill at `RestartSec=5`, so a permanent fault used to restart forever instead of landing in `failed`), and memory/CPU/IO caps sized above the measured 446 MB provider-install burst. Runs `systemd-analyze verify` and `daemon-reload`, and deliberately does not restart.                                                                                                                                              |
-| `backup/t3-backup.sh` + `t3-backup.{service,timer}` | Installed to `/usr/local/bin/t3-backup`, run daily into `/opt/t3-backups`. Takes a `VACUUM INTO` snapshot of `statev2.sqlite` and the memory store, plus the signing keys, settings, attachments and caches; skips `logs/` (108 MB of rotated traces) and `tools/` (445 MB the ACP registry re-creates).                                                                                                                                                                                                                                                     |
+| `backup/t3-backup.sh` + `t3-backup.{service,timer}` | Installed to `/usr/local/bin/t3-backup`, run daily into `/opt/t3-backups`. Takes a `VACUUM INTO` snapshot of `statev2.sqlite`, plus the signing keys, settings, attachments and caches; skips `logs/` (108 MB of rotated traces) and `tools/` (445 MB the ACP registry re-creates).                                                                                                                                                                                                                                                                          |
 | `lib/precompress.mjs`                               | `node precompress.mjs <assetsDir> [minBytes]`. Writes brotli quality-11 `.br` sidecars for the compressible extensions above `minBytes` (default 4096), largest first, and deletes a sidecar when brotli loses to the original. Sourcemaps are skipped because the deploy already stripped them. Run by the deploy against the staging tree.                                                                                                                                                                                                                 |
 
 `Caddyfile` is reconciled by the deploy, so the copy here and the live one cannot
@@ -83,9 +82,6 @@ deletes the local copy if they disagree, then proves the archive opens with
 
 Restore is `tar -xzf <archive> -C /opt/t3/home` with the service stopped; the
 archive's `MANIFEST.txt` lists a sha256 per file for checking before you do.
-The archive also carries `memory/memory.sqlite`, which belongs under
-`/opt/t3-memory/home/` instead — restore it there with `t3-memory.service`
-stopped, and note that the two services can be restored independently.
 
 ## Deploy
 
@@ -288,72 +284,6 @@ Not installed, and why:
 - **Antigravity** — no CLI to install; T3 manages its runtime through the
   provider settings UI.
 
-## Memory
-
-`apps/memory` is the unified memory service: one store of durable facts,
-preferences, and decisions that every agent in the workbench reads and writes in
-the same shape. Its interface, data model, and retrieval rules are in
-[apps/memory/README.md](../../apps/memory/README.md).
-
-```powershell
-# Build, ship, swap, restart, probe /health, roll back on failure.
-powershell -NoProfile -ExecutionPolicy Bypass -File deploy/pigeoncore/deploy-memory.ps1
-```
-
-The deploy never touches `/opt/t3-memory/home`: the store outlives a deploy, and
-the remote half swaps `dist/` atomically with the previous bundle kept as
-`dist.old`.
-
-Point the workbench at it (a systemd drop-in, so `t3code.service` keeps matching
-`harden-unit.sh`). `deploy-memory.ps1` uploads the enabler alongside the install
-scripts, but wipes `/tmp/t3-memory-install` on every run, so re-run the deploy
-before relying on these paths after a reboot:
-
-```bash
-ssh pigeoncore 'bash /tmp/t3-memory-install/enable-in-t3code.sh'          # enable
-ssh pigeoncore 'bash /tmp/t3-memory-install/enable-in-t3code.sh --disable' # remove
-```
-
-Both halves restart the workbench. `deploy-memory.ps1` takes the same `-SshHost`,
-`-SkipBuild` and `-SkipVerify` as the main deploy.
-
-That writes `Environment=T3CODE_MEMORY_URL=…` and
-`T3CODE_MEMORY_TOKEN_FILE=/opt/t3-memory/token` and restarts the workbench. With
-either variable absent, T3 Code registers no memory tools and injects no memory
-block, so disabling is one file and one restart.
-
-Operate:
-
-```bash
-systemctl status t3-memory
-journalctl -u t3-memory -f
-curl -s http://127.0.0.1:3211/health      # counts and paths, no content
-ssh pigeoncore '/opt/node24/bin/node /opt/t3-memory/dist/bin.mjs health'
-ssh pigeoncore '/opt/node24/bin/node /opt/t3-memory/dist/bin.mjs search 部署 --project <id>'
-```
-
-The service binds wildcard, but the unit's cgroup filter admits loopback and
-the tailnet only (`IPAddressDeny=any` with `IPAddressAllow=localhost,
-100.64.0.0/10`): the workbench reaches it on `127.0.0.1:3211`, an agent CLI on
-any tailnet device reaches `http://100.121.96.26:3211/mcp`, and the public
-interface never completes a handshake. There is still no Caddy site block, and
-the bearer token still gates every authenticated route behind that — WireGuard
-protects the path, not the store. Adding a hosted embedding or extraction
-endpoint means adding it to the allow list too.
-
-Attach a tailnet machine (this repo must be checked out where you run it):
-
-```powershell
-scp pigeoncore:/opt/t3-memory/token $env:USERPROFILE\.t3-memory\token
-setx T3_MEMORY_TOKEN (Get-Content $env:USERPROFILE\.t3-memory\token -Raw).Trim()
-node deploy/pigeoncore\attach\attach-local-clis.mjs
-```
-
-The script is additive and idempotent: it writes a `t3-memory` entry into each
-CLI's own config (env-interpolated token where the CLI supports it, an inline
-header for Claude Code) and leaves that CLI's built-in servers and skills
-untouched. Re-run it after token rotation; `--url` points it at another host.
-
 ## Deliberately not done
 
 - **T3 Connect is off.** The build runs without the Clerk keys from
@@ -380,5 +310,4 @@ holds provider signing keys, and `backup.ps1` copies it to
 `%USERPROFILE%\t3-backups` as plaintext with no ACL beyond your account — 14
 generations deep, on a machine that also has the host's SSH key. Treat that
 directory as secret material: do not sync it, back it up to a third party, or
-add it to any archive you share. The memory bearer token is deliberately in none
-of them; `/opt/t3-memory/token` is created once and must be copied by hand.
+add it to any archive you share.

@@ -11,10 +11,6 @@ set -euo pipefail
 
 HOME_DIR=${T3CODE_HOME:-/opt/t3/home}
 UD="$HOME_DIR/userdata"
-# The memory service keeps its own store in its own home; it holds the only copy
-# of every remembered fact, so it is backed up here rather than left to be
-# rediscovered after a restore.
-MEMORY_HOME_DIR=${MEMORY_HOME:-/opt/t3-memory/home}
 DEST=${T3_BACKUP_DIR:-/opt/t3-backups}
 KEEP=${T3_BACKUP_KEEP:-14}
 NODE=${T3_NODE:-/opt/node24/bin/node}
@@ -43,7 +39,6 @@ snapshot() {
 }
 
 snapshot "$UD/statev2.sqlite" "$WORK/userdata/statev2.sqlite"
-snapshot "$MEMORY_HOME_DIR/memory.sqlite" "$WORK/memory/memory.sqlite"
 rm -f "$WORK/snapshot.mjs"
 
 # -a preserves the 0600/0700 modes on secrets/.
@@ -57,7 +52,6 @@ done
   echo "createdAt=$(date -Is)"
   echo "host=$(hostname)"
   echo "t3Home=$HOME_DIR"
-  echo "memoryHome=$MEMORY_HOME_DIR"
   echo "files=$(find "$WORK" -type f -not -name MANIFEST.txt | wc -l)"
   echo "bytes=$(du -sb --exclude=MANIFEST.txt "$WORK" | cut -f1)"
   echo "sha256:"

@@ -1,10 +1,9 @@
 # memory-conformance
 
 A black-box acceptance suite for **any** implementation of the memory protocol
-([`@t3tools/memory-protocol`](../memory-protocol/src/index.ts)). The reference
-service in `apps/memory` is one implementation; the point of this package is
-that it is not the only one allowed to be. Nothing here imports the reference
-server — every call goes through the protocol package's own client or the wire
+([`@t3tools/memory-protocol`](../memory-protocol/src/index.ts)). The point of
+this package is that the backend is not required to be ours. Nothing here
+imports a server implementation — every call goes through the protocol package's own client or the wire
 formats it defines, so a green run means "this backend satisfies the contract",
 not "this backend is ours".
 
@@ -22,13 +21,8 @@ $env:MEMORY_CONFORMANCE_TOKEN = (Get-Content $env:USERPROFILE\.t3-memory\token -
 vp test run packages/memory-conformance
 ```
 
-Against the reference on a disposable store:
-
-```powershell
-$env:MEMORY_HOME = "$env:TEMP\memory-conformance"
-node apps/memory/dist/bin.mjs token
-node apps/memory/dist/bin.mjs serve   # then run the suite with URL http://127.0.0.1:3211
-```
+Point it at a disposable store, never a store you care about: the suite writes
+entries to whatever backend `MEMORY_CONFORMANCE_URL` names.
 
 Without both env vars every test skips, so the package stays green in normal
 `vp run -r test` runs — the suite is opt-in because it writes to the store it

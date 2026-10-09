@@ -174,7 +174,7 @@ import * as NetService from "@t3tools/shared/Net";
 import * as RelayClient from "@t3tools/shared/relayClient";
 import { disableTailscaleServe, ensureTailscaleServe } from "@t3tools/tailscale";
 import * as ServerActivation from "./serverActivation.ts";
-import * as MemoryConnection from "./memory/MemoryService.ts";
+import { memoryConnectionProblem } from "./memory/MemoryService.ts";
 
 // MCP handoff thread IDs include escaped provenance and can exceed find-my-way's
 // 100-character default for one path segment.
@@ -483,7 +483,7 @@ const ThreadPullRequestWorkerLive = Layer.effectDiscard(
  */
 const MemoryConnectionDiagnosticLive = Layer.effectDiscard(
   Effect.gen(function* () {
-    const problem = MemoryConnection.memoryConnectionProblem();
+    const problem = memoryConnectionProblem();
     if (problem !== undefined) {
       yield* Effect.logWarning(`Memory is configured but unusable: ${problem}`);
     }

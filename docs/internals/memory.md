@@ -1,14 +1,11 @@
 # Memory
 
-This fork ships a persistent, cross-session memory: one store of durable facts, preferences and
-decisions that every agent on the box reads and writes in the same shape. The service
-([`apps/memory`](../../apps/memory/README.md)) and its wire contract
-([`packages/memory-protocol`](../../packages/memory-protocol/src/index.ts)) are separate from the
-workbench; T3 Code is one client of them. This page covers only what the code cannot show on its
-own: how memory reaches a provider's prompt, and the constraints that make it arrive intact.
-
-For the data model, retrieval rules, REST/MCP/CLI surfaces and the service's own environment
-variables, read [`apps/memory/README.md`](../../apps/memory/README.md). Do not copy it here.
+This fork's memory is a persistent, cross-session store of durable facts, preferences and decisions
+that agents read and write in one shape. The backend is an external project. It is not in this
+repository; it implements the wire contract in
+[`packages/memory-protocol`](../../packages/memory-protocol/src/index.ts), and T3 Code is one client
+of it. This page covers only what the code cannot show on its own: how memory reaches a provider's
+prompt, and the constraints that make it arrive intact.
 
 ## The contract package is deliberately outside `packages/contracts`
 
@@ -19,12 +16,7 @@ memory shapes in contracts would make a memory client inherit the workbench's RP
 point the dependency the wrong way — the workbench speaks memory, memory never speaks back.
 
 `packages/memory-protocol` exports raw TypeScript (`exports["."] → ./src/index.ts`), so consumers
-need no build step. It is **not** a declared dependency of `apps/server`: no edge exists in
-`apps/server/package.json` or in `pnpm-lock.yaml`, even though files under `apps/server/src/memory`
-and `apps/server/src/mcp/toolkits/memory` import it. Resolution there depends on the workspace graph
-rather than a linked dependency, which is the kind of thing that holds until a build, a fresh
-install on another machine, or a bundler that reads `package.json` says otherwise. Declare it as
-`workspace:*` in `apps/server/package.json` to make the import honest.
+need no build step. `apps/server` declares it as `workspace:*`.
 
 `MEMORY_ENV` (`packages/memory-protocol/src/protocol.ts`) names the variables both sides agree on,
 and the protocol version bumps only on breaking shape changes — every decoder ignores unknown keys,
@@ -86,9 +78,10 @@ the provider's prompt cache for everything after it, which costs the user money 
 every turn of the conversation. So determinism is enforced at four boundaries, and each has to hold
 on its own:
 
-- `apps/memory/src/render/contextBlock.ts` renders no ids, timestamps or hit counts, and drops
-  lines from the end to fit the budget — a half-rendered memory is worse than an absent one.
-- `apps/memory/src/retrieval/rank.ts` breaks ties by id, so identical queries return identical order.
+- The backend's `/v1/context` renders no ids, timestamps or hit counts, and drops lines from the end
+  to fit the budget — a half-rendered memory is worse than an absent one. The conformance suite
+  checks this ([`conformance.test.ts`](../../packages/memory-conformance/src/conformance.test.ts)).
+- The backend breaks ranking ties by id, so identical queries return identical order.
 - `ProviderSessionManager.warmMemoryBlock` fetches once per session, so the block cannot drift
   mid-conversation.
 - `provider/CodexDeveloperInstructions.ts` gives Codex its own `t3_memory` additional-context key.
@@ -138,16 +131,3 @@ session believes. Those labels go through `t()`; the sibling
 Read-only Claude sessions allow `memory_search` only: it is the one memory tool annotated
 `Tool.Readonly`, and `ClaudeAdapterV2.test.ts` cross-checks the allowlist against the toolkit's
 annotations so the two cannot drift.
-
-## Deployment
-
-`deploy/pigeoncore/` runs the service as `t3-memory.service` beside
-`t3code.service`. The bind is wildcard; who may connect is the unit's cgroup
-allow list — loopback plus the tailnet, never the public interface, and never
-through Caddy. An agent CLI outside T3 Code attaches the same service directly
-(`deploy/pigeoncore/attach/attach-local-clis.mjs`): one store, per-CLI config
-entries, nothing replaced — keep that shape rather than inventing a config-sync
-daemon. The workbench link is a systemd drop-in (`t3code.service.d/memory.conf`),
-not an edit to the unit, so enabling memory leaves `t3code.service` matching
-`host/harden-unit.sh` and disabling is one file and one restart. See the
-[deployment runbook](../../deploy/pigeoncore/README.md#memory).
