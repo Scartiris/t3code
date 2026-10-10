@@ -3694,6 +3694,11 @@ function toolGroupSummaryIconName(
       return "pull-request";
     case "read":
       return "eye";
+    case "knowledge-read":
+    case "knowledge-write":
+    case "memory-read":
+    case "memory-write":
+      return "brain";
     case "edit":
       return "square-pen";
     case "command":

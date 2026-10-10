@@ -284,6 +284,93 @@ Not installed, and why:
 - **Antigravity** — no CLI to install; T3 manages its runtime through the
   provider settings UI.
 
+## CC Switch model gateway
+
+`host/install-cc-switch.sh` installs the community CC Switch CLI v5.11.0 with a
+pinned archive hash. The upstream desktop project recommends this CLI for SSH
+hosts. Install it before enabling **Settings → CC Switch**. Add model sites with
+their own addresses and Keys; saving discovers their models automatically. Each
+engine can select several sites and a default site/model. Chat's model picker
+lists each engine/site separately. The old Providers settings entry redirects
+to CC Switch.
+Claude uses Messages; Codex and OpenCode use Responses. OpenCode uses its
+selected site's CC Switch Codex route, independently of Codex's site selection.
+
+T3's environment owns `/opt/t3/home/userdata/cc-switch`, with isolated Claude and
+Codex homes and CC Switch's credential database under `.cc-switch/cc-switch.db`
+for the original site. Additional sites have separate stores and homes under
+`cc-switch/sites/<site-id>`. Each site owns its daemon and loopback ports; only
+routes selected by an engine run. Only the local proxies receive the real Keys;
+the engines use placeholder credentials. T3 settings contain site addresses and
+model choices. The daemons and workers live under `t3code.service`, and selected
+routes restart when T3 hydrates its providers after a service restart. Existing
+single-site settings and credentials are retained on upgrade.
+
+The regular workbench backup does not yet include CC Switch. For a consistent
+gateway backup, stop `t3code`, archive `home/userdata/cc-switch` and the T3
+settings with mode 0600, then restart the service. Treat this archive as secret
+material: CC Switch keeps current and historical provider credentials. Restore
+to the same environment path before starting T3. Turning off the gateway restores
+the original provider configuration; removing a site or deleting its Key removes
+only that site's store and managed homes, preserving all other sites.
+
+## OpenViking memory
+
+The workbench uses OpenViking 0.5 at `127.0.0.1:1933`, with the local
+`bge-small-zh-v1.5` embedding model. `/opt/openviking/etc/ov.conf` owns the
+backend configuration; `host/openviking.service` owns its process. Install the
+unit under `/etc/systemd/system`, then enable it with `systemctl enable --now
+openviking`. Do not run a second manual server against the same data directory.
+
+The workbench drop-in `/etc/systemd/system/t3code.service.d/memory.conf` is:
+
+```ini
+[Service]
+Environment=T3CODE_MEMORY_BACKEND=openviking
+Environment=T3CODE_MEMORY_URL=http://127.0.0.1:1933
+Environment=T3CODE_MEMORY_TOKEN_FILE=/opt/openviking/etc/t3.key
+```
+
+`t3.key` is a dedicated user key, readable only by the server account. Keep
+`root.key` out of the workbench. All workbench clients and providers share the
+existing five memory tools through the server; OpenViking's port stays private.
+Use one workbench writer per OpenViking user namespace.
+
+For migration from the retired SQLite service, build the migration helper:
+
+```powershell
+vp pack --no-config apps/server/scripts/migrate-openviking.ts --out-dir "$env:TEMP/t3-openviking-tools"
+scp "$env:TEMP/t3-openviking-tools/migrate-openviking.mjs" pigeoncore:/tmp/
+```
+
+Stop `t3-memory` before running the helper on the host; use a fresh backup
+directory under `/opt/t3-backups` on every attempt:
+
+```bash
+umask 077
+/opt/node24/bin/node /tmp/migrate-openviking.mjs \
+  /opt/t3-memory/home/memory.sqlite /opt/t3-backups/memory-migration-YYYYMMDDTHHMMSS \
+  /opt/openviking/etc/t3.key
+```
+
+The helper snapshots SQLite read-only, exports all statuses and legacy audit
+events, imports original IDs and versions, and compares every field after a raw
+read. It refuses to overwrite a different entry. Install the drop-in, deploy
+with `deploy.ps1`, and disable the retired service after readiness passes.
+The retired `:3211/mcp` endpoint is no longer a writable memory store; standalone
+CLI connections to it need to be removed or migrated separately.
+
+Before reverting the backend, stop workbench writes and snapshot OpenViking.
+Restore the old drop-in and matching server build, then enable `t3-memory` and
+restart `t3code`. The old database contains only the pre-cutover state: preserve
+or export newer OpenViking writes before rolling back.
+
+The normal workbench backup does not include OpenViking. To take a consistent
+backend backup, stop `openviking`, archive `/opt/openviking/data` and
+`/opt/openviking/etc` with mode 0600, then restart it. Keep the installed version
+and embedding model with the restore environment. A live copy of vector storage
+is not a consistent backup.
+
 ## Deliberately not done
 
 - **T3 Connect is off.** The build runs without the Clerk keys from

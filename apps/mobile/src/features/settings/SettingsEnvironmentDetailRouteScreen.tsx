@@ -17,6 +17,7 @@ import { useAtomCommand } from "../../state/use-atom-command";
 import { useRemoteConnections } from "../../state/use-remote-environment-registry";
 import { ConnectionEnvironmentRow } from "../connection/ConnectionEnvironmentRow";
 import { SettingsActionRow } from "./components/SettingsActionRow";
+import { useNavigation } from "@react-navigation/native";
 import { SettingsScreen } from "./components/SettingsScreen";
 import { SettingsSection } from "./components/SettingsSection";
 import {
@@ -42,6 +43,7 @@ export function SettingsEnvironmentDetailRouteScreen({
 
 function EnvironmentDetail({ environmentId }: { readonly environmentId: EnvironmentId }) {
   const insets = useSafeAreaInsets();
+  const navigation = useNavigation();
   const connections = useRemoteConnections();
   const environment = connections.connectedEnvironments.find(
     (entry) => entry.environmentId === environmentId,
@@ -283,7 +285,7 @@ function EnvironmentDetail({ environmentId }: { readonly environmentId: Environm
                     />
                   ) : null}
                 </SettingsSection>
-                <SettingsSection title={t("settings.section.providers")}>
+                <SettingsSection title="引擎维护">
                   <SettingsActionRow
                     icon="arrow.clockwise"
                     label={t("settings.settingsEnvironmentDetailRouteScreen.refreshProviders")}
@@ -372,6 +374,32 @@ function EnvironmentDetail({ environmentId }: { readonly environmentId: Environm
                         ) : null}
                       </View>
                     ))}
+                </SettingsSection>
+                <SettingsSection title="CC Switch">
+                  <SettingsActionRow
+                    icon="server.rack"
+                    label="统一模型网关"
+                    disabled={running}
+                    onPress={() =>
+                      navigation.navigate("SettingsSheet", {
+                        screen: "SettingsContent",
+                        params: { screen: "SettingsCcSwitch", params: { environmentId } },
+                      })
+                    }
+                  />
+                </SettingsSection>
+                <SettingsSection title="OpenViking">
+                  <SettingsActionRow
+                    icon="brain"
+                    label="知识库与记忆"
+                    disabled={running}
+                    onPress={() =>
+                      navigation.navigate("SettingsSheet", {
+                        screen: "SettingsContent",
+                        params: { screen: "SettingsOpenViking", params: { environmentId } },
+                      })
+                    }
+                  />
                 </SettingsSection>
               </>
             ) : null}

@@ -59,7 +59,7 @@ describe("searchSettings", () => {
     expect(
       searchSettings(t("settings.settingsSearch.connections"), ITEMS).map((item) => item.id),
     ).toEqual(["network-access"]);
-    expect(searchSettings("claude", ITEMS).map((item) => item.id)).toEqual(["providers"]);
+    expect(searchSettings("claude", ITEMS)).toEqual([]);
     expect(searchSettings("long lines", ITEMS).map((item) => item.id)).toEqual(["word-wrap"]);
   });
 
@@ -107,9 +107,10 @@ describe("searchSettings", () => {
     expect(searchSettings("git security keys")[0]?.id).toBe("git-fetch-interval");
     expect(searchSettings("push notifications")[0]?.id).toBe("publish-agent-activity");
     expect(searchSettings("battery saver")[0]?.id).toBe("background-activity");
-    expect(searchSettings("binary path")[0]?.id).toBe("providers");
-    expect(searchSettings("Antigravity")[0]?.id).toBe("providers");
-    expect(searchSettings("Google sign in")[0]?.id).toBe("providers");
+    expect(searchSettings("提供商").map((item) => item.id)).toContain("cc-switch");
+    expect(searchSettings("提供商").some((item) => item.to === "/settings/providers")).toBe(false);
+    expect(searchSettings("Antigravity")).toEqual([]);
+    expect(searchSettings("Google sign in")).toEqual([]);
     expect(searchSettings("authorized clients")[0]?.id).toBe("connections-environment");
     expect(searchSettings("administrative access")[0]?.id).toBe("connections-environment");
   });
@@ -127,11 +128,8 @@ describe("searchSettings", () => {
     "CLIProxyAPI",
     "CLI proxy hub",
     "management key",
-  ])("finds usage-provider management by %s", (query) => {
-    expect(searchSettings(query)[0]).toMatchObject({
-      id: "usage-providers",
-      to: "/settings/providers",
-    });
+  ])("hides previous usage-provider management for %s", (query) => {
+    expect(searchSettings(query).some((item) => item.to === "/settings/providers")).toBe(false);
   });
 
   it("returns no results for an empty query", () => {
@@ -193,7 +191,7 @@ describe("searchSettings", () => {
     expect(available.map((item) => item.id).filter((id) => gatedIds.has(id))).toEqual([]);
   });
 
-  it("offers Cursor Keychain settings only when a macOS provider environment is available", () => {
+  it("hides old provider settings on every environment", () => {
     const availability = {
       hasCloudPublicConfig: false,
       hasEnvironment: true,
@@ -209,7 +207,7 @@ describe("searchSettings", () => {
         hasMacProviderSettingsEnvironment: macAvailable,
       }).map((item) => item.id);
     expect(itemIds(false)).not.toContain("cursor-keychain-usage");
-    expect(itemIds(true)).toContain("cursor-keychain-usage");
+    expect(itemIds(true)).not.toContain("cursor-keychain-usage");
   });
 
   it("keeps the local toggle searchable without offering hidden host publishing controls", () => {
@@ -268,9 +266,7 @@ describe("searchSettings", () => {
   it("ranks keybinding commands after other settings", () => {
     const ids = searchSettings("model").map((item) => item.id);
     expect(ids[0]).toBe("project-defaults");
-    expect(ids.indexOf("keybinding-modelPicker.toggle")).toBeGreaterThan(
-      ids.indexOf("provider-health-check-interval"),
-    );
+    expect(ids.indexOf("keybinding-modelPicker.toggle")).toBeGreaterThan(ids.indexOf("cc-switch"));
   });
 
   it("sends commands without a default binding to the section", () => {

@@ -1,6 +1,7 @@
 import * as Context from "effect/Context";
 import * as Effect from "effect/Effect";
 import * as Layer from "effect/Layer";
+import { FetchHttpClient } from "effect/unstable/http";
 
 import {
   type MemoryApiError,
@@ -23,6 +24,7 @@ import {
 } from "@t3tools/memory-protocol";
 
 import { readMemoryConnection, type MemoryConnection } from "./MemoryConnection.ts";
+import * as OpenVikingMemoryService from "./OpenVikingMemoryService.ts";
 
 /**
  * Read budget for anything on a turn's critical path. The prewarm happens while
@@ -40,6 +42,7 @@ export const MEMORY_WRITE_TIMEOUT_MS = 5_000;
  * prompt path never touch HTTP.
  */
 export interface MemoryServiceShape {
+  readonly get: (id: MemoryId) => Effect.Effect<MemoryEntry, MemoryApiError>;
   readonly context: (
     input: MemoryContextInput,
   ) => Effect.Effect<MemoryContextResult, MemoryApiError>;
@@ -86,6 +89,7 @@ export const makeMemoryService = (connection: MemoryConnection): MemoryServiceSh
     });
 
   return {
+    get: (id) => call(undefined, (client) => client.get(id)),
     context: (input) => call(undefined, (client) => client.context(input)),
     search: (input) => call(undefined, (client) => client.search(input)),
     remember: (input, source) =>
@@ -115,28 +119,18 @@ export const makeMemoryService = (connection: MemoryConnection): MemoryServiceSh
 };
 
 export const layer = (connection: MemoryConnection): Layer.Layer<MemoryService> =>
-  Layer.succeed(MemoryService, makeMemoryService(connection));
-
-/**
- * `undefined` when the deployment has not configured memory, which the server
- * composition turns into "register no memory tools".
- */
-export const memoryServiceLayerFromEnv = (
-  env: NodeJS.ProcessEnv = process.env,
-): Layer.Layer<MemoryService> | undefined => {
-  const attempt = readMemoryConnection(env);
-  return attempt.connection === undefined ? undefined : layer(attempt.connection);
-};
-
-/**
- * The deployment's memory service, read once.
- *
- * Shared by the MCP toolkit registration and the orchestration composition:
- * two independent reads of the environment would let one half of the feature
- * come up without the other, which is exactly the failure this whole seam
- * exists to avoid.
- */
-export const memoryServiceLayerFromEnvironment = memoryServiceLayerFromEnv();
+  connection.backend === "openviking"
+    ? Layer.effect(
+        MemoryService,
+        OpenVikingMemoryService.make(
+          { baseUrl: connection.baseUrl, apiKey: connection.token },
+          {
+            readTimeoutMs: MEMORY_READ_TIMEOUT_MS,
+            writeTimeoutMs: MEMORY_WRITE_TIMEOUT_MS,
+          },
+        ),
+      ).pipe(Layer.provide(FetchHttpClient.layer))
+    : Layer.succeed(MemoryService, makeMemoryService(connection));
 
 /** A startup line an operator can act on when memory was configured wrongly. */
 export const memoryConnectionProblem = (env: NodeJS.ProcessEnv = process.env): string | undefined =>

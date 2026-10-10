@@ -76,6 +76,8 @@ import { SettingsClientStorageRouteScreen } from "./features/settings/SettingsCl
 import { SettingsDiagnosticsRouteScreen } from "./features/diagnostics/SettingsDiagnosticsRouteScreen";
 import { SettingsProviderAccountsRouteScreen } from "./features/settings/SettingsProviderAccountsRouteScreen";
 import { SettingsAuthRouteScreen } from "./features/settings/SettingsAuthRouteScreen";
+import { SettingsOpenVikingRouteScreen } from "./features/settings/SettingsOpenVikingRouteScreen";
+import { SettingsCcSwitchRouteScreen } from "./features/settings/SettingsCcSwitchRouteScreen";
 import { SettingsEnvironmentDetailRouteScreen } from "./features/settings/SettingsEnvironmentDetailRouteScreen";
 import { SettingsEnvironmentsRouteScreen } from "./features/settings/SettingsEnvironmentsRouteScreen";
 import { SettingsFollowUpRouteScreen } from "./features/settings/SettingsFollowUpRouteScreen";
@@ -209,6 +211,16 @@ const SettingsContentStack = createNativeStackNavigator({
       options: {
         title: t("root.stack.environments"),
       },
+    }),
+    SettingsOpenViking: createNativeStackScreen({
+      screen: SettingsOpenVikingRouteScreen,
+      linking: "environments/:environmentId/openviking",
+      options: { title: "OpenViking" },
+    }),
+    SettingsCcSwitch: createNativeStackScreen({
+      screen: SettingsCcSwitchRouteScreen,
+      linking: "environments/:environmentId/cc-switch",
+      options: { title: "CC Switch" },
     }),
     SettingsEnvironmentDetail: createNativeStackScreen({
       screen: SettingsEnvironmentDetailRouteScreen,

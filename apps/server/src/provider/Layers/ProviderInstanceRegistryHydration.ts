@@ -49,9 +49,11 @@ import {
 } from "@t3tools/contracts";
 import * as Effect from "effect/Effect";
 import * as Layer from "effect/Layer";
+import * as Option from "effect/Option";
 import * as Stream from "effect/Stream";
 
 import * as Settings from "../../serverSettings.ts";
+import * as CcSwitch from "../CcSwitch.ts";
 import { BUILT_IN_DRIVERS, type BuiltInDriversEnv } from "../builtInDrivers.ts";
 import * as ProviderInstanceRegistry from "../Services/ProviderInstanceRegistry.ts";
 import * as ProviderInstanceRegistryMutator from "../Services/ProviderInstanceRegistryMutator.ts";
@@ -116,6 +118,13 @@ export const deriveProviderInstanceConfigMap = (
   return merged as ProviderInstanceConfigMap;
 };
 
+const resolveConfigMap = (settings: ServerSettings) =>
+  Effect.gen(function* () {
+    const map = deriveProviderInstanceConfigMap(settings);
+    const gateway = yield* Effect.serviceOption(CcSwitch.CcSwitch);
+    return Option.isSome(gateway) ? yield* gateway.value.resolve(settings.ccSwitch, map) : map;
+  });
+
 /**
  * Layer that consumes `ProviderInstanceRegistryMutator` and forks a
  * settings-watcher fiber. The fiber's lifetime is tied to the enclosing
@@ -134,13 +143,12 @@ const SettingsWatcherLive = Layer.effectDiscard(
     const settingsChanges = yield* serverSettings.subscribeChanges;
     yield* settingsChanges.pipe(
       Stream.runForEach((next) =>
-        mutator
-          .reconcile(deriveProviderInstanceConfigMap(next))
-          .pipe(
-            Effect.catchCause((cause) =>
-              Effect.logError("ProviderInstanceRegistry reconcile failed", cause),
-            ),
+        resolveConfigMap(next).pipe(
+          Effect.flatMap((map) => mutator.reconcile(map)),
+          Effect.catchCause((cause) =>
+            Effect.logError("ProviderInstanceRegistry reconcile failed", cause),
           ),
+        ),
       ),
       Effect.forkScoped,
     );
@@ -176,7 +184,7 @@ export const ProviderInstanceRegistryHydrationLive: Layer.Layer<
     const initialConfigMap =
       initialSettings === undefined
         ? ({} as ProviderInstanceConfigMap)
-        : deriveProviderInstanceConfigMap(initialSettings);
+        : yield* resolveConfigMap(initialSettings);
 
     const mutableLayer = ProviderInstanceRegistryMutableLayer({
       drivers: BUILT_IN_DRIVERS,

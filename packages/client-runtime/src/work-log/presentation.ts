@@ -99,6 +99,10 @@ export type ToolGroupAction =
   | "device"
   | "code-search"
   | "search"
+  | "memory-read"
+  | "memory-write"
+  | "knowledge-read"
+  | "knowledge-write"
   | "other"
   | "update";
 
@@ -567,6 +571,10 @@ function toolGroupActionLabel(action: ToolGroupAction, count: number): string {
       return t("workLog.presentation.usedBrowser", { count });
     case "search":
       return t("workLog.presentation.searchedWeb", { count });
+    case "knowledge-read":
+      return t("workLog.presentation.searchedKnowledge", { count });
+    case "knowledge-write":
+      return t("workLog.presentation.updatedKnowledge", { count });
     case "memory-read":
       return t("workLog.presentation.searchedMemory", { count });
     case "memory-write":
@@ -637,6 +645,7 @@ function summaryActionPriority(action: ToolGroupAction | T3McpToolSummaryAction)
     case "attachment-send":
     // A memory write changes what every later session believes; it earns the
     // same prominence as an edit or a sent message.
+    case "knowledge-write":
     case "memory-write":
       return 0;
     case "other":

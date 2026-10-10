@@ -1165,6 +1165,38 @@ export function createServerEnvironmentAtoms<R, E>(
       concurrency: configConcurrency,
     }),
     updateSettings,
+    listMemoryDocuments: createEnvironmentRpcCommand(runtime, {
+      label: "memory:list-documents",
+      tag: WS_METHODS.memoryListDocuments,
+    }),
+    readMemoryDocument: createEnvironmentRpcCommand(runtime, {
+      label: "memory:read-document",
+      tag: WS_METHODS.memoryReadDocument,
+    }),
+    saveMemoryDocument: createEnvironmentRpcCommand(runtime, {
+      label: "memory:save-document",
+      tag: WS_METHODS.memorySaveDocument,
+    }),
+    archiveMemoryDocument: createEnvironmentRpcCommand(runtime, {
+      label: "memory:archive-document",
+      tag: WS_METHODS.memoryArchiveDocument,
+    }),
+    checkMemoryConnection: createEnvironmentRpcCommand(runtime, {
+      label: "environment-data:server:check-memory-connection",
+      tag: WS_METHODS.serverCheckMemoryConnection,
+    }),
+    ccSwitchStatus: createEnvironmentRpcCommand(runtime, {
+      label: "cc-switch:status",
+      tag: WS_METHODS.serverCcSwitchStatus,
+    }),
+    configureCcSwitch: createEnvironmentRpcCommand(runtime, {
+      label: "cc-switch:configure",
+      tag: WS_METHODS.serverConfigureCcSwitch,
+    }),
+    ccSwitchModels: createEnvironmentRpcCommand(runtime, {
+      label: "cc-switch:models",
+      tag: WS_METHODS.serverCcSwitchModels,
+    }),
     // Provider-instance mutations share the settings command and its
     // environment-serial scheduler. The named boundary keeps clients on the
     // atomic map-entry payload instead of rebuilding a stale whole map.

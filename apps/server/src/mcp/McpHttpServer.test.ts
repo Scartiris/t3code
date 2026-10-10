@@ -3,23 +3,41 @@ import * as ProjectionStore from "../orchestration-v2/ProjectionStore.ts";
 import { expect, it } from "@effect/vitest";
 import { NodeHttpServer } from "@effect/platform-node";
 import * as NodeServices from "@effect/platform-node/NodeServices";
-import { EnvironmentId, PreviewTabId, ProviderInstanceId, ThreadId } from "@t3tools/contracts";
+import {
+  EnvironmentId,
+  PreviewTabId,
+  ProviderInstanceId,
+  ThreadId,
+  type ServerSettings as ServerSettingsValue,
+} from "@t3tools/contracts";
 import { t } from "@t3tools/shared/i18n";
 import * as Deferred from "effect/Deferred";
 import * as Effect from "effect/Effect";
 import * as FileSystem from "effect/FileSystem";
 import * as Layer from "effect/Layer";
 import * as Path from "effect/Path";
+import * as PubSub from "effect/PubSub";
 import * as Schema from "effect/Schema";
 import * as Stream from "effect/Stream";
 import { McpProtocol, McpSchema, McpServer } from "effect/unstable/ai";
-import { HttpBody, HttpClient, HttpRouter, HttpServerResponse } from "effect/unstable/http";
+import {
+  HttpBody,
+  HttpClient,
+  HttpClientResponse,
+  HttpRouter,
+  HttpServerResponse,
+} from "effect/unstable/http";
 
 import * as ProjectService from "../project/ProjectService.ts";
 import * as ServerConfig from "../config.ts";
 import * as McpHttpServer from "./McpHttpServer.ts";
 import * as McpInvocationContext from "./McpInvocationContext.ts";
 import * as PreviewAutomationBroker from "./PreviewAutomationBroker.ts";
+import * as MemoryRuntime from "../memory/MemoryRuntime.ts";
+import * as MemoryService from "../memory/MemoryService.ts";
+import * as ServerSettings from "../serverSettings.ts";
+import * as ThreadManagementService from "../orchestration-v2/ThreadManagementService.ts";
+import { MEMORY_TOOL_NAMES } from "@t3tools/memory-protocol";
 
 const environmentId = EnvironmentId.make("environment-mcp-test");
 const threadId = ThreadId.make("thread-mcp-test");
@@ -62,6 +80,102 @@ const PullRequestsTestLayer = McpHttpServer.PullRequestsToolkitRegistrationLive.
       NodeServices.layer,
     ),
   ),
+);
+
+it.effect(
+  "applies memory tool availability changes to existing MCP clients without restarting",
+  () => {
+    let requests = 0;
+    const http = HttpClient.make((request) =>
+      Effect.sync(() => {
+        requests++;
+        return HttpClientResponse.fromWeb(request, Response.json({ status: "ok", result: [] }));
+      }),
+    );
+    const settingsLayer = Layer.effect(
+      ServerSettings.ServerSettingsService,
+      Effect.gen(function* () {
+        const store = yield* ServerSettings.ServerSettingsService;
+        const changes = yield* Effect.acquireRelease(
+          PubSub.unbounded<ServerSettingsValue>(),
+          PubSub.shutdown,
+        );
+        return {
+          ...store,
+          updateSettings: (patch) =>
+            store.updateSettings(patch).pipe(Effect.tap((next) => PubSub.publish(changes, next))),
+          subscribeChanges: PubSub.subscribe(changes).pipe(Effect.map(Stream.fromSubscription)),
+        } satisfies ServerSettings.ServerSettingsService["Service"];
+      }),
+    ).pipe(Layer.provide(ServerSettings.layerTest({ memory: { enabled: false } })));
+    const runtimeLayer = Layer.effect(MemoryRuntime.MemoryRuntime, MemoryRuntime.make({})).pipe(
+      Layer.provideMerge(settingsLayer),
+      Layer.provide(Layer.succeed(HttpClient.HttpClient, http)),
+    );
+    const memoryLayer = Layer.effect(
+      MemoryService.MemoryService,
+      MemoryRuntime.MemoryRuntime.pipe(Effect.map((runtime) => runtime.service)),
+    ).pipe(Layer.provideMerge(runtimeLayer));
+    const testLayer = McpHttpServer.MemoryToolkitRegistration.pipe(
+      Layer.provideMerge(McpServer.McpServer.layer),
+      Layer.provideMerge(memoryLayer),
+      Layer.provide(
+        Layer.mock(ThreadManagementService.ThreadManagementService)({
+          getThreadShell: () => Effect.succeed(null),
+        }),
+      ),
+    );
+    return Effect.scoped(
+      Effect.gen(function* () {
+        const server = yield* McpServer.McpServer;
+        const runtime = yield* MemoryRuntime.MemoryRuntime;
+        const store = yield* ServerSettings.ServerSettingsService;
+        const changes = yield* runtime.subscribeAvailabilityChanges;
+        const search = server
+          .callTool({ name: MEMORY_TOOL_NAMES.search, arguments: {} })
+          .pipe(
+            Effect.provideService(McpInvocationContext.McpInvocationContext, invocation),
+            Effect.provideService(McpSchema.McpServerClient, client),
+          );
+        const knowledgeSearch = server
+          .callTool({ name: "knowledge_search", arguments: { query: "", status: "active" } })
+          .pipe(
+            Effect.provideService(McpInvocationContext.McpInvocationContext, invocation),
+            Effect.provideService(McpSchema.McpServerClient, client),
+          );
+        const disabled = yield* search.pipe(Effect.result);
+        expect(disabled._tag).toBe("Failure");
+        expect((yield* knowledgeSearch.pipe(Effect.result))._tag).toBe("Failure");
+        expect(requests).toBe(0);
+        yield* store.updateSettings({
+          memory: {
+            enabled: true,
+            backend: "openviking",
+            baseUrl: "http://memory.test",
+            apiKey: "test-memory-key".padEnd(40, "x"),
+          },
+        });
+        yield* changes.pipe(Stream.runHead);
+        const found = yield* search;
+        expect(found.isError).toBeFalsy();
+        expect(found.structuredContent).toEqual({ items: [], total: 0, nextCursor: null });
+        expect(requests).toBe(1);
+        const knowledgeFound = yield* knowledgeSearch;
+        expect(knowledgeFound.isError).toBeFalsy();
+        expect(knowledgeFound.structuredContent).toEqual({ items: [], nextCursor: null });
+        expect(requests).toBe(2);
+        yield* store.updateSettings({ memory: { backend: "protocol" } });
+        yield* changes.pipe(Stream.runHead);
+        expect(runtime.isEnabled()).toBe(true);
+        expect((yield* knowledgeSearch.pipe(Effect.result))._tag).toBe("Failure");
+        expect(requests).toBe(2);
+        yield* store.updateSettings({ memory: { enabled: false } });
+        yield* changes.pipe(Stream.runHead);
+        expect((yield* search.pipe(Effect.result))._tag).toBe("Failure");
+        expect(requests).toBe(2);
+      }),
+    ).pipe(Effect.provide(testLayer));
+  },
 );
 
 const snapshotResult = {

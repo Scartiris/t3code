@@ -1452,6 +1452,11 @@ function toolGroupSummarySymbolName(kind: ToolGroupSummaryKind): AppSymbolName {
       return "arrow.triangle.pull";
     case "read":
       return { ios: "eye", android: "visibility" };
+    case "knowledge-read":
+    case "knowledge-write":
+    case "memory-read":
+    case "memory-write":
+      return { ios: "brain", android: "psychology" };
     case "edit":
       return { ios: "square.and.pencil", android: "edit" };
     case "thread-create":

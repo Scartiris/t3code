@@ -5,6 +5,7 @@
  */
 import type { OrchestrationV2TurnItem } from "@t3tools/contracts";
 import { formatReadToolLabel, formatSearchToolLabel } from "@t3tools/shared/toolActivity";
+import { resolveT3McpToolDefinition } from "@t3tools/shared/t3McpToolPresentation";
 
 type ToolItemBase = Omit<
   Extract<OrchestrationV2TurnItem, { type: "dynamic_tool" }>,
@@ -14,6 +15,8 @@ type ToolItemBase = Omit<
 export function openCodeToolProjectionKind(
   toolName: string,
 ): "command_execution" | "file_change" | "file_search" | "web_search" | "dynamic_tool" {
+  // MCP searches must retain their name and result rather than lose them as file searches.
+  if (resolveT3McpToolDefinition(toolName) !== null) return "dynamic_tool";
   const normalized = toolName.toLowerCase();
   if (normalized === "todowrite") {
     return "dynamic_tool";

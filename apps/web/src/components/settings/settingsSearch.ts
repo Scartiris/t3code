@@ -19,6 +19,8 @@ export type SettingsPath =
   | "/settings/keybindings"
   | "/settings/snap-shot"
   | "/settings/providers"
+  | "/settings/openviking"
+  | "/settings/cc-switch"
   | "/settings/integrations"
   | "/settings/scheduled-tasks"
   | "/settings/source-control"
@@ -91,6 +93,8 @@ export const SETTINGS_SECTION_LABELS: Readonly<Record<SettingsPath, string>> = {
   "/settings/keybindings": t("settings.settingsSearch.keybindings"),
   "/settings/snap-shot": t("settings.settingsSearch.snapShots"),
   "/settings/providers": t("settings.settingsSearch.providers"),
+  "/settings/openviking": "OpenViking",
+  "/settings/cc-switch": "CC Switch",
   "/settings/integrations": t("settings.settingsSearch.integrations"),
   "/settings/scheduled-tasks": t("settings.settingsSearch.scheduledTasks"),
   "/settings/source-control": t("settings.settingsSearch.sourceControl"),
@@ -495,6 +499,33 @@ export const SETTINGS_SEARCH_ITEMS = [
     searchTerms: ["generated thread titles source control content default provider"],
   },
   {
+    id: "cc-switch",
+    title: "CC Switch 统一模型网关",
+    to: "/settings/cc-switch",
+    searchTerms: [
+      "ccswitch packyapi API key 模型 网关 统一 站点 多站点 提供商 provider Claude Code Codex OpenCode",
+    ],
+    scope: "environment",
+  },
+  {
+    id: "openviking-memory",
+    title: t("settings.memory.title"),
+    to: "/settings/openviking",
+    searchTerms: ["openviking memory 记忆 长期记忆 API key 服务地址"],
+  },
+  {
+    id: "openviking-knowledge",
+    title: "知识库",
+    to: "/settings/openviking",
+    searchTerms: ["knowledge documents 知识库 文档 编辑 资料"],
+  },
+  {
+    id: "openviking-documents",
+    title: "记忆管理",
+    to: "/settings/openviking",
+    searchTerms: ["memory browse edit search 记忆 查看 编辑 搜索"],
+  },
+  {
     id: "diagnostics",
     title: t("settings.settingsSearch.diagnostics"),
     to: "/settings/general",
@@ -888,6 +919,8 @@ const SETTINGS_CATEGORY_SCOPES: Readonly<Record<SettingsPath, SettingsSearchScop
   // environment at any selection. Neither needs a particular scope to render.
   "/settings/keybindings": null,
   "/settings/providers": null,
+  "/settings/openviking": null,
+  "/settings/cc-switch": null,
   "/settings/integrations": null,
   "/settings/source-control": "environment-defaults",
   "/settings/storage": "project-defaults",
@@ -1005,6 +1038,7 @@ export function filterAvailableSettingsSearchItems(
   const items: ReadonlyArray<SettingsSearchItem> = SETTINGS_SEARCH_ITEMS;
   return items.filter(
     (item) =>
+      item.to !== "/settings/providers" &&
       (!item.cloudOnly || availability.hasCloudPublicConfig) &&
       (!item.environmentOnly || availability.hasEnvironment) &&
       (!item.providerSettingsOnly || availability.hasProviderSettingsEnvironment) &&
@@ -1027,6 +1061,7 @@ export function searchSettings(
 
   return items
     .flatMap((item, index) => {
+      if (item.to === "/settings/providers") return [];
       if (!isElectron && item.desktopOnly === true) return [];
       if (item.macOnly && !isMacPlatform(platform)) return [];
       if (item.windowsOnly && !isWindowsPlatform(platform)) return [];

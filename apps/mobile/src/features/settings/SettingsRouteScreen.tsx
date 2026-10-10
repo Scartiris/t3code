@@ -207,8 +207,8 @@ function SettingsIndexSections() {
 
       <SettingsSection title={t("settings.settingsRouteScreen.serverSettings")}>
         <SettingsRow
-          icon="person.crop.circle"
-          label={t("settings.settingsRouteScreen.providerAccounts")}
+          icon="server.rack"
+          label="CC Switch · 站点与模型"
           target="SettingsProviderAccounts"
           disabled={noServerTargets}
         />

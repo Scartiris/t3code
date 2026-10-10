@@ -5214,15 +5214,12 @@ export default function ChatView(props: ChatViewProps) {
     if (!interactionModeEnabled) return;
     handleInteractionModeChange(interactionMode === "plan" ? "default" : "plan");
   }, [handleInteractionModeChange, interactionMode, interactionModeEnabled]);
-  const openProviderSetup = useCallback(
-    (instanceId: ProviderInstanceId) => {
-      void navigate({
-        to: "/settings/providers",
-        search: { environmentId, instanceId },
-      });
-    },
-    [environmentId, navigate],
-  );
+  const openProviderSetup = useCallback(() => {
+    void navigate({
+      to: "/settings/cc-switch",
+      search: { machine: environmentId },
+    });
+  }, [environmentId, navigate]);
   const createBrowserSurface = useCallback(
     (profileId?: string) => {
       if (!activeThreadRef) return;

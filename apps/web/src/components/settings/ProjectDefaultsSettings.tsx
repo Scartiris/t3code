@@ -176,11 +176,11 @@ export function ProjectDefaultsSettings({ category }: { category: ProjectSetting
               triggerClassName={SETTINGS_PICKER_TRIGGER_CLASSNAME}
               {...(mixedModel ? { triggerLabel: t("settings.projectDefaultsSettings.mixed") } : {})}
               getModelDisabledReason={modelDisabledReason}
-              onOpenProviderSetup={(instanceId) => {
+              onOpenProviderSetup={() => {
                 if (representative)
                   void navigate({
-                    to: "/settings/providers",
-                    search: { environmentId: representative.environmentId, instanceId },
+                    to: "/settings/cc-switch",
+                    search: { machine: representative.environmentId },
                   });
               }}
               onInstanceModelChange={(instanceId, model) =>

@@ -204,7 +204,8 @@ export function redactServerSettingsForClient(settings: ServerSettings): ServerS
     accessToken: redactSecret(settings.bitbucket.accessToken),
     apiToken: redactSecret(settings.bitbucket.apiToken),
   };
-  return { ...settings, providerInstances, usageLimitSources, bitbucket };
+  const memory = { ...settings.memory, apiKey: redactSecret(settings.memory.apiKey) };
+  return { ...settings, providerInstances, usageLimitSources, bitbucket, memory };
 }
 
 export function applyProviderInstanceMutation(
@@ -795,7 +796,25 @@ const make = Effect.gen(function* () {
       ? foldLegacyProjectSettings(loaded, legacyProjectRows)
       : loaded;
     // Only rewrite a file that decoded cleanly; an untrusted one stays for the user to repair.
-    const migrated = settingsFileTrusted ? yield* moveInlineBitbucketTokens(folded) : folded;
+    let migrated = settingsFileTrusted ? yield* moveInlineBitbucketTokens(folded) : folded;
+    if (
+      settingsFileTrusted &&
+      migrated.memory.apiKey &&
+      migrated.memory.apiKey !== SECRET_REDACTED
+    ) {
+      const stored = yield* secretStore
+        .set("memory-api-key", textEncoder.encode(migrated.memory.apiKey))
+        .pipe(
+          Effect.as(true),
+          Effect.catch(() =>
+            Effect.logWarning("failed to move a memory API key into the secret store").pipe(
+              Effect.as(false),
+            ),
+          ),
+        );
+      if (stored)
+        migrated = { ...migrated, memory: { ...migrated.memory, apiKey: SECRET_REDACTED } };
+    }
     if (migrated !== loaded) {
       yield* writeSettingsAtomically(migrated);
     }
@@ -878,11 +897,26 @@ const make = Effect.gen(function* () {
           );
         bitbucket[field] = Option.isSome(secret) ? textDecoder.decode(secret.value) : "";
       }
+      let memory = settings.memory;
+      if (memory.apiKey === SECRET_REDACTED) {
+        const secret = yield* secretStore
+          .get("memory-api-key")
+          .pipe(
+            Effect.mapError(
+              (cause) => new ServerSettingsError({ settingsPath, operation: "read-secret", cause }),
+            ),
+          );
+        memory = {
+          ...memory,
+          apiKey: Option.isSome(secret) ? textDecoder.decode(secret.value) : "",
+        };
+      }
       return {
         ...settings,
         providerInstances: providerInstances as ServerSettings["providerInstances"],
         usageLimitSources: usageLimitSources as ServerSettings["usageLimitSources"],
         bitbucket,
+        memory,
       };
     });
 
@@ -1043,12 +1077,26 @@ const make = Effect.gen(function* () {
         bitbucket[field] = SECRET_REDACTED;
       }
 
+      const memory = { ...next.memory };
+      let memoryKey = memory.apiKey;
+      if (memoryKey === SECRET_REDACTED && current.memory.apiKey !== SECRET_REDACTED) {
+        memoryKey = current.memory.apiKey;
+      }
+      if (memoryKey !== SECRET_REDACTED) {
+        changes.push(
+          memoryKey.length === 0
+            ? { kind: "remove", secretName: "memory-api-key", operation: "remove-secret" }
+            : { kind: "write", secretName: "memory-api-key", value: textEncoder.encode(memoryKey) },
+        );
+        memory.apiKey = memoryKey.length === 0 ? "" : SECRET_REDACTED;
+      }
       return {
         settings: {
           ...next,
           providerInstances: providerInstances as ServerSettings["providerInstances"],
           usageLimitSources: usageLimitSources as ServerSettings["usageLimitSources"],
           bitbucket,
+          memory,
         },
         changes,
       };

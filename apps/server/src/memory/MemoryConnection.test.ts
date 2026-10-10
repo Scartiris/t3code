@@ -15,6 +15,32 @@ const tokenFile = (contents: string): string => {
 };
 
 describe("memory connection", () => {
+  it("selects the native OpenViking adapter with a deployment-owned user key", () => {
+    const path = tokenFile("v".repeat(40));
+    expect(
+      readMemoryConnection({
+        T3CODE_MEMORY_BACKEND: "openviking",
+        T3CODE_MEMORY_URL: "http://127.0.0.1:1933/",
+        T3CODE_MEMORY_TOKEN_FILE: path,
+      }).connection,
+    ).toEqual({ backend: "openviking", baseUrl: "http://127.0.0.1:1933", token: "v".repeat(40) });
+    expect(readMemoryConnection({ T3CODE_MEMORY_BACKEND: "unknown" }).problem).toContain(
+      "T3CODE_MEMORY_BACKEND",
+    );
+    expect(readMemoryConnection({ T3CODE_MEMORY_BACKEND: "openviking" }).problem).toContain(
+      "T3CODE_MEMORY_URL",
+    );
+    for (const url of [
+      "file:///tmp/memory",
+      "http://user:secret@localhost",
+      "http://localhost?token=secret",
+      "http://localhost#memory",
+    ]) {
+      expect(
+        readMemoryConnection({ T3CODE_MEMORY_URL: url, T3CODE_MEMORY_TOKEN_FILE: path }).connection,
+      ).toBeUndefined();
+    }
+  });
   it("is absent when the deployment never mentioned memory", () => {
     expect(readMemoryConnection({})).toEqual({});
   });

@@ -1,4 +1,5 @@
 import { t } from "@t3tools/i18n";
+import { CcSwitchSettings } from "./ccSwitch.ts";
 import { SshDeviceHostConfigs } from "./device.ts";
 import * as Effect from "effect/Effect";
 import * as Duration from "effect/Duration";
@@ -1187,6 +1188,31 @@ export const StorageCleanupSettings = Schema.Struct({
 });
 export type StorageCleanupSettings = typeof StorageCleanupSettings.Type;
 
+export const MemorySettings = Schema.Struct({
+  /** null inherits the deployment's environment configuration. */
+  enabled: Schema.NullOr(Schema.Boolean).pipe(Schema.withDecodingDefault(Effect.succeed(null))),
+  backend: Schema.Literals(["openviking", "protocol"]).pipe(
+    Schema.withDecodingDefault(Effect.succeed("openviking" as const)),
+  ),
+  baseUrl: TrimmedString.pipe(Schema.withDecodingDefault(Effect.succeed(""))),
+  /** Write-only credential; persisted through the server secret store. */
+  apiKey: TrimmedString.pipe(Schema.withDecodingDefault(Effect.succeed(""))),
+});
+export type MemorySettings = typeof MemorySettings.Type;
+
+export const MemoryConnectionStatus = Schema.Struct({
+  source: Schema.Literals(["deployment", "settings"]),
+  enabled: Schema.Boolean,
+  backend: MemorySettings.fields.backend,
+  baseUrl: Schema.String,
+  apiKeyConfigured: Schema.Boolean,
+  state: Schema.Literals(["disabled", "ready", "error"]),
+  problem: Schema.NullOr(
+    Schema.Literals(["configuration", "unauthorized", "unavailable", "backend"]),
+  ),
+});
+export type MemoryConnectionStatus = typeof MemoryConnectionStatus.Type;
+
 export const ServerSettings = Schema.Struct({
   worktreeCleanup: WorktreeCleanup.pipe(Schema.withDecodingDefault(Effect.succeed(null))),
   storageCleanup: StorageCleanupSettings.pipe(
@@ -1385,6 +1411,8 @@ export const ServerSettings = Schema.Struct({
   ),
   observability: ObservabilitySettings.pipe(Schema.withDecodingDefault(Effect.succeed({}))),
   bitbucket: BitbucketSettings.pipe(Schema.withDecodingDefault(Effect.succeed({}))),
+  memory: MemorySettings.pipe(Schema.withDecodingDefault(Effect.succeed({}))),
+  ccSwitch: CcSwitchSettings.pipe(Schema.withDecodingDefault(Effect.succeed({}))),
   // Keyed by a user-chosen id so a source keeps its rows across edits. Entries
   // this build cannot decode round-trip untouched, as provider instances do.
   usageLimitSources: Schema.Record(UsageLimitSourceId, UsageLimitSourceConfig).pipe(
@@ -1575,6 +1603,15 @@ const OpenCodeSettingsPatch = Schema.Struct({
 });
 
 export const ServerSettingsPatch = Schema.Struct({
+  ccSwitch: Schema.optionalKey(CcSwitchSettings),
+  memory: Schema.optionalKey(
+    Schema.Struct({
+      enabled: Schema.optionalKey(Schema.NullOr(Schema.Boolean)),
+      backend: Schema.optionalKey(Schema.Literals(["openviking", "protocol"])),
+      baseUrl: Schema.optionalKey(TrimmedString),
+      apiKey: Schema.optionalKey(TrimmedString),
+    }),
+  ),
   worktreeCleanup: Schema.optionalKey(
     Schema.NullOr(
       Schema.Union([

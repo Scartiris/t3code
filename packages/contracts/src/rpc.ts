@@ -1,3 +1,18 @@
+import {
+  MemoryDocumentsListInput,
+  MemoryDocumentsListResult,
+  MemoryDocumentReadInput,
+  MemoryDocumentSaveInput,
+  MemoryDocumentArchiveInput,
+  MemoryDocument,
+  MemoryManagementError,
+} from "./memoryManagement.ts";
+import {
+  CcSwitchConfigureInput,
+  CcSwitchError,
+  CcSwitchModelsInput,
+  CcSwitchStatus,
+} from "./ccSwitch.ts";
 import { OrchestrationDispatchCommandError } from "./orchestrationDispatch.ts";
 import {
   ChatGptReconnectProfileInput,
@@ -302,7 +317,12 @@ import {
   ProviderConsumeResetCreditResult,
 } from "./providerUsageLimits.ts";
 import { UsagePricing, UsageReadError, UsageSummary, UsageSummaryInput } from "./usage.ts";
-import { ServerSettings, ServerSettingsError, ServerSettingsPatch } from "./settings.ts";
+import {
+  MemoryConnectionStatus,
+  ServerSettings,
+  ServerSettingsError,
+  ServerSettingsPatch,
+} from "./settings.ts";
 import {
   ScheduledTaskDeleteInput,
   ScheduledTaskDeleteResult,
@@ -441,6 +461,14 @@ export const WS_METHODS = {
   serverUpsertKeybinding: "server.upsertKeybinding",
   serverRemoveKeybinding: "server.removeKeybinding",
   serverGetSettings: "server.getSettings",
+  serverCheckMemoryConnection: "server.checkMemoryConnection",
+  serverCcSwitchStatus: "server.ccSwitchStatus",
+  serverConfigureCcSwitch: "server.configureCcSwitch",
+  serverCcSwitchModels: "server.ccSwitchModels",
+  memoryListDocuments: "memory.listDocuments",
+  memoryReadDocument: "memory.readDocument",
+  memorySaveDocument: "memory.saveDocument",
+  memoryArchiveDocument: "memory.archiveDocument",
   serverUpdateSettings: "server.updateSettings",
   serverDiscoverSourceControl: "server.discoverSourceControl",
   serverSearchAcpRegistry: "server.searchAcpRegistry",
@@ -696,6 +724,49 @@ const WsServerCommitDesktopUpdateRpc = Rpc.make(WS_METHODS.serverCommitDesktopUp
   payload: DesktopUpdateCommitInput,
   success: ServerSelfUpdateResult,
   error: Schema.Union([ServerSelfUpdateError, EnvironmentAuthorizationError]),
+});
+
+const WsMemoryListDocumentsRpc = Rpc.make(WS_METHODS.memoryListDocuments, {
+  payload: MemoryDocumentsListInput,
+  success: MemoryDocumentsListResult,
+  error: Schema.Union([MemoryManagementError, EnvironmentAuthorizationError]),
+});
+const WsMemoryReadDocumentRpc = Rpc.make(WS_METHODS.memoryReadDocument, {
+  payload: MemoryDocumentReadInput,
+  success: MemoryDocument,
+  error: Schema.Union([MemoryManagementError, EnvironmentAuthorizationError]),
+});
+const WsMemorySaveDocumentRpc = Rpc.make(WS_METHODS.memorySaveDocument, {
+  payload: MemoryDocumentSaveInput,
+  success: MemoryDocument,
+  error: Schema.Union([MemoryManagementError, EnvironmentAuthorizationError]),
+});
+const WsMemoryArchiveDocumentRpc = Rpc.make(WS_METHODS.memoryArchiveDocument, {
+  payload: MemoryDocumentArchiveInput,
+  success: MemoryDocument,
+  error: Schema.Union([MemoryManagementError, EnvironmentAuthorizationError]),
+});
+
+const WsServerCheckMemoryConnectionRpc = Rpc.make(WS_METHODS.serverCheckMemoryConnection, {
+  payload: Schema.Struct({}),
+  success: MemoryConnectionStatus,
+  error: Schema.Union([ServerSettingsError, EnvironmentAuthorizationError]),
+});
+
+const WsServerCcSwitchStatusRpc = Rpc.make(WS_METHODS.serverCcSwitchStatus, {
+  payload: Schema.Struct({}),
+  success: CcSwitchStatus,
+  error: Schema.Union([CcSwitchError, EnvironmentAuthorizationError]),
+});
+const WsServerConfigureCcSwitchRpc = Rpc.make(WS_METHODS.serverConfigureCcSwitch, {
+  payload: CcSwitchConfigureInput,
+  success: CcSwitchStatus,
+  error: Schema.Union([CcSwitchError, EnvironmentAuthorizationError]),
+});
+const WsServerCcSwitchModelsRpc = Rpc.make(WS_METHODS.serverCcSwitchModels, {
+  payload: CcSwitchModelsInput,
+  success: Schema.Array(Schema.String),
+  error: Schema.Union([CcSwitchError, EnvironmentAuthorizationError]),
 });
 
 const WsServerGetSettingsRpc = Rpc.make(WS_METHODS.serverGetSettings, {
@@ -1719,6 +1790,14 @@ export const WsRpcGroup = RpcGroup.make(
   WsServerUpsertKeybindingRpc,
   WsServerRemoveKeybindingRpc,
   WsServerGetSettingsRpc,
+  WsServerCheckMemoryConnectionRpc,
+  WsServerCcSwitchStatusRpc,
+  WsServerConfigureCcSwitchRpc,
+  WsServerCcSwitchModelsRpc,
+  WsMemoryListDocumentsRpc,
+  WsMemoryReadDocumentRpc,
+  WsMemorySaveDocumentRpc,
+  WsMemoryArchiveDocumentRpc,
   WsServerUpdateSettingsRpc,
   WsServerDiscoverSourceControlRpc,
   WsServerSearchAcpRegistryRpc,

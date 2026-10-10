@@ -175,6 +175,8 @@ import * as ServerSelfUpdate from "./cloud/selfUpdate.ts";
 import * as ServerLifecycleEvents from "./serverLifecycleEvents.ts";
 import * as ServerRuntimeStartup from "./serverRuntimeStartup.ts";
 import * as ServerSettings from "./serverSettings.ts";
+import * as MemoryRuntime from "./memory/MemoryRuntime.ts";
+import * as CcSwitch from "./provider/CcSwitch.ts";
 import * as TerminalManager from "./terminal/Manager.ts";
 import { withTerminalOutputWindow } from "./terminal/OutputProtocol.ts";
 import * as PreviewAutomationBroker from "./mcp/PreviewAutomationBroker.ts";
@@ -1272,6 +1274,8 @@ const makeWsRpcLayer = (
       const config = yield* ServerConfig.ServerConfig;
       const lifecycleEvents = yield* ServerLifecycleEvents.ServerLifecycleEvents;
       const serverSettings = yield* ServerSettings.ServerSettingsService;
+      const memoryRuntime = yield* MemoryRuntime.MemoryRuntime;
+      const ccSwitch = yield* CcSwitch.CcSwitch;
       const startup = yield* ServerRuntimeStartup.ServerRuntimeStartup;
       const workspaceEntries = yield* WorkspaceEntries.WorkspaceEntries;
       const workspaceFileSystem = yield* WorkspaceFileSystem.WorkspaceFileSystem;
@@ -2542,6 +2546,37 @@ const makeWsRpcLayer = (
             }),
             { "rpc.aggregate": "server" },
           ),
+        [WS_METHODS.serverCcSwitchStatus]: () => ccSwitch.status,
+        [WS_METHODS.serverConfigureCcSwitch]: (input) => ccSwitch.configure(input),
+        [WS_METHODS.serverCcSwitchModels]: (input) => ccSwitch.models(input),
+        [WS_METHODS.memoryListDocuments]: (input) =>
+          observeRpcEffect(
+            WS_METHODS.memoryListDocuments,
+            memoryRuntime.management.listDocuments(input),
+            { "rpc.aggregate": "memory" },
+          ),
+        [WS_METHODS.memoryReadDocument]: (input) =>
+          observeRpcEffect(
+            WS_METHODS.memoryReadDocument,
+            memoryRuntime.management.readDocument(input),
+            { "rpc.aggregate": "memory" },
+          ),
+        [WS_METHODS.memorySaveDocument]: (input) =>
+          observeRpcEffect(
+            WS_METHODS.memorySaveDocument,
+            memoryRuntime.management.saveDocument(input),
+            { "rpc.aggregate": "memory" },
+          ),
+        [WS_METHODS.memoryArchiveDocument]: (input) =>
+          observeRpcEffect(
+            WS_METHODS.memoryArchiveDocument,
+            memoryRuntime.management.archiveDocument(input),
+            { "rpc.aggregate": "memory" },
+          ),
+        [WS_METHODS.serverCheckMemoryConnection]: () =>
+          observeRpcEffect(WS_METHODS.serverCheckMemoryConnection, memoryRuntime.checkConnection, {
+            "rpc.aggregate": "server",
+          }),
         [WS_METHODS.serverGetSettings]: (_input) =>
           observeRpcEffect(
             WS_METHODS.serverGetSettings,

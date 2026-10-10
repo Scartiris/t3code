@@ -404,6 +404,12 @@ export function summarizeT3ToolCalls(
     case "memory-write":
       label = phrase("Updated", "update", `memory ${times}`);
       break;
+    case "knowledge-read":
+      label = phrase("Read", "read", `knowledge base ${times}`);
+      break;
+    case "knowledge-write":
+      label = phrase("Updated", "update", `knowledge base ${times}`);
+      break;
   }
   return { label, failedCount };
 }

@@ -26,7 +26,7 @@ import { layerFromStores as eventSinkLayer } from "./EventSink.ts";
 import { layerFromOrchestrationEventStore as eventStoreLayer } from "./EventStore.ts";
 import { layer as idAllocatorLayer } from "./IdAllocator.ts";
 import * as LegacyV1ThreadImporter from "./legacy/LegacyV1ThreadImporter.ts";
-import { memoryServiceLayerFromEnvironment } from "../memory/MemoryService.ts";
+import * as MemoryRuntime from "../memory/MemoryRuntime.ts";
 import { layer as orchestratorLayer } from "./Orchestrator.ts";
 import { layer as projectionStoreLayer } from "./ProjectionStore.ts";
 import { layer as projectionMaintenanceLayer } from "./ProjectionMaintenance.ts";
@@ -125,8 +125,7 @@ const providerSwitchServiceProvided = providerSwitchServiceLayer.pipe(
  * `ProviderSessionManager` looks it up as an optional service, so a deployment
  * that configured memory but never put the service in this context starts every
  * session with no memory block and says nothing — while the memory tools, which
- * `McpHttpServer` registers, keep working. Absent configuration stays absent:
- * no block, no tools, no noise.
+ * `McpHttpServer` registers, keep working. The runtime returns an empty block when memory is disabled.
  */
 const providerSessionManagerProvided = providerSessionManagerLayer.pipe(
   Layer.provide(
@@ -136,9 +135,7 @@ const providerSessionManagerProvided = providerSessionManagerLayer.pipe(
       idAllocatorLayer,
       providerEventIngestorProvided,
       projectionStoreLayer,
-      ...(memoryServiceLayerFromEnvironment === undefined
-        ? []
-        : [memoryServiceLayerFromEnvironment]),
+      MemoryRuntime.layer,
     ),
   ),
 );

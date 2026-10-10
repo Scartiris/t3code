@@ -7,6 +7,23 @@ function completed(input: unknown, output?: unknown): T3ToolSummaryCall {
 }
 
 describe("summarizeT3ToolCalls", () => {
+  it("summarizes knowledge reads and writes while keeping failed effects separate", () => {
+    const success = completed({}, { id: "kb_one.md" });
+    const failure = completed({}, { _tag: "MemoryManagementError", code: "conflict" });
+    expect(summarizeT3ToolCalls("knowledge-read", [success, success])).toEqual({
+      label: "Read knowledge base 2 times",
+      failedCount: 0,
+    });
+    expect(summarizeT3ToolCalls("knowledge-write", [success, failure])).toEqual({
+      label: "Updated knowledge base 1 time",
+      failedCount: 1,
+    });
+    expect(summarizeT3ToolCalls("knowledge-write", [failure])).toEqual({
+      label: "Tried to update knowledge base 1 time",
+      failedCount: 1,
+    });
+  });
+
   it("counts registered projects, repository destinations, and accepted thread launches", () => {
     expect(
       summarizeT3ToolCalls("project-create", [

@@ -1,6 +1,7 @@
 import * as NodeServices from "@effect/platform-node/NodeServices";
 import {
   DEFAULT_SERVER_SETTINGS,
+  MemorySettings,
   ModelSelection,
   ProjectId,
   ProjectScript,
@@ -35,6 +36,8 @@ import { resolveProviderInstanceTerminalEnvironment } from "./terminal/Manager.t
 const decodeSettingsPatch = Schema.decodeUnknownEffect(ServerSettingsPatch);
 const decodeServerSettings = Schema.decodeUnknownEffect(ServerSettings);
 const decodeServerSettingsJson = Schema.decodeUnknownEffect(Schema.fromJsonString(ServerSettings));
+const encodeMemorySettingsJson = Schema.encodeEffect(Schema.fromJsonString(MemorySettings));
+const encodeSettingsPatchJson = Schema.encodeEffect(Schema.fromJsonString(ServerSettingsPatch));
 
 const makeServerSettingsLayer = () =>
   ServerSettingsModule.layer.pipe(
@@ -1564,6 +1567,95 @@ it.layer(NodeServices.layer)("server settings", (it) => {
           "",
         );
       }).pipe(Effect.provide(makeServerSettingsLayerWithSecrets())),
+  );
+
+  it.effect(
+    "stores memory keys privately and preserves them across partial or redacted saves",
+    () =>
+      Effect.gen(function* () {
+        const store = yield* ServerSettingsModule.ServerSettingsService;
+        const secrets = yield* ServerSecretStore.ServerSecretStore;
+        const config = yield* ServerConfig.ServerConfig;
+        const fs = yield* FileSystem.FileSystem;
+        const key = "private-memory-api-key".padEnd(40, "x");
+        const saved = yield* store.updateSettings({
+          memory: { enabled: true, baseUrl: "http://memory.test", apiKey: key },
+        });
+        const redacted = ServerSettingsModule.redactServerSettingsForClient(saved).memory;
+        const redactedJson = yield* encodeMemorySettingsJson(redacted);
+        assert.notInclude(redactedJson, key);
+        assert.isAbove(redacted.apiKey.length, 0);
+        assert.notInclude(yield* fs.readFileString(config.settingsPath), key);
+        yield* store.updateSettings({ memory: redacted });
+        yield* store.updateSettings({ memory: { baseUrl: "http://other.test" } });
+        assert.equal((yield* store.getSettings).memory.apiKey, key);
+        assert.equal((yield* store.getSettings).memory.enabled, true);
+        yield* store.updateSettings({ memory: { apiKey: "" } });
+        assert.isTrue(Option.isNone(yield* secrets.get("memory-api-key")));
+        assert.equal(
+          ServerSettingsModule.redactServerSettingsForClient(yield* store.getSettings).memory
+            .apiKey,
+          "",
+        );
+      }).pipe(Effect.provide(makeServerSettingsLayerWithSecrets())),
+  );
+
+  it.effect("moves inline memory keys into the secret store on load", () =>
+    Effect.gen(function* () {
+      const store = yield* ServerSettingsModule.ServerSettingsService;
+      const secrets = yield* ServerSecretStore.ServerSecretStore;
+      const config = yield* ServerConfig.ServerConfig;
+      const fs = yield* FileSystem.FileSystem;
+      const key = "hand-edited-memory-key".padEnd(40, "x");
+      const settingsJson = yield* encodeSettingsPatchJson({
+        memory: { apiKey: key },
+      });
+      yield* fs.writeFileString(config.settingsPath, settingsJson);
+      assert.equal((yield* store.getSettings).memory.apiKey, key);
+      assert.notInclude(yield* fs.readFileString(config.settingsPath), key);
+      const stored = yield* secrets.get("memory-api-key");
+      assert.equal(Option.isSome(stored) ? new TextDecoder().decode(stored.value) : null, key);
+    }).pipe(Effect.provide(makeServerSettingsLayerWithSecrets())),
+  );
+
+  it.effect("restores the previous memory key if saving settings fails", () =>
+    Effect.gen(function* () {
+      const fs = yield* FileSystem.FileSystem;
+      let rejectWrites = false;
+      let target: string | undefined;
+      const failingFs = FileSystem.FileSystem.of({
+        ...fs,
+        rename: (from, to) =>
+          rejectWrites && to === target
+            ? Effect.fail(
+                PlatformError.systemError({
+                  _tag: "PermissionDenied",
+                  module: "FileSystem",
+                  method: "rename",
+                }),
+              )
+            : fs.rename(from, to),
+      });
+      yield* Effect.gen(function* () {
+        const store = yield* ServerSettingsModule.ServerSettingsService;
+        target = (yield* ServerConfig.ServerConfig).settingsPath;
+        yield* store.updateSettings({ memory: { apiKey: "previous-key" } });
+        rejectWrites = true;
+        for (const apiKey of ["replacement-key", ""]) {
+          assert.equal(
+            (yield* store.updateSettings({ memory: { apiKey } }).pipe(Effect.result))._tag,
+            "Failure",
+          );
+          assert.equal((yield* store.getSettings).memory.apiKey, "previous-key");
+        }
+      }).pipe(
+        Effect.provide(
+          makeServerSettingsLayer().pipe(
+            Layer.provideMerge(Layer.succeed(FileSystem.FileSystem, failingFs)),
+          ),
+        ),
+      );
+    }),
   );
 
   it.effect("removes a Bitbucket secret once its token is cleared by hand in settings.json", () =>

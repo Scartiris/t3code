@@ -3,6 +3,10 @@
   "private": true,
   "type": "module",
   "exports": {
+    "./cc-switch": {
+      "types": "./src/cc-switch.ts",
+      "default": "./src/cc-switch.ts"
+    },
     "./composerThreadItems": {
       "types": "./src/composerThreadItems.ts",
       "default": "./src/composerThreadItems.ts"

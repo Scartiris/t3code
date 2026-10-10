@@ -3406,10 +3406,10 @@ export function GeneralSettingsPanel() {
                   getModelDisabledReason={textGenerationModelDisabledReason}
                   {...(environmentId
                     ? {
-                        onOpenProviderSetup: (instanceId: ProviderInstanceId) => {
+                        onOpenProviderSetup: () => {
                           void navigate({
-                            to: "/settings/providers",
-                            search: { environmentId, instanceId },
+                            to: "/settings/cc-switch",
+                            search: { machine: environmentId },
                           });
                         },
                       }

@@ -11,7 +11,7 @@ import * as Schema from "effect/Schema";
 import * as Sink from "effect/Sink";
 import * as Stream from "effect/Stream";
 import type * as Types from "effect/Types";
-import { McpProtocol, McpSchema, McpServer, Tool } from "effect/unstable/ai";
+import { McpProtocol, McpSchema, McpServer, Tool, Toolkit } from "effect/unstable/ai";
 import { HttpRouter, HttpServerRequest, HttpServerResponse } from "effect/unstable/http";
 import { PreviewAutomationError } from "@t3tools/contracts";
 
@@ -49,13 +49,14 @@ import { WorktreeToolkit } from "./toolkits/worktree/tools.ts";
 import * as WorktreeMcpService from "./WorktreeMcpService.ts";
 import { PullRequestsToolkitHandlersLive } from "./toolkits/pullRequests/handlers.ts";
 import { PullRequestsToolkit } from "./toolkits/pullRequests/tools.ts";
-import { memoryServiceLayerFromEnvironment } from "../memory/MemoryService.ts";
+import * as MemoryRuntime from "../memory/MemoryRuntime.ts";
 import {
   DeviceScreenshotToolkitHandlersLive,
   DeviceStandardToolkitHandlersLive,
 } from "./toolkits/device/handlers.ts";
 import { MemoryToolkitHandlersLive } from "./toolkits/memory/handlers.ts";
 import { MemoryToolkit } from "./toolkits/memory/tools.ts";
+import { KnowledgeToolkit, KnowledgeToolkitHandlersLive } from "./toolkits/memory/knowledge.ts";
 import {
   DeviceScreenshotTool,
   DeviceScreenshotToolkit,
@@ -711,20 +712,33 @@ export const DeviceToolkitRegistrationLive = Layer.mergeAll(
   DeviceScreenshotRegistrationLive,
 );
 
-/**
- * Memory tools, only when this deployment configured a memory service.
- *
- * Registering them unconditionally would put five tools in every agent's list
- * whose every call answers "not configured" — the same reason a withheld
- * credential removes the browser and device tools rather than failing them.
- */
-const MemoryToolkitRegistrationLive: Layer.Layer<never> =
-  memoryServiceLayerFromEnvironment === undefined
-    ? Layer.empty
-    : McpServer.toolkit(MemoryToolkit).pipe(
-        Layer.provide(MemoryToolkitHandlersLive),
-        Layer.provide(memoryServiceLayerFromEnvironment),
-      );
+/** Visibility follows the environment setting; calls use the same live runtime as prompts. */
+export const MemoryToolkitRegistration = Layer.unwrap(
+  Effect.gen(function* () {
+    const runtime = yield* MemoryRuntime.MemoryRuntime;
+    const server = yield* McpServer.McpServer;
+    const changes = yield* runtime.subscribeAvailabilityChanges;
+    yield* changes.pipe(
+      Stream.runForEach(() => server.notifications["notifications/tools/list_changed"]({})),
+      Effect.forkScoped,
+    );
+    const toolkit = Toolkit.make(
+      ...Object.values(MemoryToolkit.tools).map((tool) =>
+        tool.annotate(McpSchema.EnabledWhen, runtime.isEnabled),
+      ),
+      ...Object.values(KnowledgeToolkit.tools).map((tool) =>
+        tool.annotate(McpSchema.EnabledWhen, runtime.isKnowledgeEnabled),
+      ),
+    );
+    return McpServer.toolkit(toolkit).pipe(
+      Layer.provide(Layer.merge(MemoryToolkitHandlersLive, KnowledgeToolkitHandlersLive)),
+    );
+  }),
+);
+
+const MemoryToolkitRegistrationLive = MemoryToolkitRegistration.pipe(
+  Layer.provide(MemoryRuntime.layer),
+);
 
 const McpTransportLive = McpServer.layerHttp({
   name: "T3 Code",

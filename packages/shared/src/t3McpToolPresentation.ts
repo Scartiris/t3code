@@ -60,7 +60,9 @@ export type T3McpToolSummaryAction =
   | "browser"
   | "device"
   | "memory-read"
-  | "memory-write";
+  | "memory-write"
+  | "knowledge-read"
+  | "knowledge-write";
 
 export interface T3McpToolDefinition {
   readonly displayName: string;
@@ -286,6 +288,10 @@ const T3_MCP_TOOLS: Readonly<Record<string, T3McpToolDefinition>> = {
     "attachment-discard",
   ),
   t3_thread_send_attachments: tool(["Send", "Sending", "Sent", "attachments"], "attachment-send"),
+  knowledge_search: tool(["Search", "Searching", "Searched", "knowledge"], "knowledge-read"),
+  knowledge_read: tool(["Read", "Reading", "Read", "knowledge"], "knowledge-read"),
+  knowledge_save: tool(["Save", "Saving", "Saved", "knowledge"], "knowledge-write"),
+  knowledge_archive: tool(["Archive", "Archiving", "Archived", "knowledge"], "knowledge-write"),
   memory_search: tool(["Search", "Searching", "Searched", "memory"], "memory-read"),
   memory_remember: tool(["Remember", "Remembering", "Remembered", "memories"], "memory-write"),
   memory_update: tool(["Correct", "Correcting", "Corrected", "a memory"], "memory-write"),

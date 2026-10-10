@@ -808,7 +808,7 @@ describe("OpenCodeAdapterV2", () => {
     }).pipe(Effect.provide(IdAllocator.layer), Effect.scoped),
   );
 
-  it.effect("titles OpenCode reads and searches from their input", () =>
+  it.effect("titles OpenCode reads and preserves T3 memory and knowledge search results", () =>
     Effect.gen(function* () {
       const nativeEvents = asyncEventStream();
       const nativeSessionId = "native-opencode-search";
@@ -834,10 +834,13 @@ describe("OpenCodeAdapterV2", () => {
         Stream.runCollect,
         Effect.forkScoped,
       );
-      for (const [tool, input] of [
-        ["read", { filePath: "src/env.ts" }],
-        ["grep", { pattern: "TODO", path: "apps/web" }],
-        ["websearch", { query: "OpenCode documentation" }],
+      const retrievalOutput = encodeUnknownJson({ items: [{ title: "Release convention" }] });
+      for (const [tool, input, output] of [
+        ["read", { filePath: "src/env.ts" }, "---\nfile body"],
+        ["grep", { pattern: "TODO", path: "apps/web" }, "---\nfile body"],
+        ["websearch", { query: "OpenCode documentation" }, "---\nfile body"],
+        ["t3-code_memory_search", { query: "release" }, retrievalOutput],
+        ["t3-code_knowledge_search", { query: "release", status: "active" }, retrievalOutput],
       ] as const) {
         yield* Effect.promise(() =>
           nativeEvents.push({
@@ -854,7 +857,7 @@ describe("OpenCodeAdapterV2", () => {
                 state: {
                   status: "completed",
                   input,
-                  output: "---\nfile body",
+                  output,
                   title: tool,
                   metadata: {},
                   time: { start: 1, end: 2 },
@@ -888,6 +891,14 @@ describe("OpenCodeAdapterV2", () => {
       assert.deepEqual(webSearch?.type === "web_search" ? webSearch.patterns : null, [
         "OpenCode documentation",
       ]);
+      for (const name of ["t3-code_memory_search", "t3-code_knowledge_search"]) {
+        const item = items.find((item) => item.type === "dynamic_tool" && item.toolName === name);
+        assert.equal(item?.type, "dynamic_tool");
+        if (item?.type === "dynamic_tool") {
+          assert.equal(item.output, retrievalOutput);
+          assert.equal((item.input as { query: string }).query, "release");
+        }
+      }
     }).pipe(Effect.provide(IdAllocator.layer), Effect.scoped),
   );
 
@@ -2259,6 +2270,9 @@ describe("OpenCodeAdapterV2", () => {
     assert.equal(openCodeToolProjectionKind("codesearch"), "web_search");
     assert.equal(openCodeToolProjectionKind("todowrite"), "dynamic_tool");
     assert.equal(openCodeToolProjectionKind("custom_tool"), "dynamic_tool");
+    assert.equal(openCodeToolProjectionKind("t3-code_memory_search"), "dynamic_tool");
+    assert.equal(openCodeToolProjectionKind("t3-code_knowledge_search"), "dynamic_tool");
+    assert.equal(openCodeToolProjectionKind("t3-code_knowledge_read"), "dynamic_tool");
   });
 
   it("maps runtime modes to safe OpenCode permission rules", () => {

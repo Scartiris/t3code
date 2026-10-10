@@ -1,10 +1,6 @@
 import { useNavigate } from "@tanstack/react-router";
 import { useRef, useState } from "react";
-import type {
-  ProviderInstanceId,
-  ServerSettings,
-  SourceControlWritingStyleMode,
-} from "@t3tools/contracts";
+import type { ServerSettings, SourceControlWritingStyleMode } from "@t3tools/contracts";
 import { DEFAULT_UNIFIED_SETTINGS } from "@t3tools/contracts/settings";
 import { t } from "@t3tools/shared/i18n";
 import { createModelSelection } from "@t3tools/shared/model";
@@ -317,10 +313,10 @@ export function SourceControlWritingSettingsSection() {
                     : {})}
                   {...(environmentId
                     ? {
-                        onOpenProviderSetup: (instanceId: ProviderInstanceId) => {
+                        onOpenProviderSetup: () => {
                           void navigate({
-                            to: "/settings/providers",
-                            search: { environmentId, instanceId },
+                            to: "/settings/cc-switch",
+                            search: { machine: environmentId },
                           });
                         },
                       }

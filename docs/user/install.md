@@ -112,50 +112,37 @@ component stack that store crash reports leave out. Copy the report and paste it
 into a GitHub issue. Error messages can quote values from the app, so read it over
 before sharing.
 
-## Providers
+## Engines and model sites
 
-Open **Settings → Providers** in the web or desktop app, select the environment,
-and enable the provider you want. Installation, login, and configuration belong
-to that environment's machine, even when you connect from a phone or another
-computer.
+This workbench uses Claude Code, Codex and OpenCode. Install their CLIs on the
+connected environment's machine and keep them on the server's `PATH`:
 
-| Provider    | Install and authenticate                                                                                                                                  |
-| ----------- | --------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Codex       | [Connect with ChatGPT](./providers-codex.md#connect-with-chatgpt), or install [Codex CLI](https://developers.openai.com/codex/cli) and run `codex login`. |
-| Claude      | Install [Claude Code](https://claude.com/product/claude-code), then run `claude auth login`.                                                              |
-| Cursor      | Install [Cursor CLI](https://cursor.com/cli), then run `agent login`.                                                                                     |
-| Grok Build  | Install [Grok Build CLI](https://x.ai/cli), then run `grok login`.                                                                                        |
-| OpenCode    | Install [OpenCode](https://opencode.ai), then run `opencode auth login`.                                                                                  |
-| Antigravity | Install and sign in with Google from T3 Code's provider settings.                                                                                         |
-| Pi          | Install [Pi](https://pi.dev), then run `pi` once to finish its login or API-key setup.                                                                    |
+| Engine      | Installer                                             |
+| ----------- | ----------------------------------------------------- |
+| Claude Code | [Claude Code](https://claude.com/product/claude-code) |
+| Codex       | [Codex CLI](https://developers.openai.com/codex/cli)  |
+| OpenCode    | [OpenCode](https://opencode.ai)                       |
 
-Provider CLIs must be on the server's `PATH`. If T3 Code cannot find one, set its
-**Binary path** in provider settings, especially when using a version manager.
-Cursor's executable is `cursor-agent`, although its login command is
-`agent login`. Codex connected through ChatGPT and Antigravity can use their
-managed runtimes without a `PATH` entry.
+### Configure sites with CC Switch
 
-T3 Code warns when a provider version has known compatibility problems with your
-release. Check **Settings → Providers** on that environment for the recommended
-version or range. When its package manager supports installing a specific version,
-you can install the recommendation there. Otherwise use the provider's installer
-on the environment's machine. An unlisted version is unverified.
+Open **Settings → CC Switch** for the connected environment. Add a site, enter
+its API address and Key, and save. Saving automatically discovers its available
+models. For each engine, select one or more usable sites and a default site/model,
+then enable the gateway. Leaving the default model empty selects one automatically.
+In chat, choose **engine · site**, then its model. Several sites may offer the
+same model ID; each choice uses that site's Key. Use **Refresh models** when a
+site's catalog changes. The previous Providers settings entry now opens CC Switch.
 
-When a provider CLI is behind its latest release, its provider card shows the
-available version. **Update now** appears only when T3 Code can tell which
-installer owns the CLI (its own update command, Homebrew, or a global npm, pnpm,
-bun, or Vite+ install) and runs that installer. Otherwise update the CLI the same
-way you installed it. Homebrew installs compare against the version Homebrew
-offers, which can trail the npm release by a few hours.
+Each model must support its engine's protocol: Claude Messages or OpenAI Responses.
+CC Switch keeps each site's Key on the server and forwards the engines' requests.
+Changing a site's Key updates only that site; changing its address requires
+entering a Key again. Turning the gateway off restores the engines' previous
+connections. Removing a site clears its engine selections and saved Key after
+saving. Deleting the Key of a selected site turns off the gateway; select usable
+sites before enabling it again. Existing OpenViking knowledge and memory stay
+available. Start a new thread after changing default connections.
 
-Add another provider instance for a separate account or configuration. Each
-instance can have its own environment variables, such as API keys or a custom
-base URL. Mark secret values as sensitive; after saving, T3 Code does not display
-their original values.
-
-For provider-specific setup and accounts, see [Codex](./providers-codex.md),
-[Claude](./providers-claude.md), [OpenCode](./providers-opencode.md),
-[Antigravity](./providers-antigravity.md), and [Pi](./providers-pi.md).
+The environment needs the CC Switch CLI and its proxy support on Linux or macOS.
 
 ## Next steps
 

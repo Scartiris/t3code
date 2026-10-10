@@ -52,6 +52,7 @@ import {
   type ProviderInstance,
 } from "../ProviderDriver.ts";
 import { withInstanceIdentity } from "./instanceIdentity.ts";
+import { withCcSwitchModels } from "../CcSwitchModels.ts";
 import { mergeProviderInstanceEnvironment } from "../ProviderInstanceEnvironment.ts";
 import {
   enrichProviderSnapshotWithVersionAdvisory,
@@ -157,13 +158,16 @@ export const ClaudeDriver: ProviderDriver<ClaudeSettings, ClaudeDriverEnv> = {
           ? configDir
           : undefined,
       );
-      const stampIdentity = withInstanceIdentity({
-        instanceId,
-        driverKind: DRIVER_KIND,
-        displayName,
-        accentColor,
-        continuationGroupKey,
-      });
+      const stampIdentity = withCcSwitchModels(
+        environment,
+        withInstanceIdentity({
+          instanceId,
+          driverKind: DRIVER_KIND,
+          displayName,
+          accentColor,
+          continuationGroupKey,
+        }),
+      );
 
       const scopedLimitNames = yield* makeClaudeScopedLimitNames;
       const orchestrationAdapter = yield* createClaudeAdapterV2(

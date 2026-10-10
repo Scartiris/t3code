@@ -62,6 +62,7 @@ import {
   type ProviderInstance,
 } from "../ProviderDriver.ts";
 import { withInstanceIdentity } from "./instanceIdentity.ts";
+import { withCcSwitchModels } from "../CcSwitchModels.ts";
 import { mergeProviderInstanceEnvironment } from "../ProviderInstanceEnvironment.ts";
 import {
   enrichProviderSnapshotWithVersionAdvisory,
@@ -206,13 +207,16 @@ export const OpenCodeDriver: ProviderDriver<OpenCodeSettings, OpenCodeDriverEnv>
         driverKind: DRIVER_KIND,
         instanceId,
       });
-      const stampIdentity = withInstanceIdentity({
-        instanceId,
-        driverKind: DRIVER_KIND,
-        displayName,
-        accentColor,
-        continuationGroupKey: continuationIdentity.continuationKey,
-      });
+      const stampIdentity = withCcSwitchModels(
+        environment,
+        withInstanceIdentity({
+          instanceId,
+          driverKind: DRIVER_KIND,
+          displayName,
+          accentColor,
+          continuationGroupKey: continuationIdentity.continuationKey,
+        }),
+      );
       const effectiveConfig = { ...config, enabled } satisfies OpenCodeSettings;
       const runtimeProbe = yield* makeOpenCodeRuntimeProbe(
         probeOpenCodeRuntime(effectiveConfig, processEnv).pipe(
